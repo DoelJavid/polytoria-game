@@ -1,0 +1,185 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using Godot;
+using Polytoria.Attributes;
+using Polytoria.Datamodel.Resources;
+using Polytoria.Shared;
+
+namespace Polytoria.Datamodel;
+
+[Instantiable]
+public sealed partial class Image3D : Dynamic
+{
+	private ImageAsset? _asset;
+	private string _imageID = "";
+	private ImageTypeEnum _imageType;
+	private StandardMaterial3D _material = new();
+	private MeshInstance3D _mesh = null!;
+
+	private Vector2 _textureScale = Vector2.One;
+	private Vector2 _textureOffset = Vector2.Zero;
+	private Color _color = new(1, 1, 1);
+	private bool _castShadows;
+	private bool _shaded;
+	private bool _faceCamera;
+
+	[Editable, ScriptProperty]
+	public ImageAsset? Image
+	{
+		get => _asset;
+		set
+		{
+			if (_asset != null && _asset != value)
+			{
+				_asset.ResourceLoaded -= OnResourceLoaded;
+				_asset.UnlinkFrom(this);
+			}
+			_asset = value;
+			_material.AlbedoTexture = null;
+			if (_asset != null)
+			{
+				_asset.LinkTo(this);
+				_asset.ResourceLoaded += OnResourceLoaded;
+				_asset.QueueLoadResource();
+			}
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty, NoSync, Attributes.Obsolete("Use Asset instead"), CloneIgnore, SaveIgnore]
+	public string ImageID
+	{
+		get => _imageID;
+		set
+		{
+			_imageID = value;
+			CreatePTImageAsset();
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty, NoSync, Attributes.Obsolete("Use Asset instead"), CloneIgnore, SaveIgnore]
+	public ImageTypeEnum ImageType
+	{
+		get => _imageType;
+		set
+		{
+			_imageType = value;
+			CreatePTImageAsset();
+			OnPropertyChanged();
+		}
+	}
+
+
+	[Editable, ScriptProperty]
+	public Vector2 TextureScale
+	{
+		get => _textureScale;
+		set
+		{
+			_textureScale = value;
+			_material.Uv1Scale = new(value.X, value.Y, 1);
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty]
+	public Vector2 TextureOffset
+	{
+		get => _textureOffset;
+		set
+		{
+			_textureOffset = value;
+			_material.Uv1Offset = new(value.X, value.Y, 1);
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty]
+	public Color Color
+	{
+		get => _color;
+		set
+		{
+			_color = value;
+			_material.AlbedoColor = value;
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty, DefaultValue(true)]
+	public bool CastShadows
+	{
+		get => _castShadows;
+		set
+		{
+			_castShadows = value;
+			_mesh.CastShadow = value ? GeometryInstance3D.ShadowCastingSetting.On : GeometryInstance3D.ShadowCastingSetting.Off;
+			OnPropertyChanged();
+		}
+	}
+
+
+	[Editable, ScriptProperty, DefaultValue(true)]
+	public bool Shaded
+	{
+		get => _shaded;
+		set
+		{
+			_shaded = value;
+			_material.ShadingMode = value ? BaseMaterial3D.ShadingModeEnum.PerPixel : BaseMaterial3D.ShadingModeEnum.Unshaded;
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty, DefaultValue(false)]
+	public bool FaceCamera
+	{
+		get => _faceCamera;
+		set
+		{
+			_faceCamera = value;
+			_material.BillboardMode = value ? BaseMaterial3D.BillboardModeEnum.Enabled : BaseMaterial3D.BillboardModeEnum.Disabled;
+			OnPropertyChanged();
+		}
+	}
+
+	public override Node CreateGDNode()
+	{
+		return Globals.LoadNetworkedObjectScene(ClassName)!;
+	}
+
+	public override void Init()
+	{
+		_material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+		_mesh = GDNode.GetNode<MeshInstance3D>("Mesh");
+		_mesh.MaterialOverride = _material;
+
+		_material.BillboardKeepScale = true;
+
+		Shaded = true;
+		CastShadows = true;
+
+		base.Init();
+	}
+
+	private void CreatePTImageAsset()
+	{
+		if (!uint.TryParse(_imageID, out uint result))
+		{
+			return;
+		}
+
+		PTImageAsset polyImg = New<PTImageAsset>();
+		Image = polyImg;
+		polyImg.ImageType = _imageType;
+		polyImg.ImageID = result;
+	}
+
+	private void OnResourceLoaded(Resource tex)
+	{
+		_material.AlbedoTexture = (Texture2D)tex;
+	}
+}

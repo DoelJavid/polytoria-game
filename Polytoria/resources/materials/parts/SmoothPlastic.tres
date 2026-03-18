@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://csjtrsmw6u8qb"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "SmoothPlastic"
+roughness = 0.5

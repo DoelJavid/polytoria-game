@@ -1,0 +1,156 @@
+[gd_scene format=3 uid="uid://hvgn1lj5efon"]
+
+[ext_resource type="Theme" uid="uid://c18b344unwt2y" path="res://resources/themes/menu.tres" id="1_vtcli"]
+[ext_resource type="Script" uid="uid://cxh4n02fai28s" path="res://scripts/client/ui/menu/components/settings/UISettingsView.cs" id="2_erq3v"]
+[ext_resource type="PackedScene" uid="uid://brxt84nnr2cl7" path="res://scenes/client/ui/menu/components/settings/elements/check_button.tscn" id="3_1rbuc"]
+[ext_resource type="Script" uid="uid://ch8nv0h1qm6h4" path="res://scripts/client/ui/menu/components/settings/fields/UIScaleField.cs" id="3_t4k16"]
+
+[node name="View" type="PanelContainer" unique_id=2038225590 node_paths=PackedStringArray("FirstFocus")]
+size_flags_horizontal = 3
+theme = ExtResource("1_vtcli")
+script = ExtResource("2_erq3v")
+FirstFocus = NodePath("Layout/PhotoMode/Layout/Control/CheckButton")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1056490290]
+layout_mode = 2
+
+[node name="PhotoMode" type="PanelContainer" parent="Layout" unique_id=1875031988]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/PhotoMode" unique_id=224545416]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/PhotoMode/Layout" unique_id=1530819828]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/PhotoMode/Layout/Layout" unique_id=1033882574]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Photo Mode"
+
+[node name="Label2" type="Label" parent="Layout/PhotoMode/Layout/Layout" unique_id=1550800705]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
+text = "Deepfry your machine"
+autowrap_mode = 2
+
+[node name="Control" type="Control" parent="Layout/PhotoMode/Layout" unique_id=578712944]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/PhotoMode/Layout/Control" unique_id=1524529177 instance=ExtResource("3_1rbuc")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "PhotoMode"
+
+[node name="PostProcessing" type="PanelContainer" parent="Layout" unique_id=2064551473]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/PostProcessing" unique_id=492713714]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/PostProcessing/Layout" unique_id=1176477757]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/PostProcessing/Layout/Layout" unique_id=815935326]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Post Processing"
+
+[node name="Label2" type="Label" parent="Layout/PostProcessing/Layout/Layout" unique_id=775005233]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
+text = "Adds visual effects for a richer look."
+autowrap_mode = 2
+
+[node name="Control" type="Control" parent="Layout/PostProcessing/Layout" unique_id=1677921650]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/PostProcessing/Layout/Control" unique_id=549262497 instance=ExtResource("3_1rbuc")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "PostProcessing"
+
+[node name="VSync" type="PanelContainer" parent="Layout" unique_id=757375560]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/VSync" unique_id=1299579788]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/VSync/Layout" unique_id=676197530]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/VSync/Layout/Layout" unique_id=295671606]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "V-Sync"
+
+[node name="Control" type="Control" parent="Layout/VSync/Layout" unique_id=1472253707]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/VSync/Layout/Control" unique_id=605279630 instance=ExtResource("3_1rbuc")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "UseVSync"
+
+[node name="HSeparator" type="HSeparator" parent="Layout" unique_id=923000355]
+layout_mode = 2
+
+[node name="PostProcessing2" type="PanelContainer" parent="Layout" unique_id=150595213]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/PostProcessing2" unique_id=2015830447]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/PostProcessing2/Layout" unique_id=332122062]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/PostProcessing2/Layout/Layout" unique_id=542394423]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "UI Scale"
+
+[node name="Control" type="Control" parent="Layout/PostProcessing2/Layout" unique_id=1589487168]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="MenuButton" type="MenuButton" parent="Layout/PostProcessing2/Layout/Control" unique_id=463239078]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -14.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+text = "1x"
+flat = false
+script = ExtResource("3_t4k16")
+SettingName = "UIScale"

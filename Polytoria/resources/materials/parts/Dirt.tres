@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://boseejtbbvyf7"]
+
+[ext_resource type="Texture2D" uid="uid://b7b4oqatm2ao5" path="res://assets/textures/parts/Dirt/albedo.jpg" id="1_vilg5"]
+[ext_resource type="Texture2D" uid="uid://c7qysoq85dd8y" path="res://assets/textures/parts/Dirt/ao.jpg" id="2_tbsua"]
+[ext_resource type="Texture2D" uid="uid://dgc6pqm18rxhj" path="res://assets/textures/parts/Dirt/normal.jpg" id="3_7dr4a"]
+[ext_resource type="Texture2D" uid="uid://cf1b308v26jmr" path="res://assets/textures/parts/Dirt/roughness.jpg" id="4_k8iok"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Dirt"
+albedo_texture = ExtResource("1_vilg5")
+roughness = 0.75
+roughness_texture = ExtResource("4_k8iok")
+normal_enabled = true
+normal_texture = ExtResource("3_7dr4a")
+ao_enabled = true
+ao_texture = ExtResource("2_tbsua")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

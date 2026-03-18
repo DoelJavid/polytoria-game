@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bj2rkboem5ufu"]
+
+[ext_resource type="Texture2D" uid="uid://bntvtnqpldp6a" path="res://assets/textures/parts/Fabric/albedo.jpg" id="1_uj6ow"]
+[ext_resource type="Texture2D" uid="uid://c3f4rnp0im7gf" path="res://assets/textures/parts/Fabric/ao.jpg" id="2_qklo5"]
+[ext_resource type="Texture2D" uid="uid://bmy6qygv8fqd2" path="res://assets/textures/parts/Fabric/normal.jpg" id="3_nao6r"]
+[ext_resource type="Texture2D" uid="uid://dt4uwx3jgi3ns" path="res://assets/textures/parts/Fabric/roughness.jpg" id="4_4xwus"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Fabric"
+albedo_texture = ExtResource("1_uj6ow")
+roughness = 0.8
+roughness_texture = ExtResource("4_4xwus")
+normal_enabled = true
+normal_texture = ExtResource("3_nao6r")
+ao_enabled = true
+ao_texture = ExtResource("2_qklo5")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://g0ghgm0rsd6x"]
+
+[ext_resource type="Texture2D" uid="uid://cxsxmitcxu58t" path="res://assets/textures/parts/Planks/albedo.jpg" id="1_u7k2d"]
+[ext_resource type="Texture2D" uid="uid://difv3sfya2ouk" path="res://assets/textures/parts/Planks/ao.jpg" id="2_hpes6"]
+[ext_resource type="Texture2D" uid="uid://dtwu6jip401xr" path="res://assets/textures/parts/Planks/normal.jpg" id="3_5tgqg"]
+[ext_resource type="Texture2D" uid="uid://dnfpvmesm7152" path="res://assets/textures/parts/Planks/roughness.jpg" id="4_572ux"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Planks"
+albedo_texture = ExtResource("1_u7k2d")
+metallic_specular = 0.25
+roughness = 0.4
+roughness_texture = ExtResource("4_572ux")
+normal_enabled = true
+normal_texture = ExtResource("3_5tgqg")
+ao_enabled = true
+ao_texture = ExtResource("2_hpes6")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

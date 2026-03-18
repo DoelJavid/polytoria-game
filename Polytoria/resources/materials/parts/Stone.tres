@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cj71vp0vhy2tb"]
+
+[ext_resource type="Texture2D" uid="uid://l2nien3cwk8a" path="res://assets/textures/parts/Stone/albedo.jpg" id="1_ek1h8"]
+[ext_resource type="Texture2D" uid="uid://cnet0syg0jay2" path="res://assets/textures/parts/Stone/normal.jpg" id="3_el3rc"]
+[ext_resource type="Texture2D" uid="uid://dfrobi8ebnc8b" path="res://assets/textures/parts/Stone/roughness.jpg" id="4_ba64j"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Stone"
+albedo_texture = ExtResource("1_ek1h8")
+roughness = 0.5
+roughness_texture = ExtResource("4_ba64j")
+normal_enabled = true
+normal_texture = ExtResource("3_el3rc")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

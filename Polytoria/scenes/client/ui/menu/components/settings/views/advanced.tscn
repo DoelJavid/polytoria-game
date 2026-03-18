@@ -1,0 +1,152 @@
+[gd_scene format=3 uid="uid://32vlyicc7ku0"]
+
+[ext_resource type="Theme" uid="uid://c18b344unwt2y" path="res://resources/themes/menu.tres" id="1_nrdkr"]
+[ext_resource type="Script" uid="uid://cxh4n02fai28s" path="res://scripts/client/ui/menu/components/settings/UISettingsView.cs" id="2_fd22w"]
+[ext_resource type="PackedScene" uid="uid://brxt84nnr2cl7" path="res://scenes/client/ui/menu/components/settings/elements/check_button.tscn" id="3_ubbqy"]
+[ext_resource type="Script" uid="uid://bswy6v8atjrw2" path="res://scripts/client/ui/menu/components/settings/fields/PerformanceOverlayField.cs" id="4_ubbqy"]
+[ext_resource type="Script" uid="uid://c7spantdfhgu7" path="res://scripts/client/ui/menu/components/settings/UIBetaOptions.cs" id="4_vkwa1"]
+[ext_resource type="Script" uid="uid://heokpo1mnqou" path="res://scripts/client/ui/menu/components/settings/BetaDumpCurrentState.cs" id="5_m6hrs"]
+[ext_resource type="Script" uid="uid://jv1eqaxwf6g0" path="res://scripts/client/ui/menu/components/settings/UIStaffOptions.cs" id="6_yw57d"]
+[ext_resource type="Script" uid="uid://co1iq3a41uwpj" path="res://scripts/client/ui/menu/components/settings/UIViewLicensesButton.cs" id="8_6mwye"]
+
+[node name="View" type="PanelContainer" unique_id=1388355692 node_paths=PackedStringArray("FirstFocus")]
+size_flags_horizontal = 3
+theme = ExtResource("1_nrdkr")
+script = ExtResource("2_fd22w")
+FirstFocus = NodePath("Layout/BetaOptions/DevRenderWireframe/Layout/Control/CheckButton")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1935192332]
+layout_mode = 2
+
+[node name="PerformanceOverlayMode" type="PanelContainer" parent="Layout" unique_id=1198144181]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/PerformanceOverlayMode" unique_id=1594810845]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/PerformanceOverlayMode/Layout" unique_id=149208153]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/PerformanceOverlayMode/Layout/Layout" unique_id=161792420]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Performance Overlay"
+
+[node name="Control" type="Control" parent="Layout/PerformanceOverlayMode/Layout" unique_id=1298822641]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="MenuButton" type="MenuButton" parent="Layout/PerformanceOverlayMode/Layout/Control" unique_id=46788041]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -14.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+text = "Select"
+flat = false
+script = ExtResource("4_ubbqy")
+SettingName = "PerformanceOverlayMode"
+
+[node name="ShowConnectionIndicators" type="PanelContainer" parent="Layout" unique_id=1161529886]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/ShowConnectionIndicators" unique_id=467327195]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/ShowConnectionIndicators/Layout" unique_id=1659271334]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/ShowConnectionIndicators/Layout/Layout" unique_id=1607373022]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Show Connection Indicators"
+
+[node name="Control" type="Control" parent="Layout/ShowConnectionIndicators/Layout" unique_id=1342557895]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/ShowConnectionIndicators/Layout/Control" unique_id=868746920 instance=ExtResource("3_ubbqy")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "ShowConnectionIndicators"
+
+[node name="BetaOptions" type="VBoxContainer" parent="Layout" unique_id=1645178520]
+layout_mode = 2
+script = ExtResource("4_vkwa1")
+
+[node name="HSeparator" type="HSeparator" parent="Layout/BetaOptions" unique_id=916807586]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/BetaOptions" unique_id=1203464017]
+layout_mode = 2
+text = "- BETA OPTIONS -"
+horizontal_alignment = 1
+
+[node name="DevRenderWireframe" type="PanelContainer" parent="Layout/BetaOptions" unique_id=298023428]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/BetaOptions/DevRenderWireframe" unique_id=1361423495]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/BetaOptions/DevRenderWireframe/Layout" unique_id=1595901836]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/BetaOptions/DevRenderWireframe/Layout/Layout" unique_id=1389660648]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Render Wireframe"
+
+[node name="Control" type="Control" parent="Layout/BetaOptions/DevRenderWireframe/Layout" unique_id=5330144]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/BetaOptions/DevRenderWireframe/Layout/Control" unique_id=825582156 instance=ExtResource("3_ubbqy")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "DevRenderWireframe"
+
+[node name="StaffOptions" type="VBoxContainer" parent="Layout" unique_id=1178578792]
+layout_mode = 2
+script = ExtResource("6_yw57d")
+
+[node name="HSeparator" type="HSeparator" parent="Layout/StaffOptions" unique_id=62366112]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/StaffOptions" unique_id=1982249877]
+layout_mode = 2
+text = "- STAFF OPTIONS -"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="Layout/StaffOptions" unique_id=1014718139]
+layout_mode = 2
+text = "Dump Current State"
+script = ExtResource("5_m6hrs")
+
+[node name="HSeparator2" type="HSeparator" parent="Layout/StaffOptions" unique_id=2032120580]
+layout_mode = 2
+
+[node name="Licenses" type="Button" parent="Layout" unique_id=1659639656]
+layout_mode = 2
+text = "View Licenses"
+script = ExtResource("8_6mwye")

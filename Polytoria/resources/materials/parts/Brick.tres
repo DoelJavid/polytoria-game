@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cnqrj8sgmklcj"]
+
+[ext_resource type="Texture2D" uid="uid://bfswjptlde67c" path="res://assets/textures/parts/Brick/albedo.jpg" id="1_p863x"]
+[ext_resource type="Texture2D" uid="uid://bi341msn0fc2l" path="res://assets/textures/parts/Brick/ao.jpg" id="2_jx55a"]
+[ext_resource type="Texture2D" uid="uid://c5nevvfyjfowi" path="res://assets/textures/parts/Brick/normal.jpg" id="3_1q3ye"]
+[ext_resource type="Texture2D" uid="uid://bv0ynop74kvwf" path="res://assets/textures/parts/Brick/roughness.jpg" id="4_c073n"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Brick"
+albedo_texture = ExtResource("1_p863x")
+roughness = 0.5
+roughness_texture = ExtResource("4_c073n")
+normal_enabled = true
+normal_texture = ExtResource("3_1q3ye")
+ao_enabled = true
+ao_texture = ExtResource("2_jx55a")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

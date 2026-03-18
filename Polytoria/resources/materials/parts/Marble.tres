@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c18hvvl5m6sqa"]
+
+[ext_resource type="Texture2D" uid="uid://bd1rxfnd3sysk" path="res://assets/textures/parts/Marble/albedo.jpg" id="1_ninq6"]
+[ext_resource type="Texture2D" uid="uid://bt04cn0bofylh" path="res://assets/textures/parts/Marble/normal.jpg" id="2_qaeb7"]
+[ext_resource type="Texture2D" uid="uid://6rfjcmj2153y" path="res://assets/textures/parts/Marble/roughness.jpg" id="3_ll0yk"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Marble"
+albedo_texture = ExtResource("1_ninq6")
+metallic_specular = 0.75
+roughness = 0.4
+roughness_texture = ExtResource("3_ll0yk")
+normal_enabled = true
+normal_texture = ExtResource("2_qaeb7")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

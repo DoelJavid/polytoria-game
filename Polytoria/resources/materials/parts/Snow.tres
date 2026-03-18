@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b6glcnuk1qcum"]
+
+[ext_resource type="Texture2D" uid="uid://cddkfxb8mrr88" path="res://assets/textures/parts/Snow/albedo.jpg" id="1_ti61s"]
+[ext_resource type="Texture2D" uid="uid://dsfpjkpxnyyqa" path="res://assets/textures/parts/Snow/normal.jpg" id="2_7rayl"]
+[ext_resource type="Texture2D" uid="uid://c8hm2njdlpfd0" path="res://assets/textures/parts/Snow/roughness.jpg" id="3_sac86"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Snow"
+albedo_texture = ExtResource("1_ti61s")
+roughness = 0.5
+roughness_texture = ExtResource("3_sac86")
+normal_enabled = true
+normal_texture = ExtResource("2_7rayl")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://qxdh5016qja1"]
+
+[ext_resource type="Texture2D" uid="uid://bumhrxo5hi5gx" path="res://assets/textures/parts/Concrete/albedo.jpg" id="1_bnkc5"]
+[ext_resource type="Texture2D" uid="uid://dsvtk570njb7d" path="res://assets/textures/parts/Concrete/normal.jpg" id="2_2neer"]
+[ext_resource type="Texture2D" uid="uid://doeyv0e3dsrd8" path="res://assets/textures/parts/Concrete/roughness.jpg" id="3_33swu"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Concrete"
+albedo_texture = ExtResource("1_bnkc5")
+roughness = 0.8
+roughness_texture = ExtResource("3_33swu")
+normal_enabled = true
+normal_texture = ExtResource("2_2neer")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

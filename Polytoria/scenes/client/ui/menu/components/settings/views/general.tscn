@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://uvf8pb6ax2r7"]
+
+[ext_resource type="Theme" uid="uid://c18b344unwt2y" path="res://resources/themes/menu.tres" id="1_l1v71"]
+[ext_resource type="Script" uid="uid://cxh4n02fai28s" path="res://scripts/client/ui/menu/components/settings/UISettingsView.cs" id="2_mjqgk"]
+[ext_resource type="Script" uid="uid://bro8n37t2hma0" path="res://scripts/client/ui/menu/components/settings/fields/SoundSliderField.cs" id="3_0xgif"]
+[ext_resource type="PackedScene" uid="uid://brxt84nnr2cl7" path="res://scenes/client/ui/menu/components/settings/elements/check_button.tscn" id="3_mjqgk"]
+[ext_resource type="PackedScene" uid="uid://q0fiw8pxmokq" path="res://scenes/client/ui/menu/components/settings/elements/h_slider.tscn" id="4_mjqgk"]
+
+[node name="View" type="PanelContainer" unique_id=1603902480 node_paths=PackedStringArray("FirstFocus")]
+size_flags_horizontal = 3
+theme = ExtResource("1_l1v71")
+script = ExtResource("2_mjqgk")
+FirstFocus = NodePath("Layout/UseCtrlLock/Layout/Control/CheckButton")
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1774031965]
+layout_mode = 2
+
+[node name="UseCtrlLock" type="PanelContainer" parent="Layout" unique_id=453825821]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/UseCtrlLock" unique_id=1682301456]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/UseCtrlLock/Layout" unique_id=301703199]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/UseCtrlLock/Layout/Layout" unique_id=351750353]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Ctrl Lock"
+
+[node name="Control" type="Control" parent="Layout/UseCtrlLock/Layout" unique_id=59078630]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="CheckButton" parent="Layout/UseCtrlLock/Layout/Control" unique_id=951696991 instance=ExtResource("3_mjqgk")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "UseCtrlLock"
+
+[node name="UseFullscreen2" type="PanelContainer" parent="Layout" unique_id=1613019714]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/UseFullscreen2" unique_id=390599298]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/UseFullscreen2/Layout" unique_id=445617988]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/UseFullscreen2/Layout/Layout" unique_id=809397230]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Fullscreen"
+
+[node name="Control" type="Control" parent="Layout/UseFullscreen2/Layout" unique_id=975532757]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="CheckButton" parent="Layout/UseFullscreen2/Layout/Control" unique_id=868746920 instance=ExtResource("3_mjqgk")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -83.0
+offset_right = 0.0
+grow_horizontal = 0
+SettingName = "UseFullscreen"
+
+[node name="HSeparator" type="HSeparator" parent="Layout" unique_id=372283019]
+layout_mode = 2
+
+[node name="Volume" type="PanelContainer" parent="Layout" unique_id=231361246]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/Volume" unique_id=1644830317]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/Volume/Layout" unique_id=1832409211]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/Volume/Layout/Layout" unique_id=75077847]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Volume"
+
+[node name="Control" type="Control" parent="Layout/Volume/Layout" unique_id=902765061]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="HSlider" parent="Layout/Volume/Layout/Control" unique_id=798968877 instance=ExtResource("4_mjqgk")]
+modulate = Color(0.63529414, 0.33333334, 0.8666667, 1)
+layout_mode = 1
+script = ExtResource("3_0xgif")
+
+[node name="CameraSensitivity" type="PanelContainer" parent="Layout" unique_id=1880920675]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/CameraSensitivity" unique_id=2101941668]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/CameraSensitivity/Layout" unique_id=681566514]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/CameraSensitivity/Layout/Layout" unique_id=1521093266]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Camera Sensitivity"
+
+[node name="Control" type="Control" parent="Layout/CameraSensitivity/Layout" unique_id=2093869277]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="HSlider" parent="Layout/CameraSensitivity/Layout/Control" unique_id=713687576 instance=ExtResource("4_mjqgk")]
+modulate = Color(0.30980393, 0.9098039, 0.5137255, 1)
+layout_mode = 1
+min_value = 0.2
+max_value = 1.2
+step = 0.1
+value = 0.6000000000000001
+SettingName = "CameraSensitivity"

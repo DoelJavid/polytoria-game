@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://biv2xlr1yq52a"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Neon"
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 6.0

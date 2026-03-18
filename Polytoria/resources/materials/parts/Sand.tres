@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cg336hvo2cm0a"]
+
+[ext_resource type="Texture2D" uid="uid://b13etqv03akf7" path="res://assets/textures/parts/Sand/albedo.jpg" id="1_63rxi"]
+[ext_resource type="Texture2D" uid="uid://clbt4r4y6futv" path="res://assets/textures/parts/Sand/ao.jpg" id="2_xoxsh"]
+[ext_resource type="Texture2D" uid="uid://v0yay6f2esr" path="res://assets/textures/parts/Sand/normal.jpg" id="3_moksq"]
+[ext_resource type="Texture2D" uid="uid://bajbpxfsiv2q1" path="res://assets/textures/parts/Sand/roughness.jpg" id="4_ugbuu"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Sand"
+albedo_texture = ExtResource("1_63rxi")
+metallic_specular = 0.3
+roughness = 0.6
+roughness_texture = ExtResource("4_ugbuu")
+normal_enabled = true
+normal_texture = ExtResource("3_moksq")
+ao_enabled = true
+ao_texture = ExtResource("2_xoxsh")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

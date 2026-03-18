@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b2r2ldrol5hql"]
+
+[ext_resource type="Texture2D" uid="uid://bg8wir6uingk" path="res://assets/textures/parts/MetalGrid/albedo.jpg" id="1_t8vh6"]
+[ext_resource type="Texture2D" uid="uid://07c7aifcgnku" path="res://assets/textures/parts/MetalGrid/metallic.jpg" id="2_y32u1"]
+[ext_resource type="Texture2D" uid="uid://bwodafhvccffr" path="res://assets/textures/parts/MetalGrid/normal.jpg" id="3_q8ajr"]
+[ext_resource type="Texture2D" uid="uid://c85mhvngbneik" path="res://assets/textures/parts/MetalGrid/roughness.jpg" id="4_lw0g7"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "MetalGrid"
+albedo_texture = ExtResource("1_t8vh6")
+metallic = 1.0
+metallic_texture = ExtResource("2_y32u1")
+roughness = 0.7
+roughness_texture = ExtResource("4_lw0g7")
+normal_enabled = true
+normal_texture = ExtResource("3_q8ajr")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

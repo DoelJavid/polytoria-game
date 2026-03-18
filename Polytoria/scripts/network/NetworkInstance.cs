@@ -1,0 +1,346 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using Godot;
+using Polytoria.Shared;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Polytoria.Networking;
+
+/// <summary>
+/// ENet network instance
+/// </summary>
+public class NetworkInstance
+{
+	private const float SilenceTimeoutSeconds = 5.0f;
+	private const ENetConnection.CompressionMode CompressionMode = ENetConnection.CompressionMode.Zlib;
+	private const int BandwidthInLimit = 0;
+	private const int BandwidthOutLimit = 30 * 1024;
+	private long _lastMessageTicks = DateTime.UtcNow.Ticks;
+
+	private const int DefaultCapacity = 67;
+	private const int DefaultPort = 21441;
+	private const int MinimumTimeout = 0;
+
+	private readonly ENetConnection _peer;
+
+	private readonly ConcurrentQueue<Action> _actionQueue = new();
+	internal readonly ConcurrentDictionary<int, ENetPacketPeer> IdToPeer = [];
+	internal readonly ConcurrentDictionary<ENetPacketPeer, int> PeerToId = [];
+
+	public ICollection<int> PeerIds => IdToPeer.Keys;
+
+	private int _peerCounter = 1;
+
+	public event Action<int>? PeerConnected;
+	public event Action<int>? PeerDisconnected;
+	public event Action? ClientConnected;
+	public event Action? ClientDisconnected;
+	public event Action? ClientError;
+	public event Action<int, byte[], TransferMode>? MessageReceived;
+
+	public bool IsSilence { get; private set; } = false;
+	public bool IsServer { get; private set; } = false;
+	private bool _shutdownd = false;
+
+	public NetworkInstance()
+	{
+		_peer = new();
+	}
+
+	public void CreateServer(int port = DefaultPort, int maxChannels = 3)
+	{
+		Error e = _peer.CreateHostBound("*", port, DefaultCapacity, maxChannels);
+		_peer.Compress(CompressionMode);
+
+		if (e != Error.Ok)
+		{
+			PT.PrintErr("Couldn't create host: ", e);
+		}
+
+		IsServer = true;
+
+		PostPeerCreate();
+	}
+
+	public void CreateClient(string address, int port, int maxChannels = 3)
+	{
+		Error e = _peer.CreateHost(DefaultCapacity, maxChannels);
+		_peer.BandwidthLimit(BandwidthInLimit, BandwidthOutLimit);
+		_peer.Compress(CompressionMode);
+
+		if (e != Error.Ok)
+		{
+			PT.PrintErr("Couldn't create host: ", e);
+			return;
+		}
+
+		_peer.ConnectToHost(address, port);
+
+		PostPeerCreate();
+	}
+
+	private void PostPeerCreate()
+	{
+		_ = Task.Run(NetworkLoop);
+	}
+
+	public ENetPacketPeer? GetPacketPeerFromId(int id)
+	{
+		if (IdToPeer.TryGetValue(id, out ENetPacketPeer? p))
+		{
+			return p;
+		}
+		return null;
+	}
+
+	public void SendMessage(int targetID, byte[] data, TransferMode transferMode, int transferChannel = 0)
+	{
+		_actionQueue.Enqueue(() =>
+		{
+			ENetPacketPeer? peer = GetPacketPeerFromId(targetID);
+			if (peer == null)
+			{
+				GD.PushWarning(targetID, " doesn't exist");
+				return;
+			}
+			Error err = peer.Send(transferChannel, data, (int)transferMode);
+			if (err != Error.Ok)
+			{
+				GD.PushError("Send error: ", err);
+			}
+		});
+	}
+
+	public void DisconnectPeer(int targetID, bool force = false)
+	{
+		_actionQueue.Enqueue(() =>
+		{
+			ENetPacketPeer? peer = GetPacketPeerFromId(targetID);
+			if (peer == null)
+			{
+				GD.PushWarning(targetID, " doesn't exist");
+				return;
+			}
+			if (force)
+			{
+				peer.PeerDisconnectNow();
+			}
+			else
+			{
+				peer.PeerDisconnect();
+			}
+		});
+	}
+
+	public void Shutdown()
+	{
+		if (_shutdownd) return;
+		_shutdownd = true;
+		foreach ((_, ENetPacketPeer pk) in IdToPeer)
+		{
+			pk.PeerDisconnect();
+		}
+		_peer.Flush();
+		_peer.Destroy();
+	}
+
+	public void BroadcastMessage(byte[] data, TransferMode transferMode, int transferChannel = 0, int[]? except = null)
+	{
+		_actionQueue.Enqueue(() =>
+		{
+			foreach ((int id, ENetPacketPeer? peer) in IdToPeer)
+			{
+				if (!peer.IsActive()) continue;
+				if (except != null && except.Contains(id)) continue;
+				peer?.Send(transferChannel, data, (int)transferMode);
+			}
+		});
+	}
+
+	private void NetworkLoop()
+	{
+		while (true)
+		{
+			if (_shutdownd) return;
+			if (!GodotObject.IsInstanceValid(_peer)) return;
+			try
+			{
+				ProcessActionQueue();
+				ProcessNetwork();
+				CheckSilence();
+				_peer.Flush();
+				Thread.Sleep(1);
+			}
+			catch (Exception ex)
+			{
+				GD.PushError(ex);
+			}
+		}
+	}
+
+	public double PopStatistic(ENetConnection.HostStatistic hs)
+	{
+		return _peer.PopStatistic(hs);
+	}
+
+	private void ProcessNetwork()
+	{
+		while (true)
+		{
+			Godot.Collections.Array serviceData = _peer.Service(MinimumTimeout);
+
+			ENetConnection.EventType eventType = (ENetConnection.EventType)(int)serviceData[0];
+			ENetPacketPeer? fromPeer = (ENetPacketPeer?)serviceData[1];
+			int peerID = 0;
+			if (fromPeer != null)
+			{
+				if (PeerToId.TryGetValue(fromPeer, out int p))
+				{
+					peerID = p;
+				}
+			}
+
+			if (eventType == ENetConnection.EventType.Connect)
+			{
+				if (fromPeer == null) { PT.PrintWarn("Connect received but peer is null, return"); return; }
+
+				if (!IsServer)
+				{
+					peerID = 1;
+				}
+				else
+				{
+					_peerCounter++;
+					peerID = _peerCounter;
+				}
+
+				IdToPeer[peerID] = fromPeer;
+				PeerToId[fromPeer] = peerID;
+
+				Callable.From(() =>
+				{
+					if (IsServer)
+					{
+						PeerConnected?.Invoke(peerID);
+					}
+					else
+					{
+						ClientConnected?.Invoke();
+					}
+				}).CallDeferred();
+			}
+			else if (eventType == ENetConnection.EventType.Disconnect)
+			{
+				if (fromPeer == null) { PT.PrintWarn("Disconnect received but peer is null, return"); return; }
+				IdToPeer.TryRemove(peerID, out _);
+				PeerToId.TryRemove(fromPeer, out _);
+				Callable.From(() =>
+				{
+					if (IsServer)
+					{
+						PeerDisconnected?.Invoke(peerID);
+					}
+					else
+					{
+						ClientDisconnected?.Invoke();
+					}
+				}).CallDeferred();
+			}
+			else if (eventType == ENetConnection.EventType.Receive)
+			{
+				Interlocked.Exchange(ref _lastMessageTicks, DateTime.UtcNow.Ticks);
+				if (fromPeer == null) { PT.PrintWarn("Message received but peer is null, return"); return; }
+				while (fromPeer.GetAvailablePacketCount() > 0)
+				{
+					int pkf = fromPeer.GetPacketFlags();
+					TransferMode m = pkf switch
+					{
+						(int)ENetPacketPeer.FlagReliable => TransferMode.Reliable,
+						(int)ENetPacketPeer.FlagUnreliableFragment => TransferMode.UnreliableOrdered,
+						(int)ENetPacketPeer.FlagUnsequenced => TransferMode.Unreliable,
+						_ => TransferMode.Unreliable,
+					};
+					byte[] data = fromPeer.GetPacket();
+
+					Callable.From(() => MessageReceived?.Invoke(peerID, data, m)).CallDeferred();
+				}
+			}
+			else if (eventType == ENetConnection.EventType.Error)
+			{
+				PT.PrintErr("Client error");
+				Callable.From(() =>
+				{
+					ClientError?.Invoke();
+				}).CallDeferred();
+			}
+			else if (eventType == ENetConnection.EventType.None) return;
+		}
+	}
+
+	private void CheckSilence()
+	{
+		// Only check silence in client
+		if (IsServer) return;
+
+		long lastTicks = Interlocked.Read(ref _lastMessageTicks);
+		double elapsedSeconds = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - lastTicks).TotalSeconds;
+
+		bool currentlySilent = elapsedSeconds > SilenceTimeoutSeconds;
+
+		if (currentlySilent != IsSilence)
+		{
+			IsSilence = currentlySilent;
+			if (IsSilence)
+			{
+				PT.PrintErr("[!] Network connection has gone silent");
+			}
+			else
+			{
+				PT.Print("[i] Network connection resumed.");
+			}
+		}
+	}
+
+	private void ProcessActionQueue()
+	{
+		while (_actionQueue.TryDequeue(out Action? action))
+		{
+			try
+			{
+				action?.Invoke();
+			}
+			catch (Exception ex)
+			{
+				GD.PushError("Error processing queued action: ", ex);
+			}
+		}
+	}
+
+	public bool IsPeerConnected(int peerID)
+	{
+		return IdToPeer.ContainsKey(peerID);
+	}
+}
+
+public enum AuthorityMode
+{
+	Server,
+	Authority,
+	Any
+}
+
+
+public enum TransferMode
+{
+	Reliable = (int)ENetPacketPeer.FlagReliable,
+	UnreliableOrdered = (int)ENetPacketPeer.FlagUnreliableFragment,
+	Unreliable = (int)ENetPacketPeer.FlagUnsequenced,
+}
+
+public class NetworkException(string err) : Exception(err) { }

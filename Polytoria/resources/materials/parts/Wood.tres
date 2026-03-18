@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bg2wsv1skut25"]
+
+[ext_resource type="Texture2D" uid="uid://csooo1hu87qfb" path="res://assets/textures/parts/Wood/albedo.jpg" id="1_m307m"]
+[ext_resource type="Texture2D" uid="uid://ddfbxrbek5n54" path="res://assets/textures/parts/Wood/normal.jpg" id="2_27cjh"]
+[ext_resource type="Texture2D" uid="uid://cfafh7pcjcab6" path="res://assets/textures/parts/Wood/roughness.jpg" id="3_jyi82"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Wood"
+albedo_texture = ExtResource("1_m307m")
+metallic_specular = 0.3
+roughness = 0.55
+roughness_texture = ExtResource("3_jyi82")
+normal_enabled = true
+normal_texture = ExtResource("2_27cjh")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true
