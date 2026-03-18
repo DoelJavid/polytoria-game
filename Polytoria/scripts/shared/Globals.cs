@@ -156,6 +156,11 @@ public sealed partial class Globals : Node
 		GetTree().AutoAcceptQuit = false;
 		GetTree().QuitOnGoBack = false;
 
+#if PT_PRIVATE_API
+		Polytoria.Private.PrivateNode pv = new();
+		AddChild(pv);
+#endif
+
 		// Initialize Native
 		try
 		{
