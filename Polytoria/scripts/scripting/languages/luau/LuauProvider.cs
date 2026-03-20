@@ -1208,7 +1208,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			LuaState mainState = script.LuauState ?? throw new Exception("INTERNAL BUG: No main thread");
 
 			LuaState handler = NewThread(mainState);
-			int handlerRef = state.Ref();
+			int handlerRef = mainState.Ref();
 
 			PTCallback del = new(async (args) =>
 			{
