@@ -519,8 +519,8 @@ public partial class Animator : Instance
 		{
 			// Non impluse animation
 			oneshotPath = "parameters/DynBlendTree/" + filteredAnimKey + "_oneshot";
-			_dynPlayback.Start("End");
 		}
+		_dynPlayback.Start("End");
 
 		_targetDynBlendValue = 1;
 		AbortCurrentOneShot();
