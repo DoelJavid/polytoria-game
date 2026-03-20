@@ -59,6 +59,18 @@ public static class XmlFormat
 		PartMaterialEnum.Marble
 	];
 
+	private static readonly Dictionary<Type, string> _fixedServiceNames = new()
+	{
+		{typeof(Datamodel.Environment), nameof(Datamodel.Environment) },
+		{typeof(Datamodel.Lighting), nameof(Datamodel.Lighting) },
+		{typeof(Datamodel.Players), nameof(Datamodel.Players) },
+		{typeof(Datamodel.Services.ScriptService), nameof(Datamodel.Services.ScriptService) },
+		{typeof(Datamodel.Hidden), nameof(Datamodel.Hidden) },
+		{typeof(Datamodel.ServerHidden), nameof(Datamodel.ServerHidden) },
+		{typeof(Datamodel.PlayerDefaults), nameof(Datamodel.PlayerDefaults) },
+		{typeof(Datamodel.PlayerGUI), nameof(Datamodel.PlayerGUI) },
+	};
+
 	public class GameItem
 	{
 		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
@@ -453,6 +465,12 @@ public static class XmlFormat
 		}
 
 		if (item.Class == typeof(Player)) return null;
+
+		// Fixed name for services / static classes
+		if (_fixedServiceNames.TryGetValue(item.Class, out string? fixedName))
+		{
+			item.Name = fixedName;
+		}
 
 		string className = item.Class.Name;
 		Instance? instance = parent is World game ? game.FindChild<Instance>(className) : null;
