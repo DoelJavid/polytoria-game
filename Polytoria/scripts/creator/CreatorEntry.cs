@@ -60,11 +60,5 @@ public partial class CreatorEntry : Node
 		{
 			await PolyCreatorAPI.LoginWithToken(launchToken);
 		}
-		else
-		{
-#if PRODUCTION
-			Globals.Singleton.Quit(true);
-#endif
-		}
 	}
 }
