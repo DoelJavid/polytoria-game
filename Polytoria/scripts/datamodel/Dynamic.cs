@@ -8,11 +8,11 @@ using Polytoria.Attributes;
 using Polytoria.Creator.UI;
 using Polytoria.Datamodel.Services;
 using Polytoria.Creator.Spatial;
+using Polytoria.Datamodel.Interfaces;
 #endif
 using Polytoria.Utils;
 using System;
 using System.Collections.Generic;
-using Polytoria.Datamodel.Interfaces;
 
 namespace Polytoria.Datamodel;
 

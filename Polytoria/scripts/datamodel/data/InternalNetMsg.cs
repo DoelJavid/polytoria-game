@@ -6,7 +6,9 @@ using MemoryPack;
 using Polytoria.Attributes;
 using Polytoria.Networking.Synchronizers;
 using Polytoria.Scripting;
+#if DEBUG
 using Polytoria.Shared;
+#endif
 using Polytoria.Utils;
 using System;
 using System.Collections.Generic;
