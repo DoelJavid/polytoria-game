@@ -569,6 +569,7 @@ public partial class Animator : Instance
 
 	private void InternalStopAnimation()
 	{
+		CurrentAnimation = "";
 		// Stop Dyn playback & Reset blend value to zero
 		_targetDynBlendValue = 0;
 		_isPlaying = false;
