@@ -31,6 +31,7 @@ public partial class UIUserCard : Control
 		_plrIconAsset.ResourceLoaded += OnIconLoaded;
 		_plrIconAsset.ImageType = ImageTypeEnum.UserAvatarHeadshot;
 		_plrIconAsset.ImageID = (uint)TargetPlayer.UserID;
+		_plrIconAsset.LoadResource();
 
 		Root.Stats.StatAdded.Connect(AddStat);
 		Root.Stats.StatRemoved.Connect(RemoveStat);

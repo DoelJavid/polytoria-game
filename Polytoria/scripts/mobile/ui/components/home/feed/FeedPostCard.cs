@@ -29,6 +29,7 @@ public partial class FeedPostCard : Node
 		_pfpAsset.ResourceLoaded += OnPFPLoaded;
 		_pfpAsset.ImageType = ImageTypeEnum.UserAvatarHeadshot;
 		_pfpAsset.ImageID = (uint)Data.Author.Id;
+		_pfpAsset.LoadResource();
 		_usernameLabel.Text = Data.Author.Username;
 		_postDateLabel.Text = Data.PostedAt.ToShortDateString();
 		_contentLabel.Text = Data.Content;

@@ -32,6 +32,7 @@ public partial class UIAchievementNotification : UINotificationBase
 				_badgeImg.ResourceLoaded += OnBadgeImgLoaded;
 				_badgeImg.ImageType = ImageTypeEnum.AssetThumbnail;
 				_badgeImg.ImageID = (uint)payload.Id;
+				_badgeImg.LoadResource();
 				AchievementTitle.Text = item.Name;
 				AnimPlay.Play("appear");
 

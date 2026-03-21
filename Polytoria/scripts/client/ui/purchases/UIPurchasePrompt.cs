@@ -72,6 +72,7 @@ public partial class UIPurchasePrompt : Control
 		_iconImg.ResourceLoaded += OnIconImgLoaded;
 		_iconImg.ImageType = ImageTypeEnum.AssetThumbnail;
 		_iconImg.ImageID = (uint)item.Id;
+		_iconImg.LoadResource();
 
 		_animPlay.Play("RESET");
 		await ToSignal(_animPlay, AnimationPlayer.SignalName.AnimationFinished);

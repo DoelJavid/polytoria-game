@@ -25,6 +25,7 @@ public partial class UIPlayerCard : Node
 		_plrIconAsset.ResourceLoaded += OnIconLoaded;
 		_plrIconAsset.ImageType = ImageTypeEnum.UserAvatarHeadshot;
 		_plrIconAsset.ImageID = (uint)TargetPlayer.UserID;
+		_plrIconAsset.LoadResource();
 
 		_profileButton.Pressed += OnProfile;
 		_reportButton.Pressed += OnReport;

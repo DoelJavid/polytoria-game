@@ -37,6 +37,7 @@ public partial class UserHeadshotCard : Node
 	{
 		_iconAsset.ImageType = ImageTypeEnum.UserAvatarHeadshot;
 		_iconAsset.ImageID = UserID;
+		_iconAsset.LoadResource();
 
 		try
 		{
