@@ -3,6 +3,9 @@
 # Auto-generated Godot editor/import cache
 .godot/
 
+# Godot Export Templates (Please copy from the template: export_presets.cfg.template)
+Polytoria/export_presets.cfg
+
 ## -- .NET/C# Build Artifacts -- ##
 
 # Compiled output directories
