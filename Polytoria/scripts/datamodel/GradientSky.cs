@@ -22,7 +22,7 @@ public sealed partial class GradientSky : Sky
 
 	private Color _horizonLineColor = new(0.9044118f, 0.8872592f, 0.7913603f, 1);
 	private float _horizonLineExponent = 4;
-	//private float _horizonLineContribution = 0.25f;
+	private float _horizonLineContribution = 0.25f;
 
 	private Color _skyGradientTop = new(0.172549f, 0.5686274f, 0.6941177f, 1);
 	private Color _skyGradientBottom = new(0.764706f, 0.8156863f, 0.8509805f);
@@ -127,10 +127,10 @@ public sealed partial class GradientSky : Sky
 	[Editable, ScriptProperty]
 	public float HorizonLineContribution
 	{
-		get => _horizonLineExponent;
+		get => _horizonLineContribution;
 		set
 		{
-			_horizonLineExponent = value;
+			_horizonLineContribution = value;
 			_mat.SetShaderParameter("horizon_line_contribution", value);
 			OnPropertyChanged();
 		}
