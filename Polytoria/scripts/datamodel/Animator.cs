@@ -229,7 +229,8 @@ public partial class Animator : Instance
 		}
 	}
 
-	[ScriptMethod]
+	// NOTE: This is disabled until we find a better solution to animations
+	//[ScriptMethod]
 	public void ImportMeshAnimation(string key, MeshAnimationAsset asset)
 	{
 		InternalImportMeshAnimation(key, asset);
