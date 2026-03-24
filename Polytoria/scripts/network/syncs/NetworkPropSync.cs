@@ -511,6 +511,9 @@ public sealed partial class NetworkPropSync : Instance
 
 	private void BroadcastBatchPropExcludePeer(BatchPropObjectData[] payload, bool unreliable, int excludePeer)
 	{
+		// Ignore if net instance is null (can be in creator)
+		if (NetService.NetInstance == null) return;
+
 		var rpcName = unreliable ? nameof(NetRecvBatchedPropsUnreliable) : nameof(NetRecvBatchedPropsReliable);
 		var data = SerializeUtils.Serialize(payload);
 
