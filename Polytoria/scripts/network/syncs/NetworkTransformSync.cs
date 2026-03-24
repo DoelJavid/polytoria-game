@@ -257,6 +257,8 @@ public partial class NetworkTransformSync : Instance
 
 	private void BroadcastBatchedTransforms()
 	{
+		if (NetService.NetInstance == null) return;
+
 		Dictionary<int, List<BatchTransformData>> batchesByExcludedPeer = [];
 
 		foreach (var (k, pending) in _pendingBatchUpdate)

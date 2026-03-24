@@ -34,6 +34,7 @@ public partial class UIIndicators : Control
 
 		LinkIndicator(GetNode<Control>("Silence"), () =>
 		{
+			if (_root.Network.NetInstance == null) return false;
 			return _root.Network.NetInstance.IsSilence;
 		});
 

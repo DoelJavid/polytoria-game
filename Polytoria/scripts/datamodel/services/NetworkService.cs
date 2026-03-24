@@ -61,7 +61,7 @@ public sealed partial class NetworkService : Instance
 	public NetworkReplicateSync ReplicateSync { get; private set; } = new();
 	public NetworkScriptSync ScriptSync { get; private set; } = new();
 
-	public NetworkInstance NetInstance = null!;
+	public NetworkInstance? NetInstance = null;
 	public bool IsServer = false;
 	public bool IsDisconnected = false;
 	public bool IsShuttingDown = false;
@@ -161,11 +161,13 @@ public sealed partial class NetworkService : Instance
 
 	private void SetupPeer()
 	{
+		if (NetInstance == null) return;
 		NetInstance.MessageReceived += OnMessageRecv;
 	}
 
 	private async void OnMessageRecv(int fromPeer, byte[] data, TransferMode tfm)
 	{
+		if (NetInstance == null) return;
 #if DEBUG
 		string netDebugTrace = "";
 #endif
@@ -456,7 +458,7 @@ public sealed partial class NetworkService : Instance
 	{
 		RpcId(peerID, nameof(NetRecvDisconnect), reason, (int)code);
 		await Globals.Singleton.WaitAsync(3);
-		NetInstance.DisconnectPeer(peerID, true);
+		NetInstance?.DisconnectPeer(peerID, true);
 	}
 
 	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
@@ -518,6 +520,7 @@ public sealed partial class NetworkService : Instance
 	[NetRpc(AuthorityMode.Any, TransferMode = TransferMode.Reliable)]
 	private async void NetAuthResponse(int testUserID, string userToken, int networkMode, int platform, string platformStr, byte[] pk)
 	{
+		if (NetInstance == null) return;
 		int peerID = RemoteSenderId;
 
 		if (IntegrityCheckLayer != null)

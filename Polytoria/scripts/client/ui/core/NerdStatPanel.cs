@@ -62,18 +62,22 @@ public partial class NerdStatPanel : Control
 		CreateDivider();
 		CreateLabel("Data Send", () =>
 		{
+			if (_root.Network.NetInstance == null) return "N/A";
 			return _root.Network.NetInstance.PopStatistic(ENetConnection.HostStatistic.SentData).Bytes().Kilobytes.ToString("0.##") + " kb/s";
 		});
 		CreateLabel("Data Receive", () =>
 		{
+			if (_root.Network.NetInstance == null) return "N/A";
 			return _root.Network.NetInstance.PopStatistic(ENetConnection.HostStatistic.ReceivedData).Bytes().Kilobytes.ToString("0.##") + " kb/s";
 		});
 		CreateLabel("Packet Send", () =>
 		{
+			if (_root.Network.NetInstance == null) return "N/A";
 			return _root.Network.NetInstance.PopStatistic(ENetConnection.HostStatistic.SentPackets).ToString();
 		});
 		CreateLabel("Packet Receive", () =>
 		{
+			if (_root.Network.NetInstance == null) return "N/A";
 			return _root.Network.NetInstance.PopStatistic(ENetConnection.HostStatistic.ReceivedPackets).ToString();
 		});
 		CreateLabel("Network Clock", () =>
