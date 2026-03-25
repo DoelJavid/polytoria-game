@@ -14,9 +14,7 @@ public partial class AppEntry : Node
 {
 	public async override void _Ready()
 	{
-		PT.Print("App entering");
-		Dictionary<string, string> cmdargs = Globals.ReadCmdArgs();
-		bool isCreatorHost = cmdargs.ContainsKey("creatorhost");
+		Dictionary<string, string> cmdargs = ReadCmdArgs();
 		bool isApiRefGen = cmdargs.ContainsKey("genapi");
 		bool isCreator = cmdargs.ContainsKey("creator");
 		bool isLtChild = cmdargs.ContainsKey("ltchild");
@@ -24,7 +22,7 @@ public partial class AppEntry : Node
 
 		if (cmdargs.TryGetValue("wait", out string? waitTime))
 		{
-			await ToSignal(GetTree().CreateTimer(int.Parse(waitTime)), "timeout");
+			await Singleton.WaitAsync(float.Parse(waitTime));
 		}
 
 		if (isApiRefGen && IsInGDEditor)
@@ -41,7 +39,7 @@ public partial class AppEntry : Node
 		{
 			entry = AppEntryEnum.Client;
 		}
-		if (OS.HasFeature("creator") || isCreatorHost || isCreator)
+		if (OS.HasFeature("creator") || isCreator)
 		{
 			entry = AppEntryEnum.Creator;
 		}
@@ -64,7 +62,6 @@ public partial class AppEntry : Node
 			entry = AppEntryEnum.Client;
 		}
 
-		PT.Print("Switching entry...");
 		Callable.From(() =>
 		{
 			Node app = Globals.Singleton.SwitchEntry(entry);
