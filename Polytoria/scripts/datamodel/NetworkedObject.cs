@@ -1360,10 +1360,6 @@ public partial class NetworkedObject : IScriptObject
 
 		if (prop == null) return;
 
-		Type targetType = prop.PropertyType;
-
-		object? value = NetworkPropSync.DeserializePropValue(propValueRaw, targetType);
-
 		// Check sequence
 		if (sequence != -1)
 		{
@@ -1381,6 +1377,10 @@ public partial class NetworkedObject : IScriptObject
 			// Ignore property override if author writable is true
 			if (sv.AllowAuthorWrite && Root.Network.LocalPeerID == NetworkAuthority) return;
 		}
+
+		Type targetType = prop.PropertyType;
+
+		object? value = NetworkPropSync.DeserializePropValue(propValueRaw, targetType);
 
 		// Handle NetworkedObject references
 		if (targetType.IsAssignableTo(typeof(NetworkedObject)))
