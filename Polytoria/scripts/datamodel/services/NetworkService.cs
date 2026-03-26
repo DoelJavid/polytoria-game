@@ -807,7 +807,7 @@ public sealed partial class NetworkService : Instance
 		int peerID = RemoteSenderId;
 		Player? plr = Root.Players.GetPlayerFromPeerID(peerID);
 
-		if (plr != null && plr.IsReady == false)
+		if (plr != null && !plr.IsReady)
 		{
 			ActivePeerIDs.Remove(peerID);
 			ActivePeerIDs.Add(peerID);
@@ -887,6 +887,7 @@ public sealed partial class NetworkService : Instance
 	{
 		[JsonInclude] public string name = null!;
 		[JsonInclude] public byte[] valueRaw = null!;
+		[JsonInclude] public long Sequence = 0;
 	}
 
 	[MemoryPackable]

@@ -49,6 +49,7 @@ public partial class NetworkedObject : IScriptObject
 
 	internal bool InvokedEntry = false;
 	internal HashSet<NetworkedObject> NonInstanceChildren = [];
+	internal readonly Dictionary<string, long> PropertySequence = [];
 
 	public NetworkedObject? NetworkParent
 	{
@@ -1010,6 +1011,7 @@ public partial class NetworkedObject : IScriptObject
 				|| (!syncvar.AllowAuthorWrite && !syncvar.ServerOnly)
 				// AllowAuthorWrite rule
 				|| (syncvar.AllowAuthorWrite && NetworkAuthority == Root.Network.LocalPeerID)
+				// ServerOnly rule
 				|| (syncvar.ServerOnly && Root.Network.IsServer);
 
 			bool broadcastUnreliable = false;
@@ -1067,6 +1069,39 @@ public partial class NetworkedObject : IScriptObject
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// Get sequence of property name
+	/// </summary>
+	/// <param name="propertyName"></param>
+	/// <returns></returns>
+	internal long GetSequenceForProp(string propertyName)
+	{
+		PropertySequence.TryGetValue(propertyName, out long val);
+		val += 1;
+		PropertySequence[propertyName] = val;
+
+		return val;
+	}
+
+	/// <summary>
+	/// Compare sequence with the property
+	/// </summary>
+	/// <param name="propertyName"></param>
+	/// <param name="sequence"></param>
+	/// <returns></returns>
+	internal bool CompareSequenceForProp(string propertyName, long sequence)
+	{
+		PropertySequence.TryGetValue(propertyName, out long val);
+
+		if (sequence > val)
+		{
+			PropertySequence[propertyName] = sequence;
+			return true;
+		}
+
+		return false;
 	}
 
 	private void BroadcastReplicate()
@@ -1241,13 +1276,18 @@ public partial class NetworkedObject : IScriptObject
 		Root.Network.PropSync.NetSendAllPropUpdate(this, toPeerId);
 	}
 
+	/// <summary>
+	/// Apply network properties after first replication
+	/// </summary>
+	/// <param name="props"></param>
+	/// <param name="isSyncOnce"></param>
 	public void ApplyNetProps(NetPropReplicateData[] props, bool isSyncOnce)
 	{
 		foreach (NetPropReplicateData prop in props)
 		{
 			try
 			{
-				RecvPropUpdate(prop.name, prop.valueRaw);
+				RecvPropUpdate(prop.name, prop.valueRaw, prop.Sequence);
 			}
 			catch (Exception ex)
 			{
@@ -1285,6 +1325,7 @@ public partial class NetworkedObject : IScriptObject
 				{
 					name = prop.Name,
 					valueRaw = NetworkPropSync.SerializePropValue(value),
+					Sequence = GetSequenceForProp(prop.Name)
 				});
 			}
 		}
@@ -1313,12 +1354,26 @@ public partial class NetworkedObject : IScriptObject
 		return null;
 	}
 
-	internal void RecvPropUpdate(string propName, byte[] propValueRaw)
+	internal void RecvPropUpdate(string propName, byte[] propValueRaw, long sequence)
 	{
 		PropertyInfo? prop = GetSyncProperty(propName);
 
 		if (prop == null) return;
 
+		Type targetType = prop.PropertyType;
+
+		object? value = NetworkPropSync.DeserializePropValue(propValueRaw, targetType);
+
+		// Check sequence
+		if (sequence != -1)
+		{
+			if (!CompareSequenceForProp(prop.Name, sequence))
+			{
+				return;
+			}
+		}
+
+		// Check SyncVar
 		SyncVarAttribute? sv = prop.GetCustomAttribute<SyncVarAttribute>();
 
 		if (sv != null)
@@ -1326,10 +1381,6 @@ public partial class NetworkedObject : IScriptObject
 			// Ignore property override if author writable is true
 			if (sv.AllowAuthorWrite && Root.Network.LocalPeerID == NetworkAuthority) return;
 		}
-
-		Type targetType = prop.PropertyType;
-
-		object? value = NetworkPropSync.DeserializePropValue(propValueRaw, targetType);
 
 		// Handle NetworkedObject references
 		if (targetType.IsAssignableTo(typeof(NetworkedObject)))
