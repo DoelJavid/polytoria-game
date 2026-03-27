@@ -460,7 +460,7 @@ public sealed partial class World : Instance
 		if (WorldInfo.HasValue)
 		{
 			// Set Window title to game name
-			DisplayServer.WindowSetTitle($"Polytoria - {TitleEllipsis(WorldInfo.Value.Name, 50)}");
+			DisplayServer.WindowSetTitle($"{TitleEllipsis(WorldInfo.Value.Name, 50)} - Polytoria");
 
 			WorldInfoReady?.Invoke(WorldInfo.Value);
 		}
