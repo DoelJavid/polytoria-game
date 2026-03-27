@@ -459,6 +459,9 @@ public sealed partial class World : Instance
 		WorldInfo = await PolyAPI.GetWorldFromID(WorldID);
 		if (WorldInfo.HasValue)
 		{
+			// Set Window title to game name
+			DisplayServer.WindowSetTitle($"Polytoria - {TitleEllipsis(WorldInfo.Value.Name, 50)}");
+
 			WorldInfoReady?.Invoke(WorldInfo.Value);
 		}
 		WorldMedia = await PolyAPI.GetWorldMedia(WorldID);
@@ -468,6 +471,10 @@ public sealed partial class World : Instance
 			WorldMediaReady?.Invoke(WorldMedia);
 		}
 	}
+
+	private static string TitleEllipsis(string text, int maxLength) =>
+	text.Length > maxLength ? string.Concat(text.AsSpan(0, maxLength), "...") : text;
+
 
 	internal void DispatchClientScriptRun()
 	{
