@@ -24,7 +24,7 @@ public partial class AssetLoader : Node
 	public static AssetLoader Singleton { get; private set; } = null!;
 	public bool UseAssetLoader { get; set; } = true;
 
-	private const int MaxConcurrentRequests = 5;
+	private const int MaxConcurrentRequests = 1;
 
 	private readonly BlockingCollection<(CacheItem Item, dynamic Callback)> _queue = [];
 
