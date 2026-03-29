@@ -239,7 +239,6 @@ public sealed partial class Mesh : Entity
 						if (mat is StandardMaterial3D sm3d)
 						{
 							mat.SetMeta("_origin_clr", sm3d.AlbedoColor);
-							sm3d.CullMode = BaseMaterial3D.CullModeEnum.Back;
 						}
 					}
 				}
