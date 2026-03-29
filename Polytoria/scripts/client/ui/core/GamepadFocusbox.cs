@@ -18,40 +18,20 @@ public partial class GamepadFocusbox : Control
 	public override void _Ready()
 	{
 		Visible = false;
-		if (Input.GetConnectedJoypads().Count > 0)
-		{
-			OnGamepadConnected();
-		}
-
-		Input.Singleton.JoyConnectionChanged += OnJoyConnectionChanged;
-	}
-
-	private void OnJoyConnectionChanged(long device, bool connected)
-	{
-		if (device == 0)
-		{
-			if (connected)
-			{
-				OnGamepadConnected();
-			}
-			else
-			{
-				OnGamepadDisconnected();
-			}
-		}
-	}
-
-	private void OnGamepadConnected()
-	{
-		_isGamepadActive = true;
 		SetProcess(true);
 	}
 
-	private void OnGamepadDisconnected()
+	public override void _Input(InputEvent @event)
 	{
-		_isGamepadActive = false;
-		Visible = false;
-		SetProcess(false);
+		if (@event is InputEventJoypadButton || @event is InputEventJoypadMotion joyMotion && Mathf.Abs(joyMotion.AxisValue) > 0.2f)
+		{
+			_isGamepadActive = true;
+		}
+		else if (@event is InputEventKey || @event is InputEventMouseButton || @event is InputEventMouseMotion)
+		{
+			_isGamepadActive = false;
+			Visible = false;
+		}
 	}
 
 	public override void _Process(double delta)
