@@ -71,10 +71,9 @@ public partial class BodyPosition : Instance
 			{
 				Vector3 currentPos = rigid3D.GlobalPosition;
 
-				// TODO: barebone implementation, needs some work here
-				if (currentPos.DistanceTo(gdPos) > AcceptanceDistance)
+				if (currentPos.Flip().DistanceTo(gdPos) > AcceptanceDistance)
 				{
-					Vector3 dir = TargetPosition - currentPos;
+					Vector3 dir = gdPos - currentPos;
 					rigid3D.LinearVelocity = dir * Force;
 				}
 			}
