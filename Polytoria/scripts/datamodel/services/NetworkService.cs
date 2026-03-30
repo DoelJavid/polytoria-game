@@ -552,10 +552,11 @@ public sealed partial class NetworkService : Instance
 		APIUserInfo userData;
 		try
 		{
-			validateRes = new() { CanChat = true, UserID = testUserID, IsCreator = true, IsAgeRestricted = false };
+			validateRes = new() { CanChat = true, UserID = testUserID, IsCreator = false, IsAgeRestricted = false };
 			if (OS.HasFeature("offline") || (Root.Entry != null && Root.Entry.IsSoloTest))
 			{
 				// Offline data
+				validateRes.IsCreator = true;
 				userData = new() { Username = "Player" + testUserID.ToString(), Id = testUserID, IsStaff = false };
 			}
 			else if (IsProd)

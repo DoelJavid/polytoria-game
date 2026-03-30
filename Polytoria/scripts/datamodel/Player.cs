@@ -986,4 +986,23 @@ public sealed partial class Player : NPC
 		// TODO: Make sanity checks here
 		return true;
 	}
+
+	internal void AdminKick()
+	{
+		RpcId(1, nameof(NetAdminKick));
+	}
+
+	[NetRpc(AuthorityMode.Any, TransferMode = TransferMode.Reliable)]
+	private void NetAdminKick()
+	{
+		var sender = Root.Players.GetPlayerFromPeerID(RemoteSenderId);
+
+		if (sender == null) return; // Sender doesn't exist ?
+
+		// If is creator or is admin
+		if (sender.IsCreator || sender.IsAdmin)
+		{
+			Kick("You have been kicked by game administrator.");
+		}
+	}
 }

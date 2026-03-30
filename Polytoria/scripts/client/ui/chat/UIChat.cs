@@ -108,15 +108,20 @@ public partial class UIChat : Control
 		// Handle commands
 		if (text.StartsWith('/'))
 		{
-			string[] cmd = text.Split("/");
-			if (cmd.Length == 1) return;
+			string[] cmd = text.Split(' ');
 
-			if (cmd[1] == "spectator")
+			if (cmd[0] == "/spectator")
 			{
 				Root.Capture.OpenSpectatorView();
 				return;
 			}
-			string emoteName = text.Replace("/", "");
+			else if (cmd[0] == "/kick")
+			{
+				Root.Players.AdminKick(cmd[1]);
+				return;
+			}
+
+			string emoteName = cmd[0][1..];
 			Root.Players.LocalPlayer.PlayEmote(emoteName);
 			return;
 		}

@@ -208,6 +208,14 @@ public sealed partial class Players : Instance
 		Root.Network.OnLocalPlayerReady();
 	}
 
+	internal void AdminKick(string username)
+	{
+		if (GetPlayer(username) is Player plr)
+		{
+			plr.AdminKick();
+		}
+	}
+
 	private struct AuthenticationData
 	{
 		public string UserID = null!;
