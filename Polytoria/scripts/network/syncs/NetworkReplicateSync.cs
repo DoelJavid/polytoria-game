@@ -48,7 +48,7 @@ public sealed partial class NetworkReplicateSync : Instance
 		SendChunk(netObjs, plr, true);
 	}
 
-	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
+	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable, UseDataChannel = true)]
 	private async void NetRecvChunk(byte[] rawBytes, bool isPlaceReplicate)
 	{
 		// Wait frame for all deletion to finish

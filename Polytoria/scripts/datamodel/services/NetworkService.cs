@@ -161,11 +161,10 @@ public sealed partial class NetworkService : Instance
 
 	private void SetupPeer()
 	{
-		if (NetInstance == null) return;
-		NetInstance.MessageReceived += OnMessageRecv;
+		NetInstance?.MessageReceived += OnMessageRecv;
 	}
 
-	private async void OnMessageRecv(int fromPeer, byte[] data, TransferMode tfm)
+	private async void OnMessageRecv(int fromPeer, byte[] data, TransferMode tfm, bool fromDataCh)
 	{
 		if (NetInstance == null) return;
 #if DEBUG
@@ -212,6 +211,8 @@ public sealed partial class NetworkService : Instance
 					// Check if is authority
 					if (originFromPeer != 1 && netMsg.BroadcastAll && rpcA.AllowToServerOnly) throw new NetworkException($"Broadcast to server only rule violation, from peer {originFromPeer} ({md.Name})");
 				}
+
+				if (rpcA.UseDataChannel != fromDataCh) throw new NetworkException($"DataChannel rule violation ({md.Name})");
 
 				List<Type> paramTypes = [];
 
@@ -344,12 +345,12 @@ public sealed partial class NetworkService : Instance
 		OnSessionStarted();
 	}
 
-	public void CreateClient(string address, int port = 24221)
+	public async void CreateClient(string address, int port = 24221)
 	{
 		SetupNetwork();
 
 		NetInstance = new();
-		NetInstance.CreateClient(address, port);
+		await NetInstance.CreateClient(address, port);
 
 		SetupPeer();
 
@@ -646,6 +647,7 @@ public sealed partial class NetworkService : Instance
 
 		ReplicateSync.SyncPlaceToPlayer(plr);
 
+		// Connection timeout
 		await Globals.Singleton.WaitAsync(ConnectTimeoutSec);
 		if (!plr.IsDeleted && !plr.IsReady)
 		{

@@ -60,4 +60,8 @@ public sealed class NetRpcAttribute(AuthorityMode AuthorMode) : Attribute
 	/// Only allow this RPC to be called from server, used with any broadcast to everyone
 	/// </summary>
 	public bool AllowToServerOnly = true;
+	/// <summary>
+	/// Use Data channel for this method, this switches the method to communicate via TCP. Recommended for method that expects a large packet
+	/// </summary>
+	public bool UseDataChannel = false;
 }

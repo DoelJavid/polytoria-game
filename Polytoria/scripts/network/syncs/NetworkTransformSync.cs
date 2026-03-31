@@ -93,7 +93,7 @@ public partial class NetworkTransformSync : Instance
 		return data;
 	}
 
-	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
+	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable, UseDataChannel = true)]
 	private void NetRecvAllTransform(byte[] rawBytes, bool isFirstInit)
 	{
 		List<NetBatchTransformData> netObjsData = JsonSerializer.Deserialize(ZstdCompressionUtils.Decompress(rawBytes), NetDataGenerationContext.Default.ListNetBatchTransformData)!;

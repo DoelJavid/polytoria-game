@@ -1622,11 +1622,11 @@ public partial class NetworkedObject : IScriptObject
 
 		if (Root.Network.IsServer)
 		{
-			Root.Network.NetInstance.BroadcastMessage(msg, rpcA.TransferMode, rpcA.TransferChannel);
+			Root.Network.NetInstance.BroadcastMessage(msg, rpcA.TransferMode, rpcA.TransferChannel, useDataChannel: rpcA.UseDataChannel);
 		}
 		else
 		{
-			Root.Network.NetInstance.SendMessage(1, msg, rpcA.TransferMode, rpcA.TransferChannel);
+			Root.Network.NetInstance.SendMessage(1, msg, rpcA.TransferMode, rpcA.TransferChannel, rpcA.UseDataChannel);
 		}
 	}
 
@@ -1675,7 +1675,7 @@ public partial class NetworkedObject : IScriptObject
 		{
 			PT.Print($"RPCID {id} {methodName} ({msg.Length.Bytes().Kilobytes}kb) ({args?.Length ?? 0} args)");
 		}
-		Root.Network.NetInstance.SendMessage(id, msg, rpcA.TransferMode, rpcA.TransferChannel);
+		Root.Network.NetInstance.SendMessage(id, msg, rpcA.TransferMode, rpcA.TransferChannel, rpcA.UseDataChannel);
 	}
 
 	internal MethodInfo GetRpcMethod(string methodName)
