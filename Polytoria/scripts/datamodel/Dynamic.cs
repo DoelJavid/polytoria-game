@@ -13,7 +13,6 @@ using Polytoria.Datamodel.Interfaces;
 using Polytoria.Utils;
 using System;
 using System.Collections.Generic;
-using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
@@ -410,60 +409,55 @@ public partial class Dynamic : Instance
 		}
 	}
 
-	// NOTE: Update operations are called in deferred frame because godot updates the transform later, not immediately
+	// NOTE: Update operations needs transform to be force updated as godot does not update them instantly
 	protected void UpdateNetTransform()
 	{
 		if (Root == null || Root.Network == null) return;
 
-		PT.CallDeferred(() =>
-		{
-			Transform3D current = GetLocalTransform();
+		GDNode3D.ForceUpdateTransform();
+		Transform3D current = GetLocalTransform();
 
-			_lastSentTransform = current;
+		_lastSentTransform = current;
 
-			InvokeTransformChanged();
-			SendNetTransformUnreliable();
-		});
+		InvokeTransformChanged();
+		SendNetTransformUnreliable();
 	}
 
 	protected void UpdateNetTransformReliable()
 	{
 		if (Root == null || Root.Network == null) return;
 
-		PT.CallDeferred(() =>
+		GDNode3D.ForceUpdateTransform();
+		Transform3D current = GetLocalTransform();
+
+		// Only send if changed
+		if (_lastSentTransform == null || !_lastSentTransform.Value.IsEqualApprox(current))
 		{
-			Transform3D current = GetLocalTransform();
+			_lastSentTransform = current;
 
-			// Only send if changed
-			if (_lastSentTransform == null || !_lastSentTransform.Value.IsEqualApprox(current))
-			{
-				_lastSentTransform = current;
-
-				InvokeTransformChanged();
-				if (!Root.IsLoaded) return;
-				SendNetTransformReliable();
-			}
-		});
+			InvokeTransformChanged();
+			if (!Root.IsLoaded) return;
+			SendNetTransformReliable();
+		}
 	}
 
 	protected void SendNetTransformUnreliable(bool lerp = true)
 	{
 		if (Root == null || Root?.Network == null) { return; }
-		PT.CallDeferred(() =>
-		{
-			UpdateCurrentTransformCache();
 
-			if (!Root.Network.IsServer)
-			{
-				// Send transform to server
-				Root.Network.TransformSync.SendTransformToServer(this, lerp);
-			}
-			else
-			{
-				// Server broadcasts to all clients
-				Root.Network.TransformSync.BroadcastTransformFromServer(this, lerp);
-			}
-		});
+		UpdateCurrentTransformCache();
+
+		GDNode3D.ForceUpdateTransform();
+		if (!Root.Network.IsServer)
+		{
+			// Send transform to server
+			Root.Network.TransformSync.SendTransformToServer(this, lerp);
+		}
+		else
+		{
+			// Server broadcasts to all clients
+			Root.Network.TransformSync.BroadcastTransformFromServer(this, lerp);
+		}
 	}
 
 	protected void SendNetTransformReliable(bool lerp = false)
