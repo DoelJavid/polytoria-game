@@ -9,6 +9,9 @@ namespace Polytoria.Networking.DataChannel;
 
 public class DataChannelClient
 {
+	private const int MaxConnectionRetries = 5;
+	private const int BaseRetryDelay = 500;
+
 	public bool ClientStarted { get; private set; } = false;
 	private TcpClient _client = null!;
 	private NetworkStream _stream = null!;
@@ -19,18 +22,39 @@ public class DataChannelClient
 	{
 		if (ClientStarted) return;
 
-		_client = new TcpClient();
+		int attempt = 0;
 
-		await _client.ConnectAsync(address, port);
+		// Attempt to connect to the data channel
+		while (attempt < MaxConnectionRetries)
+		{
+			try
+			{
+				_client = new TcpClient();
+				await _client.ConnectAsync(address, port);
 
-		_stream = _client.GetStream();
+				_stream = _client.GetStream();
+				_ = Task.Run(ReceiveMessages);
 
-		// Start receiving messages in background
-		_ = Task.Run(ReceiveMessages);
+				ClientStarted = true;
+				PT.PrintV($"[i] Connected to data channel");
+				return;
+			}
+			catch (SocketException ex)
+			{
+				attempt++;
+				_client?.Dispose();
 
-		ClientStarted = true;
+				if (attempt >= MaxConnectionRetries)
+				{
+					PT.PrintV($"[!] Failed to connect to data channel after {MaxConnectionRetries} attempts: {ex.Message}");
+					throw;
+				}
 
-		PT.PrintV($"[i] Connected to Data Server");
+				int delay = BaseRetryDelay * (int)Math.Pow(2, attempt - 1);
+				PT.PrintV($"[~] Connect attempt {attempt}/{MaxConnectionRetries} failed. Retrying in {delay}ms...");
+				await Task.Delay(delay);
+			}
+		}
 	}
 
 	private async Task ReceiveMessages()
