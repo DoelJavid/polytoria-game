@@ -47,6 +47,11 @@ public sealed partial class NetworkService : Instance
 	public const string MultipleDeviceMessage = "Another device is already playing using this account, please leave the game first then try again.";
 	public const string ConnectTimeoutMessage = "Connection timeout";
 
+	private static readonly Dictionary<NetworkInstance.NetInstanceErrorEnum, string> _netInstanceErrorMessages = new()
+	{
+		{ NetworkInstance.NetInstanceErrorEnum.DataChannelConnectFailure, "Couldn't connect to the data channel, please try rejoining" }
+	};
+
 	private const ENetConnection.CompressionMode CompressionMode = ENetConnection.CompressionMode.Fastlz;
 
 	public event Action? ServerStarted;
@@ -314,12 +319,13 @@ public sealed partial class NetworkService : Instance
 		}
 
 		NetInstance = new();
-		NetInstance.CreateServer(port);
-
-		SetupPeer();
 
 		NetInstance.PeerConnected += OnPeerConnected;
 		NetInstance.PeerDisconnected += OnPeerDisconnected;
+
+		NetInstance.CreateServer(port);
+
+		SetupPeer();
 
 		LocalPeerID = 1;
 		ActivePeerIDs.Add(1);
@@ -350,14 +356,14 @@ public sealed partial class NetworkService : Instance
 		SetupNetwork();
 
 		NetInstance = new();
-		await NetInstance.CreateClient(address, port);
-
-		SetupPeer();
 
 		NetInstance.ClientConnected += ConnectedToServer;
 		NetInstance.ClientError += ConnectionFailed;
 		NetInstance.ClientDisconnected += ServerDisconnected;
 
+		await NetInstance.CreateClient(address, port);
+
+		SetupPeer();
 		OnSessionStarted();
 	}
 
@@ -664,10 +670,15 @@ public sealed partial class NetworkService : Instance
 		placeReplicationStartTime = Time.GetTicksMsec();
 	}
 
-	private void ConnectionFailed()
+	private void ConnectionFailed(NetworkInstance.NetInstanceErrorEnum netInstanceError)
 	{
-		PT.Print("Connection Failure");
-		DisconnectSelf("Connection failure", DisconnectionCodeEnum.ConnectionFailure);
+		PT.Print("NetInstance Failure");
+		string errMsg = "Network Instance Failure";
+		if (_netInstanceErrorMessages.TryGetValue(netInstanceError, out var preMsg))
+		{
+			errMsg = preMsg;
+		}
+		DisconnectSelf(errMsg, DisconnectionCodeEnum.NetInstanceFailure);
 	}
 
 	private void ServerDisconnected()
@@ -981,7 +992,8 @@ public sealed partial class NetworkService : Instance
 		AuthTimeout,
 		AFK,
 		ConnectTimeout,
-		IntegrityFail
+		IntegrityFail,
+		NetInstanceFailure
 	}
 
 	public enum NetworkModeEnum

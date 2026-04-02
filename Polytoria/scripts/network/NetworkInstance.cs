@@ -50,7 +50,7 @@ public class NetworkInstance
 	public event Action<int>? PeerDisconnected;
 	public event Action? ClientConnected;
 	public event Action? ClientDisconnected;
-	public event Action? ClientError;
+	public event Action<NetInstanceErrorEnum>? ClientError;
 	public event MessageReceivedHandler? MessageReceived;
 
 	public bool IsSilence { get; private set; } = false;
@@ -97,7 +97,16 @@ public class NetworkInstance
 
 		DataClient = new();
 		DataClient.MessageReceived += OnDataClientRecv;
-		await DataClient.Start(address, port);
+		try
+		{
+			await DataClient.Start(address, port);
+		}
+		catch
+		{
+			ClientError?.Invoke(NetInstanceErrorEnum.DataChannelConnectFailure);
+			ClientDisconnected?.Invoke();
+			throw;
+		}
 
 		PostPeerCreate();
 	}
@@ -383,7 +392,7 @@ public class NetworkInstance
 				PT.PrintErr("Client error");
 				Callable.From(() =>
 				{
-					ClientError?.Invoke();
+					ClientError?.Invoke(NetInstanceErrorEnum.NetworkError);
 				}).CallDeferred();
 			}
 			else if (eventType == ENetConnection.EventType.None) return;
@@ -435,6 +444,12 @@ public class NetworkInstance
 	}
 
 	public delegate void MessageReceivedHandler(int peerID, byte[] data, TransferMode transferMode, bool fromDataChannel);
+
+	public enum NetInstanceErrorEnum
+	{
+		DataChannelConnectFailure,
+		NetworkError
+	}
 }
 
 public enum AuthorityMode
