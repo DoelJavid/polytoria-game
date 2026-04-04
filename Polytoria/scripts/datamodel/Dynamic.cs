@@ -167,7 +167,7 @@ public partial class Dynamic : Instance
 		{
 			if (this is Part part)
 			{
-				return part.PartSize;
+				return part.PartSize / GetParentScale();
 			}
 			return GDNode3D.Scale;
 		}
@@ -762,9 +762,10 @@ public partial class Dynamic : Instance
 		var t = GDNode3D.Transform;
 		if (this is Part part)
 		{
-			var scale = part.PartSize * GetParentScale();
+			// Only apply parent scale if setter will also remove it
+			var scale = (Parent is Dynamic) ? part.PartSize : part.PartSize * GetParentScale();
 			var rotation = t.Basis.Orthonormalized();
-			var scaledBasis = new Basis(
+			Basis scaledBasis = new(
 				rotation.Column0 * scale.X,
 				rotation.Column1 * scale.Y,
 				rotation.Column2 * scale.Z
@@ -778,7 +779,12 @@ public partial class Dynamic : Instance
 	{
 		if (this is Part part)
 		{
-			part.PartSize = (Parent is Dynamic) ? to.Basis.Scale : to.Basis.Scale / GetParentScale();
+			Vector3 scale = new(
+				to.Basis.Column0.Length(),
+				to.Basis.Column1.Length(),
+				to.Basis.Column2.Length()
+			);
+			part.PartSize = (Parent is Dynamic) ? scale : scale / GetParentScale();
 			GDNode3D.GlobalTransform = new Transform3D(to.Basis.Orthonormalized(), to.Origin);
 		}
 		else
@@ -798,7 +804,12 @@ public partial class Dynamic : Instance
 	{
 		if (this is Part part)
 		{
-			part.PartSize = (Parent is Dynamic) ? to.Basis.Scale : to.Basis.Scale / GetParentScale();
+			Vector3 scale = new(
+				to.Basis.Column0.Length(),
+				to.Basis.Column1.Length(),
+				to.Basis.Column2.Length()
+			);
+			part.PartSize = (Parent is Dynamic) ? scale : scale / GetParentScale();
 			GDNode3D.Transform = new Transform3D(to.Basis.Orthonormalized(), to.Origin);
 		}
 		else
