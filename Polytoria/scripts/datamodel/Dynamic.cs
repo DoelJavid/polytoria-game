@@ -351,7 +351,7 @@ public partial class Dynamic : Instance
 				_isDirty = false;
 				_currentTransform = _netTransform;
 			}
-			SetLocalTransform(_currentTransform);
+			SetLocalTransformRaw(_currentTransform);
 		}
 	}
 
@@ -674,12 +674,13 @@ public partial class Dynamic : Instance
 		}
 #endif
 
-		OnPropertyChanged(nameof(Position));
-		OnPropertyChanged(nameof(Rotation));
-		OnPropertyChanged(nameof(Size));
-		OnPropertyChanged(nameof(LocalPosition));
-		OnPropertyChanged(nameof(LocalRotation));
-		OnPropertyChanged(nameof(LocalSize));
+		// Notify transform change without sync to clients
+		OnPropertyChanged(nameof(Position), false);
+		OnPropertyChanged(nameof(Rotation), false);
+		OnPropertyChanged(nameof(Size), false);
+		OnPropertyChanged(nameof(LocalPosition), false);
+		OnPropertyChanged(nameof(LocalRotation), false);
+		OnPropertyChanged(nameof(LocalSize), false);
 
 		TransformChanged?.Invoke();
 		foreach (Instance item in GetDescendants())
@@ -789,6 +790,12 @@ public partial class Dynamic : Instance
 
 	internal void SetLocalTransform(Transform3D to)
 	{
+		SetLocalTransformRaw(to);
+		UpdateCurrentTransformCache();
+	}
+
+	internal void SetLocalTransformRaw(Transform3D to)
+	{
 		if (this is Part part)
 		{
 			part.PartSize = (Parent is Dynamic) ? to.Basis.Scale : to.Basis.Scale / GetParentScale();
@@ -798,7 +805,6 @@ public partial class Dynamic : Instance
 		{
 			GDNode3D.Transform = to;
 		}
-		UpdateCurrentTransformCache();
 	}
 
 	private Vector3 GetParentScale()

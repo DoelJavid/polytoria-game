@@ -34,9 +34,13 @@ public partial class Part : Entity
 		get => _partSize;
 		set
 		{
+			var oldSize = _partSize;
 			_partSize = value;
-			_mesh?.Scale = _partSize;
-			_nRemoteAt?.Scale = _partSize;
+			if (oldSize != value)
+			{
+				_mesh?.Scale = _partSize;
+				_nRemoteAt?.Scale = _partSize;
+			}
 		}
 	}
 

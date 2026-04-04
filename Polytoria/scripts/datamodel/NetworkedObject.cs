@@ -982,10 +982,11 @@ public partial class NetworkedObject : IScriptObject
 		return IsA(XmlFormat.ConvertClassName(className));
 	}
 
-	protected void OnPropertyChanged([CallerMemberName] string propertyName = "") //
+	protected void OnPropertyChanged([CallerMemberName] string propertyName = "", bool syncToNet = true)
 	{
 		PropertyChanged.Invoke(propertyName);
-		SyncPropToClients(propertyName);
+		if (syncToNet)
+			SyncPropToClients(propertyName);
 	}
 
 	protected void SyncPropToClients(string propertyName)
