@@ -355,8 +355,7 @@ public sealed partial class PolytorianModel : CharacterModel
 			{
 				targetBlendSpeed = LookBlendSpeed;
 
-				// exponential decay
-				newValue = Mathf.Lerp(current, target, Mathf.Exp(-targetBlendSpeed * (float)delta));
+				newValue = Mathf.Lerp(current, target, (float)delta * targetBlendSpeed);
 			}
 			else
 			{
