@@ -19,7 +19,11 @@ public partial class DebugConsoleTab : Control
 	public const string ClientColorHex = "#F95D5D";
 
 	private readonly StringBuilder _textBuilder = new(MaxLogLength * 100);
-	private bool _needsRebuild = false;
+
+	// How many logs from the unfiltered list have been rendered
+	private int _lastRenderedIndex = 0;
+	private bool _needsFullRebuild = false;
+	private bool _hasPendingAppend = false;
 
 	public List<LogData> Logs = [];
 	public HashSet<string> ShownLogs = [];
@@ -37,11 +41,21 @@ public partial class DebugConsoleTab : Control
 
 	public override void _Process(double delta)
 	{
-		if (_needsRebuild && IsVisibleInTree())
+		if (!IsVisibleInTree())
 		{
-			_needsRebuild = false;
-			UpdateText();
+			base._Process(delta);
+			return;
 		}
+
+		if (_needsFullRebuild)
+		{
+			FullRebuild();
+		}
+		else if (_hasPendingAppend)
+		{
+			AppendPendingLogs();
+		}
+
 		base._Process(delta);
 	}
 
@@ -73,51 +87,78 @@ public partial class DebugConsoleTab : Control
 				ShownLogs.Remove(Logs[0].ID);
 				Logs.RemoveAt(0);
 			}
+
+			// Trimming invalidates _lastRenderedIndex, must start over
+			_needsFullRebuild = true;
+			_hasPendingAppend = false;
+			return;
 		}
 
-		_needsRebuild = true;
+		// If the log was inserted before the end, full rebuild required
+		if (index < Logs.Count - 1)
+		{
+			_needsFullRebuild = true;
+			_hasPendingAppend = false;
+			return;
+		}
+
+		// Fast path: log appended to the end
+		if (IsVisibleInTree())
+			AppendSingleLog(data);
+		else
+			_hasPendingAppend = true;
 	}
 
-	private void UpdateText()
+	private void AppendPendingLogs()
+	{
+		for (int i = _lastRenderedIndex; i < Logs.Count; i++)
+			AppendSingleLog(Logs[i]);
+
+		_hasPendingAppend = false;
+	}
+
+	private void AppendSingleLog(LogData item)
+	{
+		_textBuilder.Clear();
+		BuildLogLine(_textBuilder, item);
+		TextLabel.AppendText(_textBuilder.ToString());
+		_lastRenderedIndex++;
+	}
+
+	private void FullRebuild()
 	{
 		_textBuilder.Clear();
 
 		foreach (LogData item in Logs)
-		{
-			string dotColor = (item.LogFrom == LogFromEnum.Client) ? ClientColorHex : ServerColorHex;
-
-			_textBuilder.Append("[color=")
-				.Append(dotColor)
-				.Append("]•[/color] ");
-
-			if (item.LogType == LogTypeEnum.Error)
-			{
-				_textBuilder.Append("[color=")
-					.Append(ErrorColorHex)
-					.Append(']');
-			}
-			else if (item.LogType == LogTypeEnum.Warning)
-			{
-				_textBuilder.Append("[color=")
-					.Append(WarningColorHex)
-					.Append(']');
-			}
-
-
-			_textBuilder.Append('[')
-				.Append(item.LoggedAt.ToLongTimeString())
-				.Append("] ")
-				.Append(item.Content);
-
-			if (item.LogType == LogTypeEnum.Error || item.LogType == LogTypeEnum.Warning)
-			{
-				_textBuilder.Append("[/color]");
-			}
-
-			_textBuilder.Append('\n');
-		}
+			BuildLogLine(_textBuilder, item);
 
 		TextLabel.Text = _textBuilder.ToString();
-		_needsRebuild = false;
+		_lastRenderedIndex = Logs.Count;
+		_needsFullRebuild = false;
+		_hasPendingAppend = false;
+	}
+
+	private static void BuildLogLine(StringBuilder sb, LogData item)
+	{
+		string dotColor = (item.LogFrom == LogFromEnum.Client) ? ClientColorHex : ServerColorHex;
+
+		sb.Append("[color=")
+			.Append(dotColor)
+			.Append("]•[/color] ");
+
+		if (item.LogType == LogTypeEnum.Error)
+			sb.Append("[color=").Append(ErrorColorHex).Append(']');
+		else if (item.LogType == LogTypeEnum.Warning)
+			sb.Append("[color=").Append(WarningColorHex).Append(']');
+
+		sb.Append('[')
+			.Append(item.LoggedAt.ToLongTimeString())
+			.Append("] ")
+			.Append(item.Content);
+
+		if (item.LogType == LogTypeEnum.Error || item.LogType == LogTypeEnum.Warning)
+			sb.Append("[/color]");
+
+		sb.Append('\n');
 	}
 }

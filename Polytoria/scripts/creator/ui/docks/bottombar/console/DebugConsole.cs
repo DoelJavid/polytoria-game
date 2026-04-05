@@ -22,17 +22,24 @@ public partial class DebugConsole : Control
 
 	private const int MaxLogLength = 16384;
 
-	private readonly StringBuilder _textBuilder = new(MaxLogLength * 100);
+	private readonly StringBuilder _textBuilder = new();
 
 	[Export] private RichTextLabel _richLabel = null!;
 	[Export] private LineEdit _searchEdit = null!;
 	[Export] private Button _clearBtn = null!;
+
 	public static DebugConsole Singleton { get; private set; } = null!;
-	private bool _needsRebuild = false;
 
 	public List<LogData> Logs = [];
 	public HashSet<LogData> ShownLogs = [];
-	public string SerachQuery = "";
+	public string SearchQuery = "";
+
+	// How many logs from the unfiltered list have been rendered
+	private int _lastRenderedIndex = 0;
+	private bool _needsFullRebuild = false;
+	private bool _hasPendingAppend = false;
+
+	private bool IsFiltering => !string.IsNullOrEmpty(SearchQuery);
 
 	public DebugConsole()
 	{
@@ -43,30 +50,41 @@ public partial class DebugConsole : Control
 	{
 		VisibilityChanged += OnVisibilityChanged;
 		_clearBtn.Pressed += Clear;
-		_searchEdit.TextChanged += (_) => OnSearch();
+		_searchEdit.TextChanged += _ => OnSearch();
 		_richLabel.Text = "";
 	}
 
 	public override void _Process(double delta)
 	{
-		if (_needsRebuild && IsVisibleInTree())
+		if (!IsVisibleInTree())
 		{
-			UpdateText();
+			base._Process(delta);
+			return;
 		}
+
+		if (_needsFullRebuild)
+			FullRebuild();
+		else if (_hasPendingAppend)
+			AppendPendingLogs();
+
 		base._Process(delta);
 	}
 
 	private void OnSearch()
 	{
-		SerachQuery = _searchEdit.Text;
-		QueueRebuild();
+		SearchQuery = _searchEdit.Text;
+		// Search always requires a full rebuild, filtered view can't be incrementally appended
+		ForceFullRebuild();
 	}
 
 	public void Clear()
 	{
 		Logs.Clear();
 		ShownLogs.Clear();
-		QueueRebuild();
+		_lastRenderedIndex = 0;
+		_needsFullRebuild = false;
+		_hasPendingAppend = false;
+		_richLabel.Text = "";
 	}
 
 	public void NewLog(LogData data)
@@ -90,79 +108,102 @@ public partial class DebugConsole : Control
 				ShownLogs.Remove(Logs[0]);
 				Logs.RemoveAt(0);
 			}
+
+			ForceFullRebuild();
+			return;
 		}
 
-		QueueRebuild();
-	}
+		// Out-of-order insertion or active search filter, must full rebuild
+		if (index < Logs.Count - 1 || IsFiltering)
+		{
+			ForceFullRebuild();
+			return;
+		}
 
-	private void QueueRebuild()
-	{
-		_needsRebuild = true;
+		// Fast path: new log at the end, no filter active
+		if (IsVisibleInTree())
+			AppendSingleLog(data);
+		else
+			_hasPendingAppend = true;
 	}
 
 	private void OnVisibilityChanged()
 	{
-		if (IsVisibleInTree() && _needsRebuild)
-		{
-			UpdateText();
-		}
+		if (!IsVisibleInTree()) return;
+
+		if (_needsFullRebuild)
+			FullRebuild();
+		else if (_hasPendingAppend)
+			AppendPendingLogs();
 	}
 
-	private void UpdateText()
+	private void ForceFullRebuild()
 	{
-		if (!_needsRebuild) return;
+		_needsFullRebuild = true;
+		_hasPendingAppend = false;
+	}
 
-		IEnumerable<LogData> logsToShow = Logs;
+	private void AppendPendingLogs()
+	{
+		for (int i = _lastRenderedIndex; i < Logs.Count; i++)
+			AppendSingleLog(Logs[i]);
 
-		if (!string.IsNullOrEmpty(SerachQuery))
-		{
-			logsToShow = Logs.Where(l => l.Content.Find(SerachQuery, caseSensitive: false) != -1);
-		}
+		_hasPendingAppend = false;
+	}
 
+	private void AppendSingleLog(LogData item)
+	{
+		_textBuilder.Clear();
+		BuildLogLine(_textBuilder, item);
+		_richLabel.AppendText(_textBuilder.ToString());
+		_lastRenderedIndex++;
+	}
+
+	private void FullRebuild()
+	{
 		_textBuilder.Clear();
 
+		IEnumerable<LogData> logsToShow = IsFiltering
+			? Logs.Where(l => l.Content.Find(SearchQuery, caseSensitive: false) != -1)
+			: Logs;
+
 		foreach (LogData item in logsToShow)
-		{
-			string dotColor = item.LogFrom switch
-			{
-				LogFromEnum.None => NoneColorHex,
-				LogFromEnum.Client => ClientColorHex,
-				LogFromEnum.Server => ServerColorHex,
-				LogFromEnum.Addon => AddonColorHex,
-				_ => NoneColorHex
-			};
-
-			_textBuilder.Append("[color=")
-				.Append(dotColor)
-				.Append("]•[/color] ");
-
-			if (item.LogType == LogTypeEnum.Warning)
-			{
-				_textBuilder.Append("[color=")
-					.Append(WarningColorHex)
-					.Append(']');
-			}
-			else if (item.LogType == LogTypeEnum.Error)
-			{
-				_textBuilder.Append("[color=")
-					.Append(ErrorColorHex)
-					.Append(']');
-			}
-
-			_textBuilder.Append('[')
-				.Append(item.LoggedAt.ToLongTimeString())
-				.Append("] ")
-				.Append(item.Content);
-
-			if (item.LogType != LogTypeEnum.Info)
-			{
-				_textBuilder.Append("[/color]");
-			}
-
-			_textBuilder.Append('\n');
-		}
+			BuildLogLine(_textBuilder, item);
 
 		_richLabel.Text = _textBuilder.ToString();
-		_needsRebuild = false;
+		_lastRenderedIndex = Logs.Count;
+		_needsFullRebuild = false;
+		_hasPendingAppend = false;
+	}
+
+	private static void BuildLogLine(StringBuilder sb, LogData item)
+	{
+		string dotColor = item.LogFrom switch
+		{
+			LogFromEnum.None => NoneColorHex,
+			LogFromEnum.Client => ClientColorHex,
+			LogFromEnum.Server => ServerColorHex,
+			LogFromEnum.Addon => AddonColorHex,
+			_ => NoneColorHex
+		};
+
+		sb.Append("[color=")
+			.Append(dotColor)
+			.Append("]•[/color] ");
+
+		if (item.LogType == LogTypeEnum.Warning)
+			sb.Append("[color=").Append(WarningColorHex).Append(']');
+		else if (item.LogType == LogTypeEnum.Error)
+			sb.Append("[color=").Append(ErrorColorHex).Append(']');
+
+		sb.Append('[')
+			.Append(item.LoggedAt.ToLongTimeString())
+			.Append("] ")
+			.Append(item.Content);
+
+		if (item.LogType != LogTypeEnum.Info)
+			sb.Append("[/color]");
+
+		sb.Append('\n');
 	}
 }
