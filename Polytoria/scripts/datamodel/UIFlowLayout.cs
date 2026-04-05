@@ -6,8 +6,5 @@ using Polytoria.Attributes;
 
 namespace Polytoria.Datamodel;
 
-[Instantiable]
-public partial class UIFlowLayout : UIHVLayout
-{
-
-}
+[Abstract]
+public partial class UIFlowLayout : UIHVLayout { }
