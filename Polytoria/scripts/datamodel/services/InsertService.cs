@@ -185,6 +185,7 @@ public sealed partial class InsertService : Instance
 		mesh.Parent = tool;
 		mesh.Asset = meshAsset;
 
+		tool.Droppable = false;
 		tool.IconImage = icon;
 
 		tool.LocalRotation = Vector3.Zero;
