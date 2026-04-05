@@ -91,8 +91,6 @@ public partial class Dynamic : Instance
 				Mathf.Max(value.Z, MinScale)
 			);
 
-			Vector3 parentScale = GetParentScale();
-
 			if (this is Part part)
 			{
 				if (Parent is Dynamic)
@@ -101,20 +99,13 @@ public partial class Dynamic : Instance
 				}
 				else
 				{
-					part.PartSize = scale / parentScale; // Part size is local
+					part.PartSize = scale / GetParentScale(); // Part size is local
 				}
 				part.RefreshUV1();
 			}
 			else
 			{
-				if (Parent is Dynamic)
-				{
-					GDNode3D.Scale = scale / parentScale;
-				}
-				else
-				{
-					GDNode3D.Scale = scale;
-				}
+				GDNode3D.Scale = scale / GetParentScale();
 			}
 			if (AutoUpdateNetTransform)
 			{
@@ -516,6 +507,8 @@ public partial class Dynamic : Instance
 	/// </summary>
 	internal void UpdateCurrentTransformCache()
 	{
+		GDNode3D.ForceUpdateTransform();
+		RefreshTransform();
 		Transform3D newt = GetLocalTransform();
 		if (newt != _currentTransform)
 		{
@@ -700,7 +693,7 @@ public partial class Dynamic : Instance
 		OnPropertyChanged(nameof(LocalSize), false);
 
 		TransformChanged?.Invoke();
-		foreach (Instance item in GetDescendants())
+		foreach (Instance item in GetChildren())
 		{
 			if (item is Dynamic dyn)
 			{
@@ -763,11 +756,12 @@ public partial class Dynamic : Instance
 		var t = GDNode3D.GlobalTransform;
 		if (this is Part part)
 		{
+			var scale = part.PartSize;
 			var rotation = t.Basis.Orthonormalized();
 			var scaledBasis = new Basis(
-				rotation.Column0 * part.PartSize.X,
-				rotation.Column1 * part.PartSize.Y,
-				rotation.Column2 * part.PartSize.Z
+				rotation.Column0 * scale.X,
+				rotation.Column1 * scale.Y,
+				rotation.Column2 * scale.Z
 			);
 			return new Transform3D(scaledBasis, t.Origin);
 		}
@@ -779,8 +773,7 @@ public partial class Dynamic : Instance
 		var t = GDNode3D.Transform;
 		if (this is Part part)
 		{
-			// Only apply parent scale if setter will also remove it
-			var scale = (Parent is Dynamic) ? part.PartSize : part.PartSize * GetParentScale();
+			var scale = part.PartSize;
 			var rotation = t.Basis.Orthonormalized();
 			Basis scaledBasis = new(
 				rotation.Column0 * scale.X,
@@ -792,7 +785,7 @@ public partial class Dynamic : Instance
 		return t;
 	}
 
-	internal void SetGlobalTransform(Transform3D to)
+	internal void SetGlobalTransformRaw(Transform3D to)
 	{
 		if (this is Part part)
 		{
@@ -801,20 +794,13 @@ public partial class Dynamic : Instance
 				to.Basis.Column1.Length(),
 				to.Basis.Column2.Length()
 			);
-			part.PartSize = (Parent is Dynamic) ? scale : scale / GetParentScale();
+			part.PartSize = scale;
 			GDNode3D.GlobalTransform = new Transform3D(to.Basis.Orthonormalized(), to.Origin);
 		}
 		else
 		{
 			GDNode3D.GlobalTransform = to;
 		}
-		UpdateCurrentTransformCache();
-	}
-
-	internal void SetLocalTransform(Transform3D to)
-	{
-		SetLocalTransformRaw(to);
-		UpdateCurrentTransformCache();
 	}
 
 	internal void SetLocalTransformRaw(Transform3D to)
@@ -826,7 +812,7 @@ public partial class Dynamic : Instance
 				to.Basis.Column1.Length(),
 				to.Basis.Column2.Length()
 			);
-			part.PartSize = (Parent is Dynamic) ? scale : scale / GetParentScale();
+			part.PartSize = scale;
 			GDNode3D.Transform = new Transform3D(to.Basis.Orthonormalized(), to.Origin);
 		}
 		else
@@ -840,6 +826,28 @@ public partial class Dynamic : Instance
 		if (Parent is Dynamic p && p.GDNode3D.IsInsideTree())
 			return p.GetGlobalTransform().Basis.Scale;
 		return Vector3.One;
+	}
+
+	internal void SetGlobalTransform(Transform3D to)
+	{
+		SetGlobalTransformRaw(to);
+		UpdateCurrentTransformCache();
+	}
+
+	internal void SetLocalTransform(Transform3D to)
+	{
+		SetLocalTransformRaw(to);
+		UpdateCurrentTransformCache();
+	}
+
+	/// <summary>
+	/// Refresh global transform
+	/// This is sometimes needed due to some unknown force changing scale (probably godot)
+	/// NOTE: This is a workaround
+	/// </summary>
+	internal void RefreshTransform()
+	{
+		SetGlobalTransformRaw(GetGlobalTransform());
 	}
 
 	internal void ForceUpdateTransform()
