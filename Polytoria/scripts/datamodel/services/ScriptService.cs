@@ -398,6 +398,14 @@ public sealed partial class ScriptService : Instance
 			}
 		}
 
+		// If targetType is an array and value is an empty dictionary, create an empty array instance
+		if (value is IDictionary emptyDict && emptyDict.Count == 0 && targetType.IsArray)
+		{
+			Type? targetElementType = targetType.GetElementType();
+			if (targetElementType != null)
+				return ConvertListToArray([], targetElementType);
+		}
+
 		// Both Dictionary, try convert
 		if (value is IDictionary sourceDict && typeof(IDictionary).IsAssignableFrom(targetType))
 		{
