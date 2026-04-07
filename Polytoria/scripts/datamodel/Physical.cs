@@ -643,10 +643,7 @@ public partial class Physical : Dynamic
 		Physical? p = GetPhysicalFromCollider(area);
 		if (p != null)
 		{
-			if (p is not Player)
-			{
-				InternalInvokeTouched(p);
-			}
+			InternalInvokeTouched(p);
 		}
 	}
 
@@ -655,10 +652,7 @@ public partial class Physical : Dynamic
 		Physical? p = GetPhysicalFromCollider(area);
 		if (p != null)
 		{
-			if (p is not Player)
-			{
-				InternalInvokeTouchEnded(p);
-			}
+			InternalInvokeTouchEnded(p);
 		}
 	}
 
