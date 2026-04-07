@@ -186,7 +186,8 @@ public sealed partial class NetworkService : Instance
 			NetworkedObject? netObj = null;
 			if (netMsg.Target.StartsWith("i:"))
 			{
-				netObj = Root.GetNetObjectFromID(netMsg.Target.TrimPrefix("i:"));
+				// Newly created object may not be available, wait for them for a bit.
+				netObj = await Root.WaitForNetObjectAsync(netMsg.Target.TrimPrefix("i:"), timeoutMs: 10000);
 			}
 			else
 			{
