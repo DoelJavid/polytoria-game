@@ -3,8 +3,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
-using Polytoria.Networking.DataChannel;
-using Polytoria.Networking.DataChannel.Schemas;
 using Polytoria.Shared;
 using System;
 using System.Collections.Concurrent;
@@ -33,10 +31,6 @@ public class NetworkInstance
 	private const int MinimumTimeout = 0;
 
 	private readonly ENetConnection _peer;
-	public DataChannelServer? DataServer = null;
-	public DataChannelClient? DataClient = null;
-
-	private bool _dataChAuthd = false;
 
 	private readonly ConcurrentQueue<Action> _actionQueue = new();
 	internal readonly ConcurrentDictionary<int, ENetPacketPeer> IdToPeer = [];
@@ -45,7 +39,6 @@ public class NetworkInstance
 	public ICollection<int> PeerIds => IdToPeer.Keys;
 
 	private int _peerCounter = 1;
-	private int _localPeerID = 0;
 
 	public event Action<int>? PeerConnected;
 	public event Action<int>? PeerDisconnected;
@@ -75,10 +68,6 @@ public class NetworkInstance
 
 		IsServer = true;
 
-		DataServer = new();
-		DataServer.Start(this, port);
-		DataServer.MessageReceived += OnDataServerRecv;
-
 		PostPeerCreate();
 	}
 
@@ -96,36 +85,7 @@ public class NetworkInstance
 
 		_peer.ConnectToHost(address, port);
 
-		DataClient = new();
-		DataClient.MessageReceived += OnDataClientRecv;
-		try
-		{
-			await DataClient.Start(address, port);
-		}
-		catch
-		{
-			ClientError?.Invoke(NetInstanceErrorEnum.DataChannelConnectFailure);
-			ClientDisconnected?.Invoke();
-			throw;
-		}
-
 		PostPeerCreate();
-	}
-
-	private void OnDataServerRecv(int peerID, IDataServerMessage message)
-	{
-		if (message is MessageData data)
-		{
-			Callable.From(() => MessageReceived?.Invoke(peerID, data.Data, TransferMode.Reliable, true)).CallDeferred();
-		}
-	}
-
-	private void OnDataClientRecv(IDataServerMessage message)
-	{
-		if (message is MessageData data)
-		{
-			Callable.From(() => MessageReceived?.Invoke(1, data.Data, TransferMode.Reliable, true)).CallDeferred();
-		}
 	}
 
 	/// <summary>
@@ -165,13 +125,8 @@ public class NetworkInstance
 		return null;
 	}
 
-	public void SendMessage(int targetID, byte[] data, TransferMode transferMode, int transferChannel = 0, bool useDataChannel = false)
+	public void SendMessage(int targetID, byte[] data, TransferMode transferMode, int transferChannel = 0)
 	{
-		if (useDataChannel)
-		{
-			DataChannelSendMessage(targetID, data);
-			return;
-		}
 		_actionQueue.Enqueue(() =>
 		{
 			ENetPacketPeer? peer = GetPacketPeerFromId(targetID);
@@ -221,16 +176,8 @@ public class NetworkInstance
 		_peer.Destroy();
 	}
 
-	public void BroadcastMessage(byte[] data, TransferMode transferMode, int transferChannel = 0, int[]? except = null, bool useDataChannel = false)
+	public void BroadcastMessage(byte[] data, TransferMode transferMode, int transferChannel = 0, int[]? except = null)
 	{
-		if (useDataChannel)
-		{
-			foreach (int id in IdToPeer.Keys)
-			{
-				DataChannelSendMessage(id, data);
-			}
-			return;
-		}
 		_actionQueue.Enqueue(() =>
 		{
 			foreach ((int id, ENetPacketPeer? peer) in IdToPeer)
@@ -240,18 +187,6 @@ public class NetworkInstance
 				peer?.Send(transferChannel, data, (int)transferMode);
 			}
 		});
-	}
-
-	private void DataChannelSendMessage(int id, byte[] data)
-	{
-		if (IsServer)
-		{
-			_ = DataServer?.SendMessage(id, new MessageData() { Data = data });
-		}
-		else
-		{
-			_ = DataClient?.SendMessage(new MessageData() { Data = data });
-		}
 	}
 
 	private void NetworkLoop()
@@ -323,9 +258,6 @@ public class NetworkInstance
 						_dataServerTokens[peerID] = dataToken;
 
 						PeerConnected?.Invoke(peerID);
-
-						// Send handshake for data channel connect
-						SendMessage(peerID, ("sauth:" + dataToken + ";" + peerID).ToUtf8Buffer(), TransferMode.Reliable);
 					}
 					else
 					{
@@ -367,31 +299,7 @@ public class NetworkInstance
 					};
 					byte[] data = fromPeer.GetPacket();
 
-					if (!IsServer && !_dataChAuthd)
-					{
-						string ps = data.GetStringFromUtf8();
-						if (ps.StartsWith("sauth:"))
-						{
-							// Accept NetworkInstance handshake
-							// NOTE: This is kinda hacky ngl... could have some rework here?
-							string handshakeStr = ps.TrimPrefix("sauth:");
-							var splited = handshakeStr.Split(';');
-							string token = splited[0];
-							string selfID = splited[1];
-							_localPeerID = int.Parse(selfID);
-							bool? authDone = DataClient?.SendAuthenticate(token, _localPeerID).Wait(DataChannelAuthTimeoutMs);
-							if (authDone != true)
-							{
-								// Client error !!
-								ClientError?.Invoke(NetInstanceErrorEnum.DataChannelAuthFailure);
-								ClientDisconnected?.Invoke();
-							}
-							_dataChAuthd = true;
-							continue;
-						}
-					}
-
-					Callable.From(() => MessageReceived?.Invoke(peerID, data, m, false)).CallDeferred();
+					Callable.From(() => MessageReceived?.Invoke(peerID, data, m)).CallDeferred();
 				}
 			}
 			else if (eventType == ENetConnection.EventType.Error)
@@ -450,7 +358,7 @@ public class NetworkInstance
 		return IdToPeer.ContainsKey(peerID);
 	}
 
-	public delegate void MessageReceivedHandler(int peerID, byte[] data, TransferMode transferMode, bool fromDataChannel);
+	public delegate void MessageReceivedHandler(int peerID, byte[] data, TransferMode transferMode);
 
 	public enum NetInstanceErrorEnum
 	{

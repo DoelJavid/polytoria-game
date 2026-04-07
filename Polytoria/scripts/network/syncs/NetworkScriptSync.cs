@@ -49,7 +49,7 @@ public partial class NetworkScriptSync : Instance
 	}
 
 
-	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable, UseDataChannel = true)]
+	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
 	private void NetRecvAllScripts(byte[] rawBytes, bool isFirstInit)
 	{
 		NetBatchScriptData[] scriptsData = JsonSerializer.Deserialize(ZstdCompressionUtils.Decompress(rawBytes), NetDataGenerationContext.Default.NetBatchScriptDataArray)!;

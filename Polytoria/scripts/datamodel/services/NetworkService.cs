@@ -169,7 +169,7 @@ public sealed partial class NetworkService : Instance
 		NetInstance?.MessageReceived += OnMessageRecv;
 	}
 
-	private async void OnMessageRecv(int fromPeer, byte[] data, TransferMode tfm, bool fromDataCh)
+	private async void OnMessageRecv(int fromPeer, byte[] data, TransferMode tfm)
 	{
 		if (NetInstance == null) return;
 #if DEBUG
@@ -217,8 +217,6 @@ public sealed partial class NetworkService : Instance
 					// Check if is authority
 					if (originFromPeer != 1 && netMsg.BroadcastAll && rpcA.AllowToServerOnly) throw new NetworkException($"Broadcast to server only rule violation, from peer {originFromPeer} ({md.Name})");
 				}
-
-				if (rpcA.UseDataChannel != fromDataCh) throw new NetworkException($"DataChannel rule violation ({md.Name})");
 
 				List<Type> paramTypes = [];
 
