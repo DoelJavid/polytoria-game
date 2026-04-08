@@ -631,7 +631,8 @@ public partial class NetworkedObject : IScriptObject
 
 		if (_netObjToProxy.Remove(this, out var gdn))
 		{
-			if (Node.IsInstanceValid(gdn))
+			// Delete Valid Root node only
+			if (Node.IsInstanceValid(gdn) && !DeletedAsChild)
 			{
 				gdn.QueueFree();
 				gdn.Dispose();

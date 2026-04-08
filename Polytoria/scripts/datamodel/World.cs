@@ -48,6 +48,8 @@ public sealed partial class World : Instance
 	private readonly Dictionary<string, TaskCompletionSource<NetworkedObject?>> _pendingRequests = [];
 	private readonly Dictionary<string, TaskCompletionSource<NetworkedObject?>> _pendingReadyRequests = [];
 
+	internal int WorldSessionID = 0;
+
 	public PTSignal Loaded { get; private set; } = new();
 
 	[ScriptProperty]
@@ -406,7 +408,7 @@ public sealed partial class World : Instance
 		if (netObj.NetworkedObjectID == "")
 		{
 			_nextId++;
-			netObj.NetworkedObjectID = _nextId.ToString();
+			netObj.NetworkedObjectID = WorldSessionID + _nextId.ToString();
 		}
 	}
 

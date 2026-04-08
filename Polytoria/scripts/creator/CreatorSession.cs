@@ -42,6 +42,8 @@ public partial class CreatorSession : Node, IDisposable
     }
 }";
 
+	private static int _worldSessionCounter = 0;
+
 	private Timer _backupTimer = null!;
 	private bool _vscodeFileWritten = false;
 	private bool _fileScanQueued = false;
@@ -231,6 +233,7 @@ public partial class CreatorSession : Node, IDisposable
 		StartBackupTimer();
 	}
 
+	// note: this does not need to be async, but just doing it for the loading screen
 	public async Task<World> OpenWorld(string filePath)
 	{
 		filePath = filePath.SanitizePath();
@@ -240,6 +243,10 @@ public partial class CreatorSession : Node, IDisposable
 		byte[] worldData = await File.ReadAllBytesAsync(placePath);
 
 		World root = Globals.LoadInstance<World>();
+
+		_worldSessionCounter++;
+		root.WorldSessionID = _worldSessionCounter;
+
 		NetworkService netService = new();
 		DatamodelBridge dmBridge = new();
 
@@ -259,11 +266,13 @@ public partial class CreatorSession : Node, IDisposable
 		PT.Print("-> Full Path: ", placePath);
 
 		Tabs.Singleton.Insert(new Tabs.GameTab() { World = root, Title = placePath.GetFile() });
+
 		OpenedWorlds.Add(root);
 		WorldPathToRoot.Add(filePath, root);
 
 		void deletedHandler()
 		{
+			PT.Print(filePath, " closed");
 			root.Deleted -= deletedHandler;
 			OpenedWorlds.Remove(root);
 			WorldPathToRoot.Remove(filePath);
@@ -312,7 +321,7 @@ public partial class CreatorSession : Node, IDisposable
 		return root;
 	}
 
-	public async Task<World?> OpenMainWorld()
+	public async Task<World>? OpenMainWorld()
 	{
 		return await OpenWorld(Metadata.MainWorld);
 	}
