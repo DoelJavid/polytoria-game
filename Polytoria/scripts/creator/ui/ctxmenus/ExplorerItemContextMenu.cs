@@ -53,11 +53,16 @@ public partial class ExplorerItemContextMenu : ContextMenu
 		{
 			AddIconItem("ungroup", "Ungroup", 32);
 		}
-		AddIconItem("publish", "Publish", 39);
+
+		// TODO: Implement Model publish
+		//AddIconItem("publish", "Publish", 39);
+
 		if (isSingle)
 		{
 			AddIconItem("route", "Copy Lua Path", 51);
-			AddIconItem("book", "Open Documentation", 59);
+
+			// TODO: Implement Open Documentation
+			//AddIconItem("book", "Open Documentation", 59);
 		}
 		AddSeparator();
 		AddIconItem("lock", "Lock/Unlock", 61);
