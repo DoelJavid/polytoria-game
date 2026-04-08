@@ -326,6 +326,9 @@ public partial class Dynamic : Instance
 	private void UpdateTransform(double delta)
 	{
 		if (!_isDirty) return;
+		// If has transform authority, no need to update yourself
+		if (NetTransformAuthority == Root.Network.LocalPeerID) return;
+
 		float positionDistance = _currentTransform.Origin.DistanceTo(_netTransform.Origin);
 
 		// Check if this is the first update or if distance is too large
@@ -473,7 +476,7 @@ public partial class Dynamic : Instance
 	{
 		if (Root == null || Root.Network == null) return;
 
-		GDNode3D.ForceUpdateTransform();
+		ForceUpdateTransform();
 		Transform3D current = GetLocalTransform();
 
 		// Only send if changed
@@ -493,7 +496,6 @@ public partial class Dynamic : Instance
 
 		UpdateCurrentTransformCache();
 
-		GDNode3D.ForceUpdateTransform();
 		if (!Root.Network.IsServer)
 		{
 			// Send transform to server
@@ -514,7 +516,9 @@ public partial class Dynamic : Instance
 		ReliableTransformChanged?.Invoke();
 
 		if (Root.Network.IsServer)
+		{
 			Root.Network.TransformSync.BroadcastTransformFromServer(this, lerp, reliable: true);
+		}
 
 		// Cannot broadcast as reliable in client, values are ignored in client
 	}
@@ -524,7 +528,7 @@ public partial class Dynamic : Instance
 	/// </summary>
 	internal void UpdateCurrentTransformCache()
 	{
-		GDNode3D.ForceUpdateTransform();
+		ForceUpdateTransform();
 		RefreshTransform();
 		Transform3D newt = GetLocalTransform();
 		if (newt != _currentTransform)
@@ -842,15 +846,7 @@ public partial class Dynamic : Instance
 		{
 			var parentScale = parentPart.PartSize;
 			var scaledOrigin = to.Origin * parentScale;
-			var rotation = to.Basis;
-
-			Basis scaledBasis = new(
-				rotation.Column0 * parentScale.X,
-				rotation.Column1 * parentScale.Y,
-				rotation.Column2 * parentScale.Z
-			);
-
-			GDNode3D.Transform = new Transform3D(scaledBasis, scaledOrigin);
+			GDNode3D.Transform = new Transform3D(to.Basis, scaledOrigin);
 		}
 		else
 		{

@@ -49,7 +49,7 @@ public partial class NetworkTransformSync : Instance
 			{
 				if (_pendingBatchUpdate.Count > 0)
 					BroadcastBatchedTransforms();
-				_pendingTransforms.Clear();
+				_pendingBatchUpdate.Clear();
 				_batchTimer = 0.0;
 			}
 		}
@@ -216,7 +216,11 @@ public partial class NetworkTransformSync : Instance
 		if (!dyn.IsNetworkReady) return;
 		string objID = dyn.NetworkedObjectID;
 
-		_pendingBatchUpdate[objID] = new(dyn, lerpTransform, excludePeer) { Reliable = reliable };
+		SetPendingBatch(objID, new(dyn, dyn.GetLocalTransform(), lerpTransform, excludePeer)
+		{
+			Reliable = reliable,
+			Forced = true
+		}, forced: true);
 	}
 
 	[NetRpc(AuthorityMode.Any, TransferMode = TransferMode.UnreliableOrdered, CallLocal = false)]
@@ -247,10 +251,10 @@ public partial class NetworkTransformSync : Instance
 			if (processed.IsEqualApprox(dyn.GetLocalTransform())) return;
 
 			// Update on server
-			dyn.UpdateTransformFromNet(dyn.TransformNetworkPass(fromPeer, transform), false, lerpTransform);
+			dyn.UpdateTransformFromNet(processed, false, lerpTransform);
 
 			// Add to batch pending
-			_pendingBatchUpdate[objID] = new(dyn, lerpTransform, fromPeer) { Reliable = false };
+			SetPendingBatch(objID, new(dyn, processed, lerpTransform, fromPeer) { Reliable = false });
 		}
 	}
 
@@ -263,14 +267,9 @@ public partial class NetworkTransformSync : Instance
 
 		foreach (var (k, pending) in _pendingBatchUpdate)
 		{
-			if (pending.Dyn.IsDeleted)
-			{
-				_pendingBatchUpdate.Remove(k);
-				continue;
-			}
 			BatchTransformData batchData = new(
 				k,
-				pending.Dyn.GetLocalTransform(),
+				pending.Transform,
 				pending.LerpTransform
 			);
 
@@ -309,6 +308,14 @@ public partial class NetworkTransformSync : Instance
 		}
 	}
 
+	private void SetPendingBatch(string objID, PendingBatchTransform entry, bool forced = false)
+	{
+		if (_pendingBatchUpdate.TryGetValue(objID, out var existing) && existing.Forced && !forced)
+			return;
+
+		_pendingBatchUpdate[objID] = entry;
+	}
+
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.Reliable)]
 	private void NetRecvBatchedTransformsReliable(byte[] transformsRaw)
 	{
@@ -335,12 +342,14 @@ public partial class NetworkTransformSync : Instance
 		}
 	}
 
-	private struct PendingBatchTransform(Dynamic dyn, bool lerpTransform, int excludePeer)
+	private struct PendingBatchTransform(Dynamic dyn, Transform3D transform, bool lerpTransform, int excludePeer)
 	{
 		public Dynamic Dyn = dyn;
+		public Transform3D Transform = transform;
 		public bool LerpTransform = lerpTransform;
 		public int ExcludePeer = excludePeer;
 		public bool Reliable = false;
+		public bool Forced = false;
 	}
 
 	private struct PendingTransform()
