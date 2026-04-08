@@ -99,13 +99,13 @@ public partial class Dynamic : Instance
 				}
 				else
 				{
-					part.PartSize = scale / GetParentScale(); // Part size is local
+					part.PartSize = scale / GetParentScale();
 				}
 				part.RefreshUV1();
 			}
 			else
 			{
-				GDNode3D.Scale = scale / GetParentScale();
+				GDNode3D.Scale = scale;
 			}
 			if (AutoUpdateNetTransform)
 			{
@@ -160,6 +160,11 @@ public partial class Dynamic : Instance
 			{
 				return part.PartSize / GetParentScale();
 			}
+			if (Parent is Part)
+			{
+				// Special handling for parts, since all parts has (1,1,1) scale on GDNode
+				return GDNode3D.Scale / GetParentScale();
+			}
 			return GDNode3D.Scale;
 		}
 		set
@@ -179,7 +184,15 @@ public partial class Dynamic : Instance
 			}
 			else
 			{
-				GDNode3D.Scale = scale;
+				if (Parent is Part)
+				{
+					// Part has special handling for scale, since all part's GDNode has a scale of (1,1,1)
+					GDNode3D.Scale = scale * parentScale;
+				}
+				else
+				{
+					GDNode3D.Scale = scale;
+				}
 			}
 			if (AutoUpdateNetTransform)
 			{
@@ -786,6 +799,12 @@ public partial class Dynamic : Instance
 			);
 			return new Transform3D(scaledBasis, t.Origin);
 		}
+		else if (Parent is Part parentPart)
+		{
+			var parentScale = parentPart.PartSize;
+			var unscaledOrigin = t.Origin / parentScale;
+			return new Transform3D(t.Basis, unscaledOrigin);
+		}
 		return t;
 	}
 
@@ -818,6 +837,20 @@ public partial class Dynamic : Instance
 			);
 			part.PartSize = scale;
 			GDNode3D.Transform = new Transform3D(to.Basis.Orthonormalized(), to.Origin);
+		}
+		else if (Parent is Part parentPart)
+		{
+			var parentScale = parentPart.PartSize;
+			var scaledOrigin = to.Origin * parentScale;
+			var rotation = to.Basis;
+
+			Basis scaledBasis = new(
+				rotation.Column0 * parentScale.X,
+				rotation.Column1 * parentScale.Y,
+				rotation.Column2 * parentScale.Z
+			);
+
+			GDNode3D.Transform = new Transform3D(scaledBasis, scaledOrigin);
 		}
 		else
 		{
