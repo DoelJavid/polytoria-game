@@ -35,6 +35,8 @@ public partial class NetworkedObject : IScriptObject
 	private World _game = null!;
 	private bool _isReplicating = true;
 	private bool _isDeleted = false;
+	private bool _processAlwaysOn = false;
+	private bool _physicsProcessAlwaysOn = false;
 
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _editablePropertiesCache = [];
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _scriptPropertiesCache = [];
@@ -268,6 +270,32 @@ public partial class NetworkedObject : IScriptObject
 	}
 
 	// NOTE: This part is kinda messy/verbose.
+
+	/// <summary>
+	/// If true, the process is always on despite SetProcess calls
+	/// </summary>
+	internal bool ProcessAlwaysOn
+	{
+		get => _processAlwaysOn;
+		set
+		{
+			SetProcess(value);
+			_processAlwaysOn = value;
+		}
+	}
+
+	/// <summary>
+	/// If true, the physics process is always on despite SetPhysicsProcess calls
+	/// </summary>
+	internal bool PhysicsProcessAlwaysOn
+	{
+		get => _physicsProcessAlwaysOn;
+		set
+		{
+			SetPhysicsProcess(value);
+			_physicsProcessAlwaysOn = value;
+		}
+	}
 
 	/// <summary>
 	/// Set to false if InvokePropReady is called manually (eg. after properties set)
@@ -1848,6 +1876,20 @@ public partial class NetworkedObject : IScriptObject
 		_netObjToProxy[this] = to;
 		_proxyToNetObj[to] = this;
 		InitGDNode();
+	}
+
+	public void SetProcess(bool to)
+	{
+		if (ProcessAlwaysOn) return;
+		Globals.GodotProcess -= Process;
+		if (to) Globals.GodotProcess += Process;
+	}
+
+	public void SetPhysicsProcess(bool to)
+	{
+		if (PhysicsProcessAlwaysOn) return;
+		Globals.GodotPhysicsProcess -= PhysicsProcess;
+		if (to) Globals.GodotPhysicsProcess += PhysicsProcess;
 	}
 
 	[ScriptMethod]

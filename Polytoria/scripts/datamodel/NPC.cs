@@ -428,6 +428,10 @@ public partial class NPC : Physical
 		UpdateCollision();
 
 		RecalculateNametagOffset();
+
+		// Force these to always be on
+		ProcessAlwaysOn = true;
+		PhysicsProcessAlwaysOn = true;
 	}
 
 	public override void InitOverrides()

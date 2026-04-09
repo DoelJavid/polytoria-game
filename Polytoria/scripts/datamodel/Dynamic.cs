@@ -281,6 +281,8 @@ public partial class Dynamic : Instance
 #if CREATOR
 		CreateCreatorBounds();
 #endif
+		SetProcess(false);
+		SetPhysicsProcess(false);
 		base.Init();
 	}
 
@@ -512,6 +514,8 @@ public partial class Dynamic : Instance
 	{
 		if (Root == null || Root?.Network == null) return;
 		_lerpUnreliable = false;
+		SetPhysicsProcess(false);
+
 		UpdateCurrentTransformCache();
 		ReliableTransformChanged?.Invoke();
 
@@ -572,18 +576,24 @@ public partial class Dynamic : Instance
 		_netTransform = transform;
 		_isDirty = true;
 
+		// TODO: SetPhysicsProcess affects Physical.cs's tick, but could also affect other behaviour.
+		// Maybe we need to make something dedicated to physical tick?
+
 		// temporary set to disable lerping on non player
 		// object seems to glitch weirdly when lerping
 		// TODO: come back and fix this
 		if (Root.Network.IsServer || !lerpTransform)
 		{
 			_lerpUnreliable = false;
+			SetPhysicsProcess(false);
+
 			_currentTransform = transform;
 			SetLocalTransform(transform);
 		}
 		else if (lerpTransform && !Root.Network.IsServer)
 		{
 			_lerpUnreliable = true;
+			SetPhysicsProcess(true);
 		}
 
 		if (isReliable)
