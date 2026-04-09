@@ -6,6 +6,7 @@ using Godot;
 using Polytoria.Creator.LSP;
 using Polytoria.Creator.LSP.Schemas;
 using Polytoria.Datamodel.Creator;
+using Polytoria.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,6 +87,10 @@ public partial class TextEditorRoot : Node
 		CodeEditor.SetGutterName(0, "diagnostics");
 
 		CodeEditor.Root = this;
+
+		// TODO: Can be made into TextEditorRoot.GrabFocus() ?
+		// Needs to be call deferred to be the last to grab
+		PT.CallDeferred(CodeEditor.GrabFocus);
 
 		if (_completion != null)
 		{
