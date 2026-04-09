@@ -574,6 +574,7 @@ public partial class Dynamic : Instance
 	/// </summary>
 	internal void UpdateCurrentTransformCache()
 	{
+		if (!GDNode3D.IsInsideTree()) return;
 		ForceUpdateTransform();
 		RefreshTransform();
 		Transform3D newt = GetLocalTransform();
@@ -866,6 +867,7 @@ public partial class Dynamic : Instance
 
 	internal void SetGlobalTransformRaw(Transform3D to)
 	{
+		if (!GDNode3D.IsInsideTree()) return;
 		if (_oldGlobalTransformApplied == to) return;
 		_oldGlobalTransformApplied = to;
 		if (this is Part part)
@@ -886,6 +888,7 @@ public partial class Dynamic : Instance
 
 	internal void SetLocalTransformRaw(Transform3D to)
 	{
+		if (!GDNode3D.IsInsideTree()) return;
 		if (_oldLocalTransformApplied == to) return;
 		_oldLocalTransformApplied = to;
 		if (this is Part part)
@@ -941,6 +944,7 @@ public partial class Dynamic : Instance
 
 	internal void ForceUpdateTransform()
 	{
+		if (!GDNode3D.IsInsideTree()) return;
 		GDNode3D.ForceUpdateTransform();
 	}
 
