@@ -31,6 +31,10 @@ public partial class Dynamic : Instance
 	private bool _isFirstUpdate = true;
 	private bool _isDirty = false;
 
+	private Transform3D _oldPartTransformApplied;
+	private Transform3D _oldGlobalTransformApplied;
+	private Transform3D _oldLocalTransformApplied;
+
 #if CREATOR
 	private Area3D _boundArea3D = null!;
 	private CollisionShape3D _boundCollider = null!;
@@ -370,8 +374,16 @@ public partial class Dynamic : Instance
 			// If using SetLocalTransformRaw directly, the part size would appear bigger than usual.
 			if (this is Part)
 			{
-				// Update raw without scale, scale is already handled via reliable update
-				GDNode3D.Transform = new Transform3D(_currentTransform.Basis.Orthonormalized(), _currentTransform.Origin);
+				Transform3D setto = new(_currentTransform.Basis.Orthonormalized(), _currentTransform.Origin);
+
+				// Only update when changed
+				if (!_oldPartTransformApplied.IsEqualApprox(setto))
+				{
+					_oldPartTransformApplied = setto;
+
+					// Update raw without scale, scale is already handled via reliable update
+					GDNode3D.Transform = setto;
+				}
 			}
 			else
 			{
@@ -465,12 +477,17 @@ public partial class Dynamic : Instance
 	{
 		if (Root == null || Root.Network == null) return;
 
-		GDNode3D.ForceUpdateTransform();
+		ForceUpdateTransform();
 		Transform3D current = GetLocalTransform();
+
+		// Only send if changed
+		if (_lastSentTransform != null && _lastSentTransform.Value.IsEqualApprox(current))
+			return;
 
 		_lastSentTransform = current;
 
 		InvokeTransformChanged();
+		if (!Root.IsLoaded) return;
 		SendNetTransformUnreliable();
 	}
 
@@ -482,14 +499,14 @@ public partial class Dynamic : Instance
 		Transform3D current = GetLocalTransform();
 
 		// Only send if changed
-		if (_lastSentTransform == null || !_lastSentTransform.Value.IsEqualApprox(current))
-		{
-			_lastSentTransform = current;
+		if (_lastSentTransform != null && _lastSentTransform.Value.IsEqualApprox(current))
+			return;
 
-			InvokeTransformChanged();
-			if (!Root.IsLoaded) return;
-			SendNetTransformReliable();
-		}
+		_lastSentTransform = current;
+
+		InvokeTransformChanged();
+		if (!Root.IsLoaded) return;
+		SendNetTransformReliable();
 	}
 
 	protected void SendNetTransformUnreliable(bool lerp = true)
@@ -824,6 +841,8 @@ public partial class Dynamic : Instance
 
 	internal void SetGlobalTransformRaw(Transform3D to)
 	{
+		if (_oldGlobalTransformApplied == to) return;
+		_oldGlobalTransformApplied = to;
 		if (this is Part part)
 		{
 			Vector3 scale = new(
@@ -842,6 +861,8 @@ public partial class Dynamic : Instance
 
 	internal void SetLocalTransformRaw(Transform3D to)
 	{
+		if (_oldLocalTransformApplied == to) return;
+		_oldLocalTransformApplied = to;
 		if (this is Part part)
 		{
 			Vector3 scale = new(
