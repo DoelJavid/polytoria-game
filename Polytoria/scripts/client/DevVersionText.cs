@@ -11,7 +11,21 @@ public partial class DevVersionText : Control
 {
 	public override void _Ready()
 	{
-		if (!(Globals.IsInGDEditor || Globals.IsBetaBuild)) Visible = false;
-		GetNode<Label>("Label").Text = Globals.AppVersion;
+		if (!(Globals.IsInGDEditor || Globals.IsBetaBuild))
+		{
+			Visible = false;
+			return;
+		}
+		string buildName = "build";
+		if (Globals.IsInGDEditor)
+		{
+			buildName = "Developer Build";
+		}
+		else if (Globals.IsBetaBuild)
+		{
+			buildName = "Beta Build";
+		}
+		GetNode<Label>("BuildName").Text = buildName;
+		GetNode<Label>("Version").Text = Globals.AppVersion;
 	}
 }

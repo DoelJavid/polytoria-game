@@ -1,14 +1,11 @@
 [gd_scene format=3 uid="uid://dp6ihhosrd6wk"]
 
 [ext_resource type="Script" uid="uid://bl4gd7n8fs0yg" path="res://scripts/client/ClientEntry.cs" id="1_qqd53"]
+[ext_resource type="PackedScene" uid="uid://hinrdn5nk18f" path="res://scenes/client/ui/misc/dev_version.tscn" id="3_gmu12"]
 [ext_resource type="PackedScene" uid="uid://pclh81wym355" path="res://scenes/client/ui/loading_screen.tscn" id="3_qx1al"]
 [ext_resource type="PackedScene" uid="uid://b6das42i4elj4" path="res://scenes/client/ui/core/focus_gradient.tscn" id="4_gmu12"]
 [ext_resource type="PackedScene" uid="uid://bpyqpb54yop1j" path="res://scenes/client/ui/core/disconnected_ui.tscn" id="4_icqby"]
-[ext_resource type="Script" uid="uid://d27rxjbt57nn4" path="res://scripts/client/DevVersionText.cs" id="4_oismd"]
 [ext_resource type="Script" uid="uid://chlk7tbwpcj2n" path="res://scripts/client/ui/core/GamepadFocusbox.cs" id="4_qx1al"]
-
-[sub_resource type="Theme" id="Theme_s2gpv"]
-default_font_size = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qx1al"]
 draw_center = false
@@ -33,27 +30,7 @@ layer = 50
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=912783170]
 layer = 200
 
-[node name="Control" type="VBoxContainer" parent="CanvasLayer" unique_id=895841970]
-modulate = Color(1, 1, 1, 0.529412)
-top_level = true
-z_index = 50
-z_as_relative = false
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -97.5
-offset_top = 16.0
-offset_right = 97.5
-offset_bottom = 34.0
-grow_horizontal = 2
-mouse_filter = 2
-theme = SubResource("Theme_s2gpv")
-script = ExtResource("4_oismd")
-
-[node name="Label" type="Label" parent="CanvasLayer/Control" unique_id=1996366067]
-layout_mode = 2
-text = "DEVELOPER PREVIEW"
-horizontal_alignment = 1
+[node name="DevVersion" parent="CanvasLayer" unique_id=2028514310 instance=ExtResource("3_gmu12")]
 
 [node name="GamepadFocus" type="Control" parent="CanvasLayer" unique_id=1519788291]
 visible = false
