@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://cxh4n02fai28s" path="res://scripts/client/ui/menu/components/settings/UISettingsView.cs" id="2_fd22w"]
 [ext_resource type="PackedScene" uid="uid://brxt84nnr2cl7" path="res://scenes/client/ui/menu/components/settings/elements/check_button.tscn" id="3_ubbqy"]
 [ext_resource type="Script" uid="uid://bswy6v8atjrw2" path="res://scripts/client/ui/menu/components/settings/fields/PerformanceOverlayField.cs" id="4_ubbqy"]
+[ext_resource type="FontFile" uid="uid://br7h7u0cyugv0" path="res://assets/fonts/built-in/JetBrainsMono-VariableFont_wght.ttf" id="6_vkwa1"]
+[ext_resource type="Script" uid="uid://gtydiakgpixy" path="res://scripts/client/ui/misc/UIVersionText.cs" id="7_yw57d"]
 [ext_resource type="Script" uid="uid://co1iq3a41uwpj" path="res://scripts/client/ui/menu/components/settings/UIViewLicensesButton.cs" id="8_6mwye"]
 
 [node name="View" type="PanelContainer" unique_id=1388355692]
@@ -84,3 +86,27 @@ SettingName = "ShowConnectionIndicators"
 layout_mode = 2
 text = "View Licenses"
 script = ExtResource("8_6mwye")
+
+[node name="HSeparator" type="HSeparator" parent="Layout" unique_id=1630684217]
+layout_mode = 2
+
+[node name="VersionLetter" type="HBoxContainer" parent="Layout" unique_id=38670142]
+modulate = Color(1, 1, 1, 0.49803922)
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Label" type="Label" parent="Layout/VersionLetter" unique_id=785332483]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("6_vkwa1")
+theme_override_font_sizes/font_size = 14
+text = "Polytoria"
+horizontal_alignment = 1
+
+[node name="Version" type="Label" parent="Layout/VersionLetter" unique_id=60148954]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("6_vkwa1")
+theme_override_font_sizes/font_size = 14
+text = "2.0.0"
+horizontal_alignment = 1
+script = ExtResource("7_yw57d")

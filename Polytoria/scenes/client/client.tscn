@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://pclh81wym355" path="res://scenes/client/ui/loading_screen.tscn" id="3_qx1al"]
 [ext_resource type="PackedScene" uid="uid://b6das42i4elj4" path="res://scenes/client/ui/core/focus_gradient.tscn" id="4_gmu12"]
 [ext_resource type="PackedScene" uid="uid://bpyqpb54yop1j" path="res://scenes/client/ui/core/disconnected_ui.tscn" id="4_icqby"]
-[ext_resource type="Script" uid="uid://d27rxjbt57nn4" path="res://scripts/client/VersionTextUI.cs" id="4_oismd"]
+[ext_resource type="Script" uid="uid://d27rxjbt57nn4" path="res://scripts/client/DevVersionText.cs" id="4_oismd"]
 [ext_resource type="Script" uid="uid://chlk7tbwpcj2n" path="res://scripts/client/ui/core/GamepadFocusbox.cs" id="4_qx1al"]
 
 [sub_resource type="Theme" id="Theme_s2gpv"]

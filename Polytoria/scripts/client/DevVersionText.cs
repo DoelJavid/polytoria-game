@@ -7,7 +7,7 @@ using Polytoria.Shared;
 
 namespace Polytoria.Client;
 
-public partial class VersionTextUI : Control
+public partial class DevVersionText : Control
 {
 	public override void _Ready()
 	{
