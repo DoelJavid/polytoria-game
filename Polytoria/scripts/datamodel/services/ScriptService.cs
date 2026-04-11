@@ -35,6 +35,7 @@ public sealed partial class ScriptService : Instance
 	private static readonly Dictionary<CacheKey, PropertyInfo?> _propertyCache = [];
 	private static readonly Dictionary<Type, (MethodInfo, ScriptMetamethodAttribute)[]> _metaMethodCache = [];
 
+	// Dictionary of all proxies
 	public static readonly Dictionary<Type, Type> ProxyMap = new()
 	{
 		{ typeof(Vector3), typeof(PTVector3) },
@@ -44,6 +45,7 @@ public sealed partial class ScriptService : Instance
 		{ typeof(Aabb), typeof(PTBounds) },
 	};
 
+	// Dictionary of all data type exposed to scripting
 	public static readonly Dictionary<string, Type> GlobalDataMap = new()
 	{
 		{ "Vector3", typeof(PTVector3) },
@@ -59,6 +61,7 @@ public sealed partial class ScriptService : Instance
 		{ "NumberRange", typeof(NumberRange) },
 	};
 
+	// Dictionary of all enum exposed to scripting
 	public static readonly Dictionary<string, Type> EnumMap = new()
 	{
 		{ "AmbientSource", typeof(Lighting.AmbientSourceEnum) },
