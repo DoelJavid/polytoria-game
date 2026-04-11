@@ -81,7 +81,7 @@ public partial class LogDispatcher : NetworkedObject
 			// Explicitly set on server if is client/ from server
 			data.LogFrom = LogFromEnum.Server;
 		}
-		data.LoggedAt = DateTime.Now;
+		data.LoggedAt = DateTime.UtcNow;
 		PT.CallOnMainThread(() =>
 		{
 			InvokeNewLog(data);
@@ -140,6 +140,11 @@ public partial class LogDispatcher : NetworkedObject
 
 	private void RegisterLogItem(LogData item)
 	{
+		// Clear loggedAt data if from server and receiver is client (time from sserver may be desynchronized with the client)
+		if (item.LogFrom == LogFromEnum.Server && Root.Network.NetworkMode == Datamodel.Services.NetworkService.NetworkModeEnum.Client)
+		{
+			item.LoggedAt = DateTime.UtcNow;
+		}
 		Logs.Add(item);
 		if (Logs.Count > MaxLogLength)
 		{
