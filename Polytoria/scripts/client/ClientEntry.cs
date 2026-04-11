@@ -8,6 +8,9 @@
 
 using Godot;
 using Polytoria.Client.WebAPI;
+#if CREATOR
+using Polytoria.Creator.Utils;
+#endif
 using Polytoria.Datamodel;
 using Polytoria.Datamodel.Services;
 using Polytoria.Schemas.API;
@@ -78,6 +81,7 @@ public sealed partial class ClientEntry : Node3D
 		cmdargs.TryGetValue("solo", out string? soloPath);
 		cmdargs.TryGetValue("nplr", out string? nPlrStr);
 		cmdargs.TryGetValue("spawnpos", out string? spawnPosStr);
+		cmdargs.TryGetValue("ctoken", out string? ctoken); // Creator test token
 
 		connectAddress ??= "127.0.0.1";
 		portStr ??= "24221";
@@ -216,6 +220,14 @@ public sealed partial class ClientEntry : Node3D
 		sw.Restart();
 		Root.Setup();
 		PT.Print($"World setup in {sw.ElapsedMilliseconds}ms");
+
+#if CREATOR
+		// Set creator token for testing (used for loading unapproved assets made by the user)
+		if (ctoken != null)
+		{
+			PolyCreatorAPI.SetToken(ctoken);
+		}
+#endif
 
 #if ALLOW_SELFHOST
 		// Load the test world for server

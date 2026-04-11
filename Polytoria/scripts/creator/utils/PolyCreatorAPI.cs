@@ -27,10 +27,15 @@ public static class PolyCreatorAPI
 	public static event Action? UserAuthenticated;
 	public static bool IsUserAuthenticated { get; private set; }
 
-	public static async Task LoginWithToken(string token)
+	public static void SetToken(string token)
 	{
 		Token = token;
 		_client.DefaultRequestHeaders.Add("Authorization", token);
+	}
+
+	public static async Task LoginWithToken(string token)
+	{
+		SetToken(token);
 		CreatorAuthResponse res = await _client.GetFromJsonAsync(Globals.ApiEndpoint.PathJoin("/v1/creator/token-data"), CreatorAPIGenerationContext.Default.CreatorAuthResponse);
 		UserID = res.UserID;
 		if (res.PlaceID.HasValue)

@@ -8,6 +8,7 @@ using Polytoria.Creator;
 using Polytoria.Creator.Managers;
 using Polytoria.Creator.UI;
 using Polytoria.Creator.UI.Splashes;
+using Polytoria.Creator.Utils;
 using Polytoria.Formats;
 using Polytoria.Scripting;
 using Polytoria.Shared;
@@ -514,6 +515,12 @@ public sealed partial class CreatorService : Node, IScriptObject
 		if (Globals.IsInGDEditor)
 		{
 			args.InsertRange(0, ["--remote-debug", "tcp://127.0.0.1:6007"]);
+		}
+
+		// Apply Creator token for loading unapproved assets
+		if (PolyCreatorAPI.Token != string.Empty)
+		{
+			args.InsertRange(0, ["-ctoken", PolyCreatorAPI.Token]);
 		}
 
 		LocalTestWorlds.Add(placeFilePath);
