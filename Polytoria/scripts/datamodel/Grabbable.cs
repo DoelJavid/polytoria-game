@@ -262,7 +262,7 @@ public partial class Grabbable : Instance
 					Camera3D camera = viewport.GetCamera3D();
 					Camera? cam = Root.Environment.CurrentCamera;
 					if (cam == null) return;
-					Vector2 mousePos = Root.Input.MousePosition;
+					Vector2 mousePos = Root.Input.MousePosition.Flip();
 					Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
 					Vector3 rayDir = camera.ProjectRayNormal(mousePos);
 

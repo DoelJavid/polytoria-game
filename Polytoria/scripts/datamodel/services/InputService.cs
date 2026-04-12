@@ -560,7 +560,7 @@ public sealed partial class InputService : Instance
 		if (camera == null || viewport == null)
 			return Vector3.Zero;
 
-		Vector2 mousePos = MousePosition;
+		Vector2 mousePos = MousePosition.Flip();
 		Vector3 rayOrigin = camera.ProjectRayOrigin(mousePos);
 		Vector3 rayDir = camera.ProjectRayNormal(mousePos);
 
