@@ -3,6 +3,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
+using Polytoria.Datamodel;
 using Polytoria.Shared;
 using System;
 using System.Reflection;
@@ -133,6 +134,16 @@ public sealed partial class ClientSettings : Node
 
 	public void SaveSettings()
 	{
+		// Prevent saving on creator
+		if (Globals.CurrentAppEntry != Globals.AppEntryEnum.Client)
+		{
+			return;
+		}
+		// Prevent saving on server
+		if (World.Current != null && World.Current.Network != null)
+		{
+			if (World.Current.Network.IsServer) return;
+		}
 		using FileAccess settingsFile = FileAccess.Open(ClientSettingsPath, FileAccess.ModeFlags.Write);
 		settingsFile.StoreString(JsonSerializer.Serialize(Settings, ClientSettingsGenerationContext.Default.ClientSettingsData));
 		settingsFile.Close();
