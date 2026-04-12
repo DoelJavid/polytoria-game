@@ -471,6 +471,9 @@ public static partial class PolyFormat
 
 		foreach (KeyValuePair<string, object?> prop in obj.Properties)
 		{
+			// Could be deleted mid-way
+			if (netObj.IsDeleted) continue;
+
 			string propName = prop.Key;
 			object? propVal = prop.Value;
 

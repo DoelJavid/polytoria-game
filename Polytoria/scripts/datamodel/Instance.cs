@@ -867,6 +867,7 @@ public partial class Instance : NetworkedObject
 		Callable.From(() =>
 		{
 			if (_isHidden != myVal) return;
+			if (IsDeleted) return;
 			HiddenChanged(_isHidden);
 		}).CallDeferred();
 	}

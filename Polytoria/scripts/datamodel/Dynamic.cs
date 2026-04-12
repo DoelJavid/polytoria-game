@@ -749,6 +749,10 @@ public partial class Dynamic : Instance
 			{
 				// If not client, ignore PartDestroyHeight rule
 				if (Root.Network != null && Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
+
+				// If network is not ready, return
+				if (!IsNetworkReady) return;
+
 				Delete();
 			}
 		}
