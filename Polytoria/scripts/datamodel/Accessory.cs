@@ -33,14 +33,13 @@ public partial class Accessory : Dynamic
 		Dynamic attachment = _targetCharacter.GetAttachment(TargetAttachment);
 		remoteTransform = new()
 		{
-			Name = "AccessoryRemoteTransform",
 			UseGlobalCoordinates = true,
 			UpdatePosition = true,
 			UpdateRotation = true,
-			UpdateScale = true
+			UpdateScale = false
 		};
 		attachment.GDNode.AddChild(remoteTransform);
-		remoteTransform.RemotePath = GDNode.GetPath();
+		remoteTransform.RemotePath = remoteTransform.GetPathTo(GDNode);
 	}
 
 	public override void EnterTree()
