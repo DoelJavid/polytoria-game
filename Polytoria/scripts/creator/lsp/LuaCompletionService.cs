@@ -59,6 +59,10 @@ public class LuaCompletionService(CreatorSession session)
 			exeName = "luau-lsp";
 			if (Globals.IsInGDEditor)
 				basePath = basePath.PathJoin("macos");
+			else
+				// luau-lsp live alongside Polytoria.app, go up 3 levels to reach the folder containing the .app
+				// NOTE: HACKY!!!!!!!!!!!!!!!!!!!!
+				basePath = basePath.GetBaseDir().GetBaseDir().GetBaseDir();
 		}
 		else if (OS.HasFeature("linux"))
 		{
