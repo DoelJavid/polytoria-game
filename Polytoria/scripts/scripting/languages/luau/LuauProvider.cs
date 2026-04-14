@@ -1113,6 +1113,11 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 
 	public object? LuaToObject(LuaState state, int index, bool convertToGD = true, bool getAsFunction = false)
 	{
+		return LuaToObjectInternal(state, index, convertToGD, getAsFunction, []);
+	}
+
+	internal object? LuaToObjectInternal(LuaState state, int index, bool convertToGD = true, bool getAsFunction = false, HashSet<IntPtr> visitedTables = null!)
+	{
 		if (state.IsNumber(index)) return state.ToNumber(index); // number
 		if (state.IsString(index)) return state.ToString(index); // string
 		if (state.IsBoolean(index)) return state.ToBoolean(index); // boolean
@@ -1277,83 +1282,102 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		}
 		else if (state.IsTable(index)) // Tables
 		{
-			int absindex = state.AbsIndex(index);
-			int startTop = state.GetTop();
+			IntPtr tablePtr = state.ToPointer(index);
 
-			Dictionary<int, object?> intKeyed = [];
-			Dictionary<object, object?> otherKeyed = [];
-			int maxIndex = 0;
-			state.PushNil(); // first key
+			if (!visitedTables.Add(tablePtr))
+			{
+				// Circular reference, return null
+				return null;
+			}
+
 			try
 			{
-				while (state.Next(absindex))
+				int absindex = state.AbsIndex(index);
+				int startTop = state.GetTop();
+
+				Dictionary<int, object?> intKeyed = [];
+				Dictionary<object, object?> otherKeyed = [];
+				int maxIndex = 0;
+				state.PushNil(); // first key
+				try
 				{
-					try
+					while (state.Next(absindex))
 					{
-						if (state.IsNumber(-2))
+						try
 						{
-							double n = state.ToNumber(-2);
-							int intKey = (int)n;
-							if (intKey >= 1 && Math.Abs(n - intKey) < 1e-10)
+							if (state.IsNumber(-2))
 							{
-								intKeyed[intKey] = LuaToObject(state, -1, convertToGD);
-								if (intKey > maxIndex) maxIndex = intKey;
+								double n = state.ToNumber(-2);
+								int intKey = (int)n;
+								if (intKey >= 1 && Math.Abs(n - intKey) < 1e-10)
+								{
+									intKeyed[intKey] = LuaToObjectInternal(state, -1, convertToGD, false, visitedTables);
+									if (intKey > maxIndex) maxIndex = intKey;
+								}
+								else
+								{
+									otherKeyed[LuaToObjectInternal(state, -2, convertToGD, false, visitedTables) ?? ""]
+										= LuaToObjectInternal(state, -1, convertToGD, false, visitedTables);
+								}
 							}
 							else
 							{
-								otherKeyed[LuaToObject(state, -2, convertToGD) ?? ""] = LuaToObject(state, -1, convertToGD);
+								otherKeyed[LuaToObjectInternal(state, -2, convertToGD, false, visitedTables) ?? ""]
+									= LuaToObjectInternal(state, -1, convertToGD, false, visitedTables);
 							}
 						}
-						else
+						finally
 						{
-							otherKeyed[LuaToObject(state, -2, convertToGD) ?? ""] = LuaToObject(state, -1, convertToGD);
+							state.Pop(1);
 						}
 					}
-					finally
-					{
-						state.Pop(1);
-					}
 				}
-			}
-			catch
-			{
-				// Clean up stack on error
-				state.SetTop(startTop);
-				throw;
-			}
+				catch
+				{
+					// Clean up stack on error
+					state.SetTop(startTop);
+					throw;
+				}
 
-			if (otherKeyed.Count == 0 && intKeyed.Count > 0)
-			{
-				object?[] array = new object?[maxIndex];
-				foreach ((int key, object? val) in intKeyed)
+				// Finalize if it's array or dictionary
+				if (otherKeyed.Count == 0 && intKeyed.Count > 0)
 				{
-					array[key - 1] = val;
-				}
-				return array;
-			}
-			else
-			{
-				if (intKeyed.Count == 0)
-					return otherKeyed;
-				if (otherKeyed.Count == 0)
-				{
-					Dictionary<object, object?> result = new(intKeyed.Count);
+					object?[] array = new object?[maxIndex];
 					foreach ((int key, object? val) in intKeyed)
 					{
-						result[key] = val;
+						array[key - 1] = val;
 					}
-					return result;
+					return array;
 				}
-				Dictionary<object, object?> dict = new(intKeyed.Count + otherKeyed.Count);
-				foreach ((int key, object? val) in intKeyed)
+				else
 				{
-					dict[key] = val;
+					if (intKeyed.Count == 0)
+						return otherKeyed;
+					if (otherKeyed.Count == 0)
+					{
+						Dictionary<object, object?> result = new(intKeyed.Count);
+						foreach ((int key, object? val) in intKeyed)
+						{
+							result[key] = val;
+						}
+						return result;
+					}
+					Dictionary<object, object?> dict = new(intKeyed.Count + otherKeyed.Count);
+					foreach ((int key, object? val) in intKeyed)
+					{
+						dict[key] = val;
+					}
+					foreach ((object key, object? val) in otherKeyed)
+					{
+						dict[key] = val;
+					}
+					return dict;
 				}
-				foreach ((object key, object? val) in otherKeyed)
-				{
-					dict[key] = val;
-				}
-				return dict;
+			}
+			finally
+			{
+				// Allow this table to be visited again via a different path
+				visitedTables.Remove(tablePtr);
 			}
 		}
 		else if (state.IsBuffer(index))
