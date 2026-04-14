@@ -169,7 +169,7 @@ public abstract partial class Entity : Physical
 	public override void PreDelete()
 	{
 		// Unregister spawnpoint on delete
-		Root.Environment.UnregisterSpawnPoint(this);
+		Root?.Environment?.UnregisterSpawnPoint(this);
 		base.PreDelete();
 	}
 
