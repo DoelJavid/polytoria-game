@@ -86,7 +86,7 @@ public sealed partial class Toolbox : Control
 			4 => LibraryQueryTypeEnum.Addon,
 			_ => LibraryQueryTypeEnum.Model
 		};
-		CurrentPage = 0;
+		CurrentPage = 1;
 		Refresh();
 	}
 
