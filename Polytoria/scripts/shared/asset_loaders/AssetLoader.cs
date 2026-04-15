@@ -26,6 +26,9 @@ public partial class AssetLoader : Node
 
 	private const int MaxConcurrentRequests = 1;
 
+	internal int PendingAssetsCount => _queue.Count;
+	internal int AssetCacheCount => _cache.Count;
+
 	private readonly BlockingCollection<(CacheItem Item, dynamic Callback)> _queue = [];
 
 	private readonly ConcurrentDictionary<int, CacheItem> _cache = [];
@@ -56,9 +59,20 @@ public partial class AssetLoader : Node
 						{
 							TaskCompletionSource<CacheItem> ci = new();
 							_pendingRequests.TryAdd(hash, ci);
-							result = await LoadResource(item);
-							ci.SetResult(result);
-							_pendingRequests.TryRemove(hash, out _);
+							try
+							{
+								result = await LoadResource(item);
+								ci.SetResult(result);
+							}
+							catch
+							{
+								ci.TrySetException(new Exception("Failed to load asset ID: " + item.ID));
+								throw; // rethrow so the outer catch can log it
+							}
+							finally
+							{
+								_pendingRequests.TryRemove(hash, out _);
+							}
 						}
 
 						Callable.From(() =>
