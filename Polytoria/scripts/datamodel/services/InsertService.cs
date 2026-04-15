@@ -11,6 +11,7 @@ using Polytoria.Shared;
 using Polytoria.Utils;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 #if CREATOR
 using Polytoria.Datamodel.Creator;
 #endif
@@ -21,6 +22,7 @@ namespace Polytoria.Datamodel.Services;
 public sealed partial class InsertService : Instance
 {
 	private readonly PTHttpClient _httpClient = new();
+	private static readonly Dictionary<int, APIStoreItem> _storeItemCache = new();
 
 	[ScriptMethod, Attributes.Obsolete("Use ModelAsync instead")]
 	public void Model(int id, PTCallback? callback = null)
@@ -124,7 +126,7 @@ public sealed partial class InsertService : Instance
 	[ScriptMethod]
 	public async Task<Accessory?> AccessoryAsync(int id)
 	{
-		APIStoreItem storeItem = await PolyAPI.GetStoreItem(id);
+		APIStoreItem storeItem = await GetStoreItemCachedAsync(id);
 
 		PTMeshAsset meshAsset = New<PTMeshAsset>();
 		meshAsset.AssetID = (uint)id;
@@ -170,7 +172,7 @@ public sealed partial class InsertService : Instance
 	[ScriptMethod]
 	public async Task<Tool?> ToolAsync(int id)
 	{
-		APIStoreItem storeItem = await PolyAPI.GetStoreItem(id);
+		APIStoreItem storeItem = await GetStoreItemCachedAsync(id);
 
 		PTMeshAsset meshAsset = New<PTMeshAsset>();
 		meshAsset.AssetID = (uint)id;
@@ -201,5 +203,15 @@ public sealed partial class InsertService : Instance
 		mesh.LocalPosition = new Vector3(-1f, -7f, -3f);
 
 		return tool;
+	}
+
+	private static async Task<APIStoreItem> GetStoreItemCachedAsync(int id)
+	{
+		if (_storeItemCache.TryGetValue(id, out var cached))
+			return cached;
+
+		APIStoreItem storeItem = await PolyAPI.GetStoreItem(id);
+		_storeItemCache[id] = storeItem;
+		return storeItem;
 	}
 }
