@@ -34,9 +34,8 @@ public partial class UIInventory : Control
 		_layout = GetNode<Control>("Layout");
 		_inventory.ChildAdded.Connect(OnChildEnterInventory);
 		_inventory.ChildRemoved.Connect(OnChildExitInventory);
-		_inventory.ChildDeleting.Connect(OnPlayerChildExitInventory);
-		_localplr.ChildDeleting.Connect(OnPlayerChildExitInventory);
 		_localplr.ChildAdded.Connect(OnChildEnterInventory);
+		_localplr.ChildRemoved.Connect(OnChildExitInventory);
 
 		PackedScene packed = GD.Load<PackedScene>("res://scenes/client/ui/inventory/slot_add_item.tscn");
 		_addSlotItemBtn = packed.Instantiate<UIToolAddItem>();
@@ -89,14 +88,6 @@ public partial class UIInventory : Control
 		if (child is Tool tool)
 		{
 			RemoveTool(tool);
-		}
-	}
-
-	private void OnPlayerChildExitInventory(Instance child)
-	{
-		if (child is Tool tool)
-		{
-			RemoveTool(tool, true);
 		}
 	}
 
@@ -354,28 +345,25 @@ public partial class UIInventory : Control
 		_backpackNoneView.Visible = _backpackSlot.Count == 0;
 	}
 
-	private async void RemoveTool(Tool tool, bool removedFromPlr = false)
+	private async void RemoveTool(Tool tool)
 	{
 		// Wait for tool to enter another tree first
-		if (!removedFromPlr && !tool.IsDeleted)
-		{
+		if (!tool.IsDeleted)
 			await tool.TreeEntered.Wait();
-		}
 
-		if ((tool.Parent == _localplr || tool.Parent == _localplr.Inventory) && !removedFromPlr)
-		{
-			return;
-		}
+		// If the tool was reparented back to the player or their inventory, keep it
+		if (!tool.IsDeleted && (tool.Parent == _localplr || tool.Parent == _localplr.Inventory)) return;
 
-		if (_tools.TryGetValue(tool, out UIToolItem? UIToolItem))
+		if (_tools.TryGetValue(tool, out UIToolItem? toolItem))
 		{
+			GD.Print(tool.NetworkPath, " REMOVE");
 			_tools.Remove(tool);
 			int slot = _toolSlot.FindIndex(item => item == tool);
 			if (slot != -1)
 			{
 				_toolSlot.RemoveAt(slot);
 			}
-			UIToolItem.QueueFree();
+			toolItem.QueueFree();
 			UpdateSlots();
 		}
 	}

@@ -7,6 +7,7 @@ using Polytoria.Attributes;
 using Polytoria.Datamodel.Resources;
 using Polytoria.Networking;
 using Polytoria.Scripting;
+using Polytoria.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,7 +133,14 @@ public sealed partial class Tool : PhysicalModel
 		}
 		Root.Input.GodotInputEvent += OnInput;
 
-		if (Root.Network.IsServer)
+		// Just in case it were reparented while still having a holder
+		if (Parent is not NPC && Holder != null)
+		{
+			Holder.InternalDetachTool();
+			Holder = null;
+		}
+
+		if (HasAuthority)
 		{
 			Touched.Connect(OnToolTouched);
 		}
@@ -298,7 +306,15 @@ public sealed partial class Tool : PhysicalModel
 
 	internal void InvokeEquipped()
 	{
-		Equipped?.Invoke();
+		// NOTE: HACKY!!!
+		// call deferred to let scripts run first
+		PT.CallDeferred(() =>
+		{
+			PT.CallDeferred(() =>
+			{
+				Equipped?.Invoke();
+			});
+		});
 	}
 
 	protected override void ApplyFreeze(bool to)

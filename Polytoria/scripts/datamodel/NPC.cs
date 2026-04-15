@@ -954,7 +954,7 @@ public partial class NPC : Physical
 		_toolRemoteTransform.RemotePath = _toolRemoteTransform.GetPathTo(tool.GDNode);
 	}
 
-	protected void InternalDetachTool()
+	internal void InternalDetachTool()
 	{
 		if (_toolRemoteTransform != null && Node.IsInstanceValid(_toolRemoteTransform))
 		{
