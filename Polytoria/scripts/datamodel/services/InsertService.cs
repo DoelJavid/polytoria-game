@@ -9,9 +9,9 @@ using Polytoria.Schemas.API;
 using Polytoria.Scripting;
 using Polytoria.Shared;
 using Polytoria.Utils;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 #if CREATOR
 using Polytoria.Datamodel.Creator;
 #endif
