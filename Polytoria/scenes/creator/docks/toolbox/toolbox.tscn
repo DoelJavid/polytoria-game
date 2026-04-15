@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://c8ij1usmtljxn" path="res://scripts/creator/ui/docks/toolbox/Toolbox.cs" id="1_akuy4"]
 [ext_resource type="PackedScene" uid="uid://dbaked5s53qqn" path="res://scenes/shared/loader.tscn" id="2_h1wj5"]
+[ext_resource type="Texture2D" uid="uid://c60spvojllrt4" path="res://assets/textures/ui-icons/chevron-left.svg" id="3_n2m24"]
+[ext_resource type="Texture2D" uid="uid://yd5kv6j4l3hp" path="res://assets/textures/ui-icons/chevron-right.svg" id="4_q1vt0"]
 
 [sub_resource type="FontVariation" id="FontVariation_khfyn"]
 variation_opentype = {
@@ -207,9 +209,10 @@ mouse_filter = 2
 alignment = 1
 
 [node name="Previous" type="Button" parent="Content/Container/Pagination" unique_id=19097926]
-custom_minimum_size = Vector2(25, 0)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
-text = "⯇"
+icon = ExtResource("3_n2m24")
+expand_icon = true
 
 [node name="Label" type="Label" parent="Content/Container/Pagination" unique_id=248314019]
 layout_mode = 2
@@ -219,6 +222,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Button" parent="Content/Container/Pagination" unique_id=1326775117]
-custom_minimum_size = Vector2(25, 0)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
-text = "⯈"
+icon = ExtResource("4_q1vt0")
+expand_icon = true
