@@ -789,12 +789,14 @@ public sealed partial class Player : NPC
 	{
 		if (Character == null) return;
 		Character.GDNode3D.Visible = false;
+		_bubbleChat.Visible = false;
 	}
 
 	private void OnFirstPersonExited()
 	{
 		if (Character == null) return;
 		Character.GDNode3D.Visible = true;
+		_bubbleChat.Visible = true;
 	}
 
 	public void WrapToSpawnPoint()
