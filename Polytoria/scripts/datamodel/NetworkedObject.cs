@@ -1876,6 +1876,7 @@ public partial class NetworkedObject : IScriptObject
 
 	public void SetProcess(bool to)
 	{
+		if (IsDeleted) return;
 		if (ProcessAlwaysOn) return;
 		Globals.GodotProcess -= Process;
 		if (to) Globals.GodotProcess += Process;
@@ -1883,6 +1884,7 @@ public partial class NetworkedObject : IScriptObject
 
 	public void SetPhysicsProcess(bool to)
 	{
+		if (IsDeleted) return;
 		if (PhysicsProcessAlwaysOn) return;
 		Globals.GodotPhysicsProcess -= PhysicsProcess;
 		if (to) Globals.GodotPhysicsProcess += PhysicsProcess;
