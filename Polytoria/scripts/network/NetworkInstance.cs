@@ -36,6 +36,9 @@ public class NetworkInstance
 	internal readonly ConcurrentDictionary<int, ENetPacketPeer> IdToPeer = [];
 	internal readonly ConcurrentDictionary<ENetPacketPeer, int> PeerToId = [];
 
+	private readonly ConcurrentQueue<DeferredNetworkEvent> _mainThreadEventQueue = new();
+	private int _mainThreadDrainScheduled = 0;
+
 	public ICollection<int> PeerIds => IdToPeer.Keys;
 
 	private int _peerCounter = 1;
@@ -250,39 +253,28 @@ public class NetworkInstance
 				IdToPeer[peerID] = fromPeer;
 				PeerToId[fromPeer] = peerID;
 
-				Callable.From(() =>
+				if (IsServer)
 				{
-					if (IsServer)
-					{
-						// Two Guid because im super paranoid
-						string dataToken = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
-						_dataServerTokens[peerID] = dataToken;
-
-						PeerConnected?.Invoke(peerID);
-					}
-					else
-					{
-						ClientConnected?.Invoke();
-					}
-				}).CallDeferred();
+					EnqueueEvent(new PeerConnectedEvent(peerID));
+				}
+				else
+				{
+					EnqueueEvent(new ClientConnectedEvent());
+				}
 			}
 			else if (eventType == ENetConnection.EventType.Disconnect)
 			{
 				if (fromPeer == null) { PT.PrintWarn("Disconnect received but peer is null, return"); return; }
 				IdToPeer.TryRemove(peerID, out _);
 				PeerToId.TryRemove(fromPeer, out _);
-				Callable.From(() =>
+				if (IsServer)
 				{
-					if (IsServer)
-					{
-						_dataServerTokens.Remove(peerID);
-						PeerDisconnected?.Invoke(peerID);
-					}
-					else
-					{
-						ClientDisconnected?.Invoke();
-					}
-				}).CallDeferred();
+					EnqueueEvent(new PeerDisconnectedEvent(peerID));
+				}
+				else
+				{
+					EnqueueEvent(new ClientDisconnectedEvent());
+				}
 			}
 			else if (eventType == ENetConnection.EventType.Receive)
 			{
@@ -300,16 +292,13 @@ public class NetworkInstance
 					};
 					byte[] data = fromPeer.GetPacket();
 
-					Callable.From(() => MessageReceived?.Invoke(peerID, data, m)).CallDeferred();
+					EnqueueEvent(new MessageReceivedEvent(peerID, data, m));
 				}
 			}
 			else if (eventType == ENetConnection.EventType.Error)
 			{
 				PT.PrintErr("Client error");
-				Callable.From(() =>
-				{
-					ClientError?.Invoke(NetInstanceErrorEnum.NetworkError);
-				}).CallDeferred();
+				EnqueueEvent(new ClientErrorEvent(NetInstanceErrorEnum.NetworkError));
 			}
 			else if (eventType == ENetConnection.EventType.None) return;
 
@@ -356,6 +345,58 @@ public class NetworkInstance
 		}
 	}
 
+	private void EnqueueEvent(DeferredNetworkEvent e)
+	{
+		_mainThreadEventQueue.Enqueue(e);
+		if (Interlocked.CompareExchange(ref _mainThreadDrainScheduled, 1, 0) == 0)
+		{
+			Callable.From(DrainEvents).CallDeferred();
+		}
+	}
+
+	private void DrainEvents()
+	{
+		try
+		{
+			while (_mainThreadEventQueue.TryDequeue(out DeferredNetworkEvent? e))
+			{
+				switch (e)
+				{
+					case PeerConnectedEvent connected:
+						string dataToken = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+						_dataServerTokens[connected.PeerID] = dataToken;
+						PeerConnected?.Invoke(connected.PeerID);
+						break;
+					case PeerDisconnectedEvent disconnected:
+						_dataServerTokens.Remove(disconnected.PeerID);
+						PeerDisconnected?.Invoke(disconnected.PeerID);
+						break;
+					case ClientConnectedEvent:
+						ClientConnected?.Invoke();
+						break;
+					case ClientDisconnectedEvent:
+						ClientDisconnected?.Invoke();
+						break;
+					case ClientErrorEvent error:
+						ClientError?.Invoke(error.Error);
+						break;
+					case MessageReceivedEvent msg:
+						MessageReceived?.Invoke(msg.PeerID, msg.Data, msg.TransferMode);
+						break;
+				}
+			}
+		}
+		finally
+		{
+			Interlocked.Exchange(ref _mainThreadDrainScheduled, 0);
+
+			if (!_mainThreadEventQueue.IsEmpty && Interlocked.CompareExchange(ref _mainThreadDrainScheduled, 1, 0) == 0)
+			{
+				Callable.From(DrainEvents).CallDeferred();
+			}
+		}
+	}
+
 	public bool IsPeerConnected(int peerID)
 	{
 		return IdToPeer.ContainsKey(peerID);
@@ -369,6 +410,14 @@ public class NetworkInstance
 		DataChannelAuthFailure,
 		NetworkError
 	}
+
+	private abstract record DeferredNetworkEvent;
+	private record PeerConnectedEvent(int PeerID) : DeferredNetworkEvent;
+	private record PeerDisconnectedEvent(int PeerID) : DeferredNetworkEvent;
+	private record ClientConnectedEvent : DeferredNetworkEvent;
+	private record ClientDisconnectedEvent : DeferredNetworkEvent;
+	private record ClientErrorEvent(NetInstanceErrorEnum Error) : DeferredNetworkEvent;
+	private record MessageReceivedEvent(int PeerID, byte[] Data, TransferMode TransferMode) : DeferredNetworkEvent;
 }
 
 public enum AuthorityMode
