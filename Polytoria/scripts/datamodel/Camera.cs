@@ -573,7 +573,7 @@ public sealed partial class Camera : Dynamic
 		IsFirstPerson = true;
 		_targetZoom = 0;
 		StartTurning();
-		Root.Input.OverrideMousePosTo = GDNode.GetViewport().GetVisibleRect().GetCenter();
+		Root.Input.OverrideMousePosTo = GDNode.GetViewport().GetVisibleRect().GetCenter().Flip();
 		FirstPersonEntered?.Invoke();
 	}
 
