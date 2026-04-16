@@ -7,6 +7,7 @@ using Polytoria.Providers.AssetLoaders;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Polytoria.Shared.AssetLoaders;
@@ -26,6 +27,8 @@ public partial class AssetLoader : Node
 
 	private const int MaxConcurrentRequests = 1;
 
+	private long _assetSizeBytes = 0;
+	internal long AssetSizeBytes => _assetSizeBytes;
 	internal int PendingAssetsCount => _queue.Count;
 	internal int AssetCacheCount => _cache.Count;
 
@@ -63,6 +66,7 @@ public partial class AssetLoader : Node
 							{
 								result = await LoadResource(item);
 								ci.SetResult(result);
+								Interlocked.Add(ref _assetSizeBytes, result.SizeBytes);
 							}
 							catch
 							{
@@ -165,6 +169,7 @@ public struct CacheItem
 	public string DirectURL { get; set; }
 	public Vector2I? Resize { get; set; }
 	public Resource Resource { get; set; }
+	public long SizeBytes { get; set; }
 
 	public override readonly bool Equals(object? obj)
 	{

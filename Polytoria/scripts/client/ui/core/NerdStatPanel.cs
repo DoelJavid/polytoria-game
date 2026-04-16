@@ -57,6 +57,7 @@ public partial class NerdStatPanel : Control
 		CreateDivider();
 		CreateLabel("Non-DMB Parts", () => _root.Bridge.SeparatedPartCount.ToString());
 		CreateDivider();
+		CreateLabel("Asset Memory", () => AssetLoader.Singleton.AssetSizeBytes.Bytes().Megabytes.ToString("0.##") + " mb");
 		CreateLabel("Loaded Assets", () => AssetLoader.Singleton.AssetCacheCount.ToString());
 		CreateLabel("Pending Assets", () => AssetLoader.Singleton.PendingAssetsCount.ToString());
 		CreateDivider();

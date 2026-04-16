@@ -32,6 +32,7 @@ public class PTAssetProvider : IAssetProvider
 
 		ServeResponse response = await _client.GetFromJsonAsync(url, ServeResponseGenerationContext.Default.ServeResponse);
 		byte[] buffer = await _client.GetByteArrayAsync(response.Url);
+		item.SizeBytes = buffer.LongLength;
 
 		item.DirectURL = response.Url;
 

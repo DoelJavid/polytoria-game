@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
 using Polytoria.Networking;
+using Polytoria.Shared.AssetLoaders;
 
 namespace Polytoria.Datamodel;
 
@@ -28,13 +29,17 @@ namespace Polytoria.Datamodel;
 public sealed partial class World : Instance
 {
 	private const double SyncInterval = 5.0;
+	private const double VitalInterval = 3.0;
 	private const int SyncSampleCount = 5;
+
+	private double _vitalTimer = 0;
 
 	private decimal _serverTime = 0;
 
 	private decimal _clientTimeOffset = 0;
 	private double _lastSyncRequest = 0;
 	private uint _nextId = 0;
+	private long _vitalAssetMemory = 0;
 
 	private bool _isLegacyWorld = false;
 
@@ -58,6 +63,7 @@ public sealed partial class World : Instance
 	[ScriptProperty]
 	public bool IsLocalTest => _worldID == 0;
 
+	// TODO: Server Vitals/world properties doesn't work yet, make it work
 	[ScriptProperty, SyncVar]
 	public bool IsLegacyWorld
 	{
@@ -65,6 +71,17 @@ public sealed partial class World : Instance
 		internal set
 		{
 			_isLegacyWorld = value;
+			OnPropertyChanged();
+		}
+	}
+
+	[SyncVar]
+	public long VitalAssetMemory
+	{
+		get => _vitalAssetMemory;
+		set
+		{
+			_vitalAssetMemory = value;
 			OnPropertyChanged();
 		}
 	}
@@ -242,8 +259,13 @@ public sealed partial class World : Instance
 			// Server: increment authoritative time
 			_serverTime += (decimal)delta;
 
-			// Check if under load
-			ServerUnderLoad = Engine.GetFramesPerSecond() <= ServerHighLoadThreshold;
+			_vitalTimer += delta;
+
+			if (_vitalTimer > VitalInterval)
+			{
+				_vitalTimer = 0;
+				SyncVitals();
+			}
 		}
 		else if (Network.NetworkMode == NetworkService.NetworkModeEnum.Client)
 		{
@@ -257,6 +279,15 @@ public sealed partial class World : Instance
 		}
 
 		base.Process(delta);
+	}
+
+	// update server vital signs
+	private void SyncVitals()
+	{
+		VitalAssetMemory = AssetLoader.Singleton.AssetSizeBytes;
+
+		// Check if under load
+		ServerUnderLoad = Engine.GetFramesPerSecond() <= ServerHighLoadThreshold;
 	}
 
 	#region Clock Sync
