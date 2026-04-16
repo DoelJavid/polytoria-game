@@ -443,7 +443,14 @@ public sealed partial class Particles : Dynamic
 	[ScriptMethod]
 	public void Emit(int count)
 	{
+		Rpc(nameof(NetEmit), count);
+	}
+
+	[NetRpc(Networking.AuthorityMode.Authority, CallLocal = true, TransferMode = Networking.TransferMode.Reliable)]
+	private void NetEmit(int count)
+	{
 		GpuParticles3D temp = (GpuParticles3D)_particles.Duplicate();
+		GDNode.AddChild(temp);
 		temp.Amount = count;
 		temp.Explosiveness = 1;
 		temp.OneShot = true;

@@ -65,17 +65,14 @@ public sealed partial class Decal : Dynamic
 		}
 	}
 
-
-	public override Node CreateGDNode()
-	{
-		_decal = new();
-		return _decal;
-	}
-
 	public override void Init()
 	{
-		_decal.Size = Vector3.One;
-		_decal.CullMask = 1;
+		_decal = new()
+		{
+			Size = Vector3.One,
+			CullMask = 1
+		};
+		GDNode.AddChild(_decal);
 		Energy = 1;
 
 		base.Init();
