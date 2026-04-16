@@ -178,7 +178,7 @@ public sealed partial class NetworkService : Instance
 #endif
 		try
 		{
-			InternalNetMsg netMsg = await InternalNetMsg.Deserialize(data);
+			InternalNetMsg netMsg = await InternalNetMsg.DeserializeAsync(data);
 #if DEBUG
 			netDebugTrace = netMsg.StackTrace;
 #endif
@@ -267,7 +267,7 @@ public sealed partial class NetworkService : Instance
 					if (canSend)
 					{
 						if (Globals.UseLogRPC) PT.Print($"Broadcast {md.Name} from {originFromPeer} to all");
-						NetInstance.BroadcastMessage(await netMsg.Serialize(), rpcA.TransferMode, rpcA.TransferChannel, [originFromPeer]);
+						NetInstance.BroadcastMessage(await netMsg.SerializeAsync(), rpcA.TransferMode, rpcA.TransferChannel, [originFromPeer]);
 					}
 					else
 					{

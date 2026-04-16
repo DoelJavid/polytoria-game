@@ -27,12 +27,17 @@ public partial class InternalNetMsg : IScriptObject
 	public List<byte[]> ByteArrays = [];
 	public string StackTrace = "";
 
-	public async Task AddValue(object? value)
+	public async Task AddValueAsync(object? value)
 	{
 		ByteArrays.Add(await NetworkPropSync.SerializePropValueAsync(value));
 	}
 
-	public async Task<byte[]> Serialize()
+	public void AddValue(object? value)
+	{
+		ByteArrays.Add(NetworkPropSync.SerializePropValue(value));
+	}
+
+	public async Task<byte[]> SerializeAsync()
 	{
 		InternalNetMsgPayload payload = new()
 		{
@@ -55,7 +60,24 @@ public partial class InternalNetMsg : IScriptObject
 		return stream.ToArray();
 	}
 
-	public static async Task<InternalNetMsg> Deserialize(byte[] rawdata)
+	public byte[] Serialize()
+	{
+		InternalNetMsgPayload payload = new()
+		{
+			BroadcastAll = BroadcastAll,
+			Target = Target,
+			TargetMethod = TargetMethod,
+			ByteArrays = [.. ByteArrays],
+			OriginSender = OriginSender,
+#if DEBUG
+			StackTrace = Globals.UseNetTrace ? System.Environment.StackTrace : "",
+#endif
+		};
+
+		return SerializeUtils.Serialize(payload);
+	}
+
+	public static async Task<InternalNetMsg> DeserializeAsync(byte[] rawdata)
 	{
 		using MemoryStream stream = new(rawdata);
 		InternalNetMsgPayload? payload = await SerializeUtils.DeserializeAsync<InternalNetMsgPayload>(stream) ?? throw new Exception("Message is invalid");
@@ -71,6 +93,23 @@ public partial class InternalNetMsg : IScriptObject
 #endif
 		};
 		return msg;
+	}
+
+	public static InternalNetMsg Deserialize(byte[] rawdata)
+	{
+		InternalNetMsgPayload payload = SerializeUtils.Deserialize<InternalNetMsgPayload>(rawdata) ?? throw new Exception("Message is invalid");
+
+		return new InternalNetMsg()
+		{
+			BroadcastAll = payload.BroadcastAll,
+			Target = payload.Target,
+			TargetMethod = payload.TargetMethod,
+			ByteArrays = [.. payload.ByteArrays],
+			OriginSender = payload.OriginSender,
+#if DEBUG
+			StackTrace = payload.StackTrace
+#endif	
+		};
 	}
 
 	[MemoryPackable]

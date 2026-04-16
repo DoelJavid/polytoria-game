@@ -1640,7 +1640,7 @@ public partial class NetworkedObject : IScriptObject
 		}
 	}
 
-	public async void Rpc(string methodName, params object?[]? args)
+	public void Rpc(string methodName, params object?[]? args)
 	{
 		InternalNetMsg netmsg = new()
 		{
@@ -1653,7 +1653,7 @@ public partial class NetworkedObject : IScriptObject
 		{
 			foreach (object? arg in args)
 			{
-				await netmsg.AddValue(arg);
+				netmsg.AddValue(arg);
 			}
 		}
 
@@ -1671,7 +1671,7 @@ public partial class NetworkedObject : IScriptObject
 			md.Invoke(this, args);
 		}
 
-		byte[] msg = await netmsg.Serialize();
+		byte[] msg = netmsg.Serialize();
 
 		if (Globals.UseLogRPC)
 		{
@@ -1695,7 +1695,7 @@ public partial class NetworkedObject : IScriptObject
 		return string.IsNullOrEmpty(NetworkedObjectID) ? NetworkPath : "i:" + NetworkedObjectID;
 	}
 
-	public async void RpcId(int id, string methodName, params object?[]? args)
+	public void RpcId(int id, string methodName, params object?[]? args)
 	{
 		InternalNetMsg netmsg = new()
 		{
@@ -1707,7 +1707,7 @@ public partial class NetworkedObject : IScriptObject
 		{
 			foreach (object? arg in args)
 			{
-				await netmsg.AddValue(arg);
+				netmsg.AddValue(arg);
 			}
 		}
 
@@ -1727,7 +1727,7 @@ public partial class NetworkedObject : IScriptObject
 
 		if (id == 1 && Root.Network.IsServer) return;
 
-		byte[] msg = await netmsg.Serialize();
+		byte[] msg = netmsg.Serialize();
 
 		if (Globals.UseLogRPC)
 		{
@@ -1888,6 +1888,34 @@ public partial class NetworkedObject : IScriptObject
 		if (PhysicsProcessAlwaysOn) return;
 		Globals.GodotPhysicsProcess -= PhysicsProcess;
 		if (to) Globals.GodotPhysicsProcess += PhysicsProcess;
+	}
+
+	protected byte[] BuildRpcPacket(string methodName, params object?[] args)
+	{
+		byte[][] msg = new byte[args.Length][];
+
+		for (int i = 0; i < args.Length; i++)
+		{
+			msg[i] = NetworkPropSync.SerializePropValue(args[i]);
+		}
+
+		InternalNetMsg.InternalNetMsgPayload payload = new()
+		{
+			BroadcastAll = false,
+			Target = ProcessRpcTarget(),
+			TargetMethod = GetRpcMethodId(methodName),
+			ByteArrays = msg,
+			OriginSender = 0,
+		};
+
+#if DEBUG
+		if (Globals.UseNetTrace)
+		{
+			payload.StackTrace = System.Environment.StackTrace;
+		}
+#endif
+
+		return SerializeUtils.Serialize(payload);
 	}
 
 	[ScriptMethod]
