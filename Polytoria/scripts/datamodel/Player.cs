@@ -22,6 +22,7 @@ namespace Polytoria.Datamodel;
 [ExplorerExclude]
 public sealed partial class Player : NPC
 {
+	public override float SyncInterval { get; protected set; } = 0.025f;
 	private const double MaxAFKTime = 60 * 15;
 	private const float CameraHeight = 2f;
 	public const string CreatorHeadScene = "res://scenes/creator/livecollab/head.tscn";

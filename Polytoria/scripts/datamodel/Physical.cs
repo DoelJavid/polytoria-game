@@ -18,7 +18,7 @@ namespace Polytoria.Datamodel;
 [Abstract]
 public partial class Physical : Dynamic
 {
-	private const float SyncInterval = 0.025f;
+	public virtual float SyncInterval { get; protected set; } = 0.1f;
 	private const float TouchedGapCheck = 20f;
 	private bool _anchored = true;
 	private bool _canCollide = true;
