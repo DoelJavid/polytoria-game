@@ -117,6 +117,12 @@ public class PTColor : IScriptGDObject
 	}
 
 	[ScriptMethod]
+	public static PTColor FromRGB(float r, float g, float b, float a = 1)
+	{
+		return FromGDClass(new Color(r / 255, g / 255, b / 255, a));
+	}
+
+	[ScriptMethod]
 	public static PTColor FromHex(string hex)
 	{
 		return FromGDClass(Color.FromString(hex, new(1, 1, 1)));
