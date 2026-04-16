@@ -393,6 +393,7 @@ public sealed partial class Mesh : Entity
 		}
 		else
 		{
+			_meshNode.ForceUpdateTransform();
 			Vector3 offset = -_meshNode.CalculateBounds().GetCenter();
 
 			_meshNode.Position = offset;
