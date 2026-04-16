@@ -61,6 +61,9 @@ public partial class NPC : Physical
 	private int? _pendingShirtID;
 	private int? _pendingPantsID;
 
+	protected override float PositionSyncThreshold => 0.1f;
+	protected override float RotationSyncThreshold => 1f;
+
 
 	[Editable, ScriptProperty, NoSync, Attributes.Obsolete("Apply them to Character"), CloneIgnore]
 	public Color HeadColor

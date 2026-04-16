@@ -48,6 +48,9 @@ public partial class Dynamic : Instance
 
 	private int _netTransformAuthority = 1;
 
+	protected virtual float PositionSyncThreshold => 0.5f;
+	protected virtual float RotationSyncThreshold => 5f;
+
 #if CREATOR
 	private Area3D _boundArea3D = null!;
 	private CollisionShape3D _boundCollider = null!;
@@ -480,10 +483,13 @@ public partial class Dynamic : Instance
 		ForceUpdateTransform();
 		Transform3D current = GetLocalTransform();
 
-		// Only send if changed (except NPC & player, their position always sync to prevent them from floating)
-		// TODO: This is kinda... hacky? We must find a way to prevent them from floating.
-		if (_lastSentTransform != null && _lastSentTransform.Value.IsEqualApprox(current) && this is not NPC)
-			return;
+		if (_lastSentTransform is Transform3D lastSent)
+		{
+			if (!HasChangedForNetworkSync(lastSent, current))
+			{
+				return;
+			}
+		}
 
 		_lastSentTransform = current;
 
@@ -932,6 +938,26 @@ public partial class Dynamic : Instance
 		}
 
 		target.UpdateCurrentTransformCache();
+	}
+
+	protected bool HasChangedForNetworkSync(Transform3D a, Transform3D b)
+	{
+		float dst = a.Origin.DistanceTo(b.Origin);
+		if (dst > PositionSyncThreshold)
+		{
+			return true;
+		}
+
+		Quaternion aRot = a.Basis.GetRotationQuaternion().Normalized();
+		Quaternion bRot = b.Basis.GetRotationQuaternion().Normalized();
+
+		float deg = Mathf.RadToDeg(aRot.AngleTo(bRot));
+		if (deg > RotationSyncThreshold)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	[ScriptMethod]
