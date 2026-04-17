@@ -1,20 +1,17 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://co8fey8i4p736"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://co8fey8i4p736"]
 
 [ext_resource type="Texture2D" uid="uid://chb5vrsoj0svr" path="res://assets/textures/parts/RustyIron/albedo.jpg" id="1_etbd3"]
-[ext_resource type="Texture2D" uid="uid://bp1d20c7lsaa0" path="res://assets/textures/parts/RustyIron/metallic.jpg" id="2_erj2n"]
-[ext_resource type="Texture2D" uid="uid://dql7rylal0hxq" path="res://assets/textures/parts/RustyIron/normal.jpg" id="3_dhrx3"]
-[ext_resource type="Texture2D" uid="uid://bf2fovtxon6b2" path="res://assets/textures/parts/RustyIron/roughness.jpg" id="4_6ixp5"]
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_fff5x"]
+[ext_resource type="Texture2D" uid="uid://cpjffqnvcfu2c" path="res://assets/textures/parts/RustyIron/orm.jpg" id="3_56c2k"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "RustyIron"
-albedo_texture = ExtResource("1_etbd3")
-metallic = 1.0
-metallic_specular = 0.3
-metallic_texture = ExtResource("2_erj2n")
-roughness = 0.65
-roughness_texture = ExtResource("4_6ixp5")
-normal_enabled = true
-normal_texture = ExtResource("3_dhrx3")
-uv1_scale = Vector3(0.25, 0.25, 0.25)
-uv1_triplanar = true
+render_priority = 0
+shader = ExtResource("1_fff5x")
+shader_parameter/albedo = ExtResource("1_etbd3")
+shader_parameter/use_albedo_texture = true
+shader_parameter/orm = ExtResource("3_56c2k")
+shader_parameter/use_orm_texture = true
+shader_parameter/specular_value = 0.250000011875
+shader_parameter/studs_per_tile = 2.0

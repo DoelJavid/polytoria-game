@@ -1,20 +1,17 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://crdjqly7s26if"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://crdjqly7s26if"]
 
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_1nh6e"]
 [ext_resource type="Texture2D" uid="uid://cbnanao6ntgv1" path="res://assets/textures/parts/Plywood/albedo.jpg" id="1_dfoi1"]
-[ext_resource type="Texture2D" uid="uid://ctalu6w021how" path="res://assets/textures/parts/Plywood/normal.jpg" id="2_4ygjw"]
-[ext_resource type="Texture2D" uid="uid://cxef1rdwg6yfa" path="res://assets/textures/parts/Plywood/ao.jpg" id="2_ev1ko"]
-[ext_resource type="Texture2D" uid="uid://dj6u2kxls8k4n" path="res://assets/textures/parts/Plywood/roughness.jpg" id="3_4c3il"]
+[ext_resource type="Texture2D" uid="uid://bhpu1ddonesoh" path="res://assets/textures/parts/Plywood/orm.jpg" id="3_qs0no"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "Plywood"
-albedo_texture = ExtResource("1_dfoi1")
-metallic_specular = 0.35
-roughness = 0.55
-roughness_texture = ExtResource("3_4c3il")
-normal_enabled = true
-normal_texture = ExtResource("2_4ygjw")
-ao_enabled = true
-ao_texture = ExtResource("2_ev1ko")
-uv1_scale = Vector3(0.25, 0.25, 0.25)
-uv1_triplanar = true
+render_priority = 0
+shader = ExtResource("1_1nh6e")
+shader_parameter/albedo = ExtResource("1_dfoi1")
+shader_parameter/use_albedo_texture = true
+shader_parameter/orm = ExtResource("3_qs0no")
+shader_parameter/use_orm_texture = true
+shader_parameter/specular_value = 0.250000011875
+shader_parameter/studs_per_tile = 2.0

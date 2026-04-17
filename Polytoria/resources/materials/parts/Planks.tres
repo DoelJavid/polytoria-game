@@ -1,20 +1,17 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://g0ghgm0rsd6x"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://g0ghgm0rsd6x"]
 
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_7uewk"]
 [ext_resource type="Texture2D" uid="uid://cxsxmitcxu58t" path="res://assets/textures/parts/Planks/albedo.jpg" id="1_u7k2d"]
-[ext_resource type="Texture2D" uid="uid://difv3sfya2ouk" path="res://assets/textures/parts/Planks/ao.jpg" id="2_hpes6"]
-[ext_resource type="Texture2D" uid="uid://dtwu6jip401xr" path="res://assets/textures/parts/Planks/normal.jpg" id="3_5tgqg"]
-[ext_resource type="Texture2D" uid="uid://dnfpvmesm7152" path="res://assets/textures/parts/Planks/roughness.jpg" id="4_572ux"]
+[ext_resource type="Texture2D" uid="uid://8jdinhv4hfm3" path="res://assets/textures/parts/Planks/orm.jpg" id="3_cmlj0"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "Planks"
-albedo_texture = ExtResource("1_u7k2d")
-metallic_specular = 0.25
-roughness = 0.4
-roughness_texture = ExtResource("4_572ux")
-normal_enabled = true
-normal_texture = ExtResource("3_5tgqg")
-ao_enabled = true
-ao_texture = ExtResource("2_hpes6")
-uv1_scale = Vector3(0.25, 0.25, 0.25)
-uv1_triplanar = true
+render_priority = 0
+shader = ExtResource("1_7uewk")
+shader_parameter/albedo = ExtResource("1_u7k2d")
+shader_parameter/use_albedo_texture = true
+shader_parameter/orm = ExtResource("3_cmlj0")
+shader_parameter/use_orm_texture = true
+shader_parameter/specular_value = 0.250000011875
+shader_parameter/studs_per_tile = 2.0

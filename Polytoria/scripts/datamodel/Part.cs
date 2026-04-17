@@ -64,10 +64,6 @@ public partial class Part : Entity
 	public override void PreDelete()
 	{
 		RemoveCollisionShape(_collider);
-
-		if (GodotObject.IsInstanceValid(_meshMaterial))
-			_meshMaterial.Dispose();
-
 		base.PreDelete();
 	}
 
@@ -92,15 +88,14 @@ public partial class Part : Entity
 			Root.Bridge.SeparatedPartCount++;
 		}
 		GDNode3D.AddChild(_mesh = new(), false);
-		_meshMaterial = new StandardMaterial3D();
-
 		UpdateMeshSize();
-
 		UpdateShape();
-		UpdateMaterial();
+
+		_meshMaterial = Globals.LoadMaterial(_material, Color.A);
+		_mesh.MaterialOverride = _meshMaterial;
+
 		UpdateColor();
 		UpdateShadow();
-		RefreshUV1();
 	}
 
 	internal override void OnNodeSizeChanged(Vector3 newSize)
@@ -113,7 +108,6 @@ public partial class Part : Entity
 	{
 		_mesh?.Scale = NodeSize;
 		_nRemoteAt?.Scale = NodeSize;
-		RefreshUV1();
 	}
 
 	public void RemoveSeparateMesh()
@@ -150,7 +144,6 @@ public partial class Part : Entity
 			_material = value;
 
 			UpdateMaterial();
-			RefreshUV1();
 			OnPropertyChanged();
 		}
 	}
@@ -185,14 +178,6 @@ public partial class Part : Entity
 	// Override this to be excluded from MutliMesh
 	internal bool OverrideNoMultiMesh = false;
 
-	internal void RefreshUV1()
-	{
-		if (_isSeparateMesh && _meshMaterial is StandardMaterial3D sm)
-		{
-			sm.Uv1Scale = Size / 4;
-		}
-	}
-
 	internal void UpdateShape()
 	{
 		if (_collider == null) return;
@@ -211,34 +196,32 @@ public partial class Part : Entity
 
 	internal void UpdateMaterial()
 	{
-		if (_isSeparateMesh)
+		if (!_isSeparateMesh || _mesh == null)
 		{
-			Material temp = Globals.LoadMaterial(_material.ToString());
-			if (temp is StandardMaterial3D mat)
-			{
-				if (_meshMaterial is StandardMaterial3D sm)
-				{
-					mat.RoughnessTexture = null;
-					mat.RenderPriority = 5;
-					mat.AlbedoColor = sm.AlbedoColor;
-					mat.Emission = sm.Emission;
-					mat.Transparency = sm.Transparency;
-				}
-			}
-			_mesh?.MaterialOverride = _meshMaterial = temp;
+			return;
 		}
+
+		_meshMaterial = Globals.LoadMaterial(_material, Color.A);
+		_mesh.MaterialOverride = _meshMaterial;
+
+		UpdateColor();
 	}
 
 	internal void UpdateColor()
 	{
-		if (_isSeparateMesh)
+		if (_isSeparateMesh && _mesh != null)
 		{
-			if (_meshMaterial is StandardMaterial3D sm)
+			Material targetMat = Globals.LoadMaterial(_material, Color.A);
+			if (!ReferenceEquals(_meshMaterial, targetMat))
 			{
-				sm.AlbedoColor = _color;
-				sm.Emission = _color;
-				sm.Transparency = _color.A == 1 ? BaseMaterial3D.TransparencyEnum.Disabled : BaseMaterial3D.TransparencyEnum.Alpha;
+				_meshMaterial = targetMat;
+				_mesh.MaterialOverride = _meshMaterial;
 			}
+
+			_mesh.SetInstanceShaderParameter("color", _color);
+
+			float emissiveStrength = _material == PartMaterialEnum.Neon ? 2.0f : 0.0f;
+			_mesh.SetInstanceShaderParameter("emissive_strength", emissiveStrength);
 		}
 
 		UpdateCamLayer();

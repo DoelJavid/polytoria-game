@@ -1,6 +1,13 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://csjtrsmw6u8qb"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://csjtrsmw6u8qb"]
+
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_yslrh"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "SmoothPlastic"
-roughness = 0.5
+render_priority = 0
+shader = ExtResource("1_yslrh")
+shader_parameter/use_albedo_texture = false
+shader_parameter/use_orm_texture = false
+shader_parameter/specular_value = 0.750000035625
+shader_parameter/studs_per_tile = 2.0

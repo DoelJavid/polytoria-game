@@ -64,7 +64,7 @@ public partial class DatamodelBridge : Node3D
 			return mat;
 		}
 
-		mat = Globals.LoadMaterial(partMaterial.ToString());
+		mat = Globals.LoadMaterial(partMaterial, isTransparent ? 0f : 1f);
 		if (mat == null)
 		{
 			throw new System.Exception("Unknown material: " + partMaterial.ToString());
@@ -204,6 +204,7 @@ public partial class DatamodelBridge : Node3D
 				Mesh = mesh,
 				TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
 				UseColors = true,
+				UseCustomData = true,
 				InstanceCount = 64,
 				VisibleInstanceCount = 0
 			};
@@ -215,7 +216,7 @@ public partial class DatamodelBridge : Node3D
 
 			Material mat = GetMaterial(part.Material, part.Color.A < 1f);
 			RenderingServer.InstanceGeometrySetMaterialOverride(rid, mat.GetRid());
-
+	
 			batch = new ChunkBatch
 			{
 				Key = key,
@@ -239,6 +240,7 @@ public partial class DatamodelBridge : Node3D
 
 		batch.MultiMesh.SetInstanceTransform(index, part.GetGlobalTransform());
 		batch.MultiMesh.SetInstanceColor(index, part.Color);
+		// batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(part));
 
 		_handles[part] = new PartHandle { Key = key, Index = index };
 	}
@@ -262,6 +264,7 @@ public partial class DatamodelBridge : Node3D
 			_handles[lastPart] = new PartHandle { Key = handle.Key, Index = index };
 			batch.MultiMesh.SetInstanceTransform(index, lastPart.GetGlobalTransform());
 			batch.MultiMesh.SetInstanceColor(index, lastPart.Color);
+			// batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(lastPart));
 		}
 
 		batch.Parts.RemoveAt(lastIndex);
@@ -299,6 +302,14 @@ public partial class DatamodelBridge : Node3D
 			batch.MultiMesh.SetInstanceColor(i, p.Color);
 		}
 	}
+
+	// can be used to send emission data to shader, needs more work in shader
+	//
+	// private static Color GetCustomDataForPart(Part part)
+	// {
+	// 	float emissiveStrength = part.Material == Part.PartMaterialEnum.Neon ? 2.0f : 0.0f;
+	// 	return new Color(emissiveStrength, 0f, 0f, 0f);
+	// }
 
 	public void AddPart(Part part)
 	{

@@ -562,11 +562,6 @@ public partial class Dynamic : Instance
 		{
 			if (_hasSyncedOnce)
 			{
-				if (this is Part part)
-				{
-					part.RefreshUV1();
-				}
-
 				InvokeTransformChanged();
 			}
 			else
@@ -622,11 +617,6 @@ public partial class Dynamic : Instance
 		if (isReliable)
 		{
 			ReliableTransformChanged?.Invoke();
-		}
-
-		if (this is Part part)
-		{
-			part.RefreshUV1();
 		}
 
 		InvokeTransformChanged();

@@ -1,19 +1,17 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://dxnpetotuyjht"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dxnpetotuyjht"]
 
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_gpnht"]
 [ext_resource type="Texture2D" uid="uid://c77sa0fy287db" path="res://assets/textures/parts/MetalPlate/albedo.jpg" id="1_vk4ct"]
-[ext_resource type="Texture2D" uid="uid://b3kfkxhyxvbdc" path="res://assets/textures/parts/MetalPlate/metallic.jpg" id="2_pb35x"]
-[ext_resource type="Texture2D" uid="uid://d172fn5vj7wel" path="res://assets/textures/parts/MetalPlate/normal.jpg" id="3_cwj4c"]
-[ext_resource type="Texture2D" uid="uid://cpwesc85g0bd5" path="res://assets/textures/parts/MetalPlate/roughness.jpg" id="4_u4w6g"]
+[ext_resource type="Texture2D" uid="uid://dtnbsjqnddvxp" path="res://assets/textures/parts/MetalPlate/orm.jpg" id="3_gde4x"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "MetalPlate"
-albedo_texture = ExtResource("1_vk4ct")
-metallic = 1.0
-metallic_texture = ExtResource("2_pb35x")
-roughness = 0.6
-roughness_texture = ExtResource("4_u4w6g")
-normal_enabled = true
-normal_texture = ExtResource("3_cwj4c")
-uv1_scale = Vector3(0.25, 0.25, 0.25)
-uv1_triplanar = true
+render_priority = 0
+shader = ExtResource("1_gpnht")
+shader_parameter/albedo = ExtResource("1_vk4ct")
+shader_parameter/use_albedo_texture = true
+shader_parameter/orm = ExtResource("3_gde4x")
+shader_parameter/use_orm_texture = true
+shader_parameter/specular_value = 0.250000011875
+shader_parameter/studs_per_tile = 2.0

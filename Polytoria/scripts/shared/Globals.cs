@@ -27,6 +27,7 @@ public sealed partial class Globals : Node
 {
 	public const string MainEndpoint = "https://polytoria.com/";
 	public const string ApiEndpoint = "https://api.polytoria.com/";
+	public const float AlphaThreshold = 0.025f;
 
 	public const string ToolboxFolderName = "toolbox";
 #if CREATOR
@@ -53,8 +54,10 @@ public sealed partial class Globals : Node
 	private static FrozenDictionary<string, Texture2D> _iconsCache = null!;
 	private static FrozenDictionary<string, Texture2D> _uiIconsCache = null!;
 	private static FrozenDictionary<string, (Mesh, Shape3D)> _shapesCache = null!;
-	private static FrozenDictionary<string, Material> _materialsCache = null!;
 	private static FrozenDictionary<string, Material> _skyboxesCache = null!;
+
+	private static Dictionary<(Part.PartMaterialEnum, bool), Material> _materialCache = [];
+
 	private static bool _isExiting = false;
 	public const string BuiltInFontLocation = "res://assets/fonts/built-in";
 	public const string BuiltInAudioLocation = "res://assets/audio/built-in";
@@ -278,7 +281,6 @@ public sealed partial class Globals : Node
 #endif
 		_iconsCache = icons.ToFrozenDictionary();
 		_shapesCache = shapes.ToFrozenDictionary();
-		_materialsCache = materials.ToFrozenDictionary();
 		_skyboxesCache = skyboxes.ToFrozenDictionary();
 		_uiIconsCache = uiIcons.ToFrozenDictionary();
 	}
@@ -406,9 +408,23 @@ public sealed partial class Globals : Node
 		return _shapesCache[shapeName];
 	}
 
-	public static Material LoadMaterial(string materialName)
+	public static Material LoadMaterial(Part.PartMaterialEnum material, float alpha)
 	{
-		return (Material)_materialsCache[materialName].Duplicate();
+		bool isOpaque = alpha >= 1.0f - AlphaThreshold;
+
+		if (_materialCache.TryGetValue((material, isOpaque), out Material? mat))
+		{
+			return mat;
+		}
+
+		mat = ResourceLoader.Load<Material>($"res://resources/materials/parts/{material}.tres", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+		if (!isOpaque && mat is ShaderMaterial shadMat && shadMat.Shader.ResourcePath.EndsWith("part.gdshader"))
+		{
+			Shader shader = ResourceLoader.Load<Shader>("res://shaders/part_transparent.gdshader", cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
+			shadMat.Shader = shader;
+		}
+		_materialCache[(material, isOpaque)] = mat;
+		return mat;
 	}
 
 	public static Material LoadSkybox(string materialName)

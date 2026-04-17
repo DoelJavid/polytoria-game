@@ -1,17 +1,17 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://e6hwa605v8t0"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://e6hwa605v8t0"]
 
 [ext_resource type="Texture2D" uid="uid://6w30m46txlae" path="res://assets/textures/parts/Ice/albedo.jpg" id="1_dgx6w"]
-[ext_resource type="Texture2D" uid="uid://br03rbyc3awrh" path="res://assets/textures/parts/Ice/normal.jpg" id="2_5na8a"]
-[ext_resource type="Texture2D" uid="uid://lssynpidpkax" path="res://assets/textures/parts/Ice/roughness.jpg" id="3_vr5r6"]
+[ext_resource type="Shader" uid="uid://dylteiumvf3c7" path="res://shaders/part.gdshader" id="1_h34au"]
+[ext_resource type="Texture2D" uid="uid://cy0oexjal40gd" path="res://assets/textures/parts/Ice/orm.jpg" id="3_vbyqn"]
 
 [resource]
 resource_local_to_scene = true
 resource_name = "Ice"
-albedo_texture = ExtResource("1_dgx6w")
-metallic_specular = 0.8
-roughness = 0.15
-roughness_texture = ExtResource("3_vr5r6")
-normal_enabled = true
-normal_texture = ExtResource("2_5na8a")
-uv1_scale = Vector3(0.25, 0.25, 0.25)
-uv1_triplanar = true
+render_priority = 0
+shader = ExtResource("1_h34au")
+shader_parameter/albedo = ExtResource("1_dgx6w")
+shader_parameter/use_albedo_texture = true
+shader_parameter/orm = ExtResource("3_vbyqn")
+shader_parameter/use_orm_texture = true
+shader_parameter/specular_value = 0.250000011875
+shader_parameter/studs_per_tile = 2.0
