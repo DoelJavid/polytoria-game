@@ -48,6 +48,12 @@ public partial class BodyPosition : Instance
 		}
 	}
 
+	public override void Init()
+	{
+		SetPhysicsProcess(true);
+		base.Init();
+	}
+
 	public override void PhysicsProcess(double delta)
 	{
 		Vector3 gdPos = _targetPosition.Flip();

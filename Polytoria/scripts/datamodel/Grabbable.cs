@@ -110,6 +110,7 @@ public partial class Grabbable : Instance
 	{
 		base.Init();
 		Root.Input.GodotInputEvent += OnInput;
+		SetPhysicsProcess(true);
 	}
 
 	public override void PreDelete()

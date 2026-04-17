@@ -255,7 +255,7 @@ public sealed partial class Environment : Instance
 			From = origin.Flip(),
 			To = origin.Flip() + direction.Flip().Normalized() * maxDistance,
 			CollideWithAreas = true,
-			CollideWithBodies = false
+			CollideWithBodies = true
 		};
 
 		if (ignoreList != null)
@@ -277,7 +277,7 @@ public sealed partial class Environment : Instance
 				Direction = direction.Normalized(),
 				Position = hitPos.Flip(),
 				Normal = normal.Flip(),
-				Distance = origin.DistanceTo(hitPos),
+				Distance = (origin.Flip() - hitPos).Length(),
 				Instance = ColliderToInstance(collider)
 			};
 		}
@@ -304,7 +304,7 @@ public sealed partial class Environment : Instance
 				From = origin.Flip(),
 				To = origin.Flip() + direction.Flip().Normalized() * maxDistance,
 				CollideWithAreas = true,
-				CollideWithBodies = false,
+				CollideWithBodies = true,
 				Exclude = ignoreRids
 			});
 
@@ -323,7 +323,7 @@ public sealed partial class Environment : Instance
 				Direction = direction.Normalized(),
 				Position = hitPos.Flip(),
 				Normal = normal.Flip(),
-				Distance = origin.Flip().DistanceTo(hitPos),
+				Distance = (origin.Flip() - hitPos).Length(),
 				Instance = ColliderToInstance(collider)
 			});
 		}
@@ -358,7 +358,7 @@ public sealed partial class Environment : Instance
 			Shape = new SphereShape3D() { Radius = radius / 2 },
 			Transform = t,
 			CollideWithAreas = true,
-			CollideWithBodies = false
+			CollideWithBodies = true
 		};
 
 		return PerformOverlap(ignoreList, query);
@@ -381,7 +381,7 @@ public sealed partial class Environment : Instance
 			Shape = new BoxShape3D() { Size = size },
 			Transform = t,
 			CollideWithAreas = true,
-			CollideWithBodies = false
+			CollideWithBodies = true
 		};
 
 		return PerformOverlap(ignoreList, query);
