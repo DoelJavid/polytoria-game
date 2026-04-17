@@ -984,7 +984,7 @@ public partial class Physical : Dynamic
 		Clicked.Invoke(by);
 	}
 
-	private void EnsureTouchArea()
+	protected void EnsureTouchArea()
 	{
 		if (PhysicalArea != null) return;
 		if (!Node.IsInstanceValid(GDNode3D)) return;

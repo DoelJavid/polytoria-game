@@ -406,6 +406,7 @@ public partial class NPC : Physical
 	public override void Init()
 	{
 		base.Init();
+		EnsureTouchArea();
 		OverridePhysicsProcess = true;
 
 		// Create nametag
