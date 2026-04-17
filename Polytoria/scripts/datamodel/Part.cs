@@ -218,7 +218,7 @@ public partial class Part : Entity
 				_mesh.MaterialOverride = _meshMaterial;
 			}
 
-			_mesh.SetInstanceShaderParameter("color", _color);
+			_mesh.SetInstanceShaderParameter("color", _color.LinearToSrgb());
 
 			float emissiveStrength = _material == PartMaterialEnum.Neon ? 2.0f : 0.0f;
 			_mesh.SetInstanceShaderParameter("emissive_strength", emissiveStrength);

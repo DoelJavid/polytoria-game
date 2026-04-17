@@ -10,8 +10,9 @@ uniform bool use_albedo_texture = true;
 uniform sampler2D orm;
 uniform bool use_orm_texture = true;
 
-uniform float specular_value : hint_range(0.0, 1.0) = 0.2;
-
+uniform float metallic_specular : hint_range(0.0, 1.0) = 0.2;
+uniform float roughness : hint_range(0.0, 1.0) = 0.7;
+uniform float metallic : hint_range(0.0, 1.0) = 0.0;
 uniform float studs_per_tile = 2.0;
 
 varying vec3 v_local_pos;
@@ -59,9 +60,8 @@ void fragment() {
 	vec2 uv = calculate_uv(part_space, n) / studs_per_tile;
 	vec4 albedo_color = color;
 	
-	float occlusion_value = 1.0;
-	float roughness_value = 0.7;
-	float metallic_value = 0.0;
+	float roughness_tex = 1.0;
+	float metallic_tex = 1.0;
 
 	if (use_albedo_texture) {
 		albedo_color *= texture(albedo, uv);
@@ -69,16 +69,14 @@ void fragment() {
 
 	if (use_orm_texture) {
 		vec3 orm_values = texture(orm, uv).rgb;
-		occlusion_value = orm_values.r;
-		roughness_value = orm_values.g;
-		metallic_value = orm_values.b;
+		roughness_tex = orm_values.g;
+		metallic_tex = orm_values.b;
 	}
 
 	ALBEDO = albedo_color.rgb * COLOR.rgb;
-	ROUGHNESS = roughness_value;
-	SPECULAR = specular_value;
-	METALLIC = metallic_value;
-	// AO = occlusion_value;
+	SPECULAR = metallic_specular;
+	ROUGHNESS = roughness_tex * roughness;
+	METALLIC = metallic_tex * metallic;
 
 	if (emissive_strength > 0.0) {
 		EMISSION = ALBEDO * emissive_strength;
