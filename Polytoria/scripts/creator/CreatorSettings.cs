@@ -62,8 +62,9 @@ public sealed partial class CreatorSettings : Node
 					DisplayName = "Graphics",
 					Settings = [
 						new("PhotoMode", "Photo Mode", false),
-						new("PostProcessing", "Post Processing", true),
+						new("PostProcessing", "Post Processing", false),
 						new("VSync", "V-Sync", true),
+						new("RenderingMethod", "Rendering Method (requires restart)", RenderingMethodEnum.High),
 					]
 				},
 				new() {
@@ -100,6 +101,18 @@ public sealed partial class CreatorSettings : Node
 				PT.PrintErr(ex);
 			}
 		}
+
+		// Switch rendering method
+		RenderingDeviceSwitcher.Switch(
+			GetSetting<RenderingMethodEnum>("Graphics.RenderingMethod") switch
+			{
+				RenderingMethodEnum.High => RenderingDeviceSwitcher.RenderingDeviceEnum.Forward,
+				RenderingMethodEnum.Medium => RenderingDeviceSwitcher.RenderingDeviceEnum.Mobile,
+				RenderingMethodEnum.LowGL => RenderingDeviceSwitcher.RenderingDeviceEnum.GLCompatibility,
+				_ => RenderingDeviceSwitcher.RenderingDeviceEnum.Mobile,
+			}
+			);
+
 		Globals.BeforeQuit += SaveSettings;
 	}
 
@@ -283,6 +296,13 @@ public enum PreferredEditorEnum
 	Zed
 }
 
+public enum RenderingMethodEnum
+{
+	High,
+	Medium,
+	LowGL
+}
+
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(Dictionary<string, string>))]
 
@@ -293,4 +313,5 @@ public enum PreferredEditorEnum
 [JsonSerializable(typeof(object))]
 
 [JsonSerializable(typeof(PreferredEditorEnum))]
+[JsonSerializable(typeof(RenderingMethodEnum))]
 public partial class CreatorSettingsGenerationContext : JsonSerializerContext { }

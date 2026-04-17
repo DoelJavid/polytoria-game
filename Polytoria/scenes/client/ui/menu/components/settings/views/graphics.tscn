@@ -3,13 +3,14 @@
 [ext_resource type="Theme" uid="uid://c18b344unwt2y" path="res://resources/themes/menu.tres" id="1_vtcli"]
 [ext_resource type="Script" uid="uid://cxh4n02fai28s" path="res://scripts/client/ui/menu/components/settings/UISettingsView.cs" id="2_erq3v"]
 [ext_resource type="PackedScene" uid="uid://brxt84nnr2cl7" path="res://scenes/client/ui/menu/components/settings/elements/check_button.tscn" id="3_1rbuc"]
+[ext_resource type="Script" uid="uid://d06djhqys0oe0" path="res://scripts/client/ui/menu/components/settings/fields/UIRenderingMethodField.cs" id="3_83j57"]
 [ext_resource type="Script" uid="uid://ch8nv0h1qm6h4" path="res://scripts/client/ui/menu/components/settings/fields/UIScaleField.cs" id="3_t4k16"]
 
 [node name="View" type="PanelContainer" unique_id=2038225590 node_paths=PackedStringArray("FirstFocus")]
 size_flags_horizontal = 3
 theme = ExtResource("1_vtcli")
 script = ExtResource("2_erq3v")
-FirstFocus = NodePath("Layout/PhotoMode/Layout/Control/CheckButton")
+FirstFocus = NodePath("")
 
 [node name="Layout" type="VBoxContainer" parent="." unique_id=1056490290]
 layout_mode = 2
@@ -28,19 +29,61 @@ size_flags_horizontal = 3
 [node name="Label" type="Label" parent="Layout/PhotoMode/Layout/Layout" unique_id=1033882574]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Photo Mode"
+text = "Rendering Method"
 
 [node name="Label2" type="Label" parent="Layout/PhotoMode/Layout/Layout" unique_id=1550800705]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
-text = "Deepfry your machine"
+text = "Rendering method to use (requires restart)"
 autowrap_mode = 2
 
 [node name="Control" type="Control" parent="Layout/PhotoMode/Layout" unique_id=578712944]
 custom_minimum_size = Vector2(84, 0)
 layout_mode = 2
 
-[node name="CheckButton" parent="Layout/PhotoMode/Layout/Control" unique_id=1524529177 instance=ExtResource("3_1rbuc")]
+[node name="MenuButton" type="MenuButton" parent="Layout/PhotoMode/Layout/Control" unique_id=1282188847]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -14.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+text = "High"
+flat = false
+script = ExtResource("3_83j57")
+SettingName = "RenderingMethod"
+
+[node name="PhotoMode2" type="PanelContainer" parent="Layout" unique_id=1781292449]
+layout_mode = 2
+
+[node name="Layout" type="HBoxContainer" parent="Layout/PhotoMode2" unique_id=723503518]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Layout" type="VBoxContainer" parent="Layout/PhotoMode2/Layout" unique_id=271792723]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Layout/PhotoMode2/Layout/Layout" unique_id=1398735943]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Photo Mode"
+
+[node name="Label2" type="Label" parent="Layout/PhotoMode2/Layout/Layout" unique_id=1271443279]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.59717613, 0.59717613, 0.5971761, 1)
+text = "Deepfry your machine"
+autowrap_mode = 2
+
+[node name="Control" type="Control" parent="Layout/PhotoMode2/Layout" unique_id=1882899337]
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+
+[node name="CheckButton" parent="Layout/PhotoMode2/Layout/Control" unique_id=868746920 instance=ExtResource("3_1rbuc")]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0

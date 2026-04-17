@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Polytoria.Shared;
 
-internal static class RenderingDeviceSwitcher
+public static class RenderingDeviceSwitcher
 {
 	public static void Switch(RenderingDeviceEnum to)
 	{

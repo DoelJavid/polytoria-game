@@ -42,9 +42,15 @@ public sealed partial class ClientSettings : Node
 
 	public override void _Ready()
 	{
+		// Prevent settings on Creator
+		if (Globals.CurrentAppEntry != Globals.AppEntryEnum.Client)
+		{
+			return;
+		}
 		OnSettingChanged += SelfOnSettingsChanged;
 		UpdateAllSettings();
 		Globals.BeforeQuit += SaveSettings;
+		RenderingDeviceSwitcher.Switch(Settings.RenderingMethod);
 		base._Ready();
 	}
 
@@ -170,21 +176,14 @@ public sealed class ClientSettingsData
 {
 	public bool UseCtrlLock { get; set; } = true;
 	public double SoundVolume { get; set; } = 100;
-
 	public double CameraSensitivity { get; set; } = 0.6;
-
 	public bool PhotoMode { get; set; } = false;
-
-	public bool PostProcessing { get; set; } = true;
-
+	public bool PostProcessing { get; set; } = false;
 	public float UIScale { get; set; } = 1;
-
 	public bool UseFullscreen { get; set; } = false;
-
 	public bool UseVSync { get; set; } = true;
-
+	public RenderingDeviceSwitcher.RenderingDeviceEnum RenderingMethod { get; set; } = RenderingDeviceSwitcher.RenderingDeviceEnum.Forward;
 	public bool ShowConnectionIndicators { get; set; } = true;
-
 	public PerformanceOverlayModeEnum PerformanceOverlayMode { get; set; } = PerformanceOverlayModeEnum.None;
 
 	[JsonIgnore]
