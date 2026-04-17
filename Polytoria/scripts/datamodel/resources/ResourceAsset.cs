@@ -21,6 +21,12 @@ public partial class ResourceAsset : BaseAsset
 	public bool IsResourceLoaded = false;
 	public PTSignal ResourceLoadedInternal { get; private set; } = new();
 
+	public override void Init()
+	{
+		SetProcess(false);
+		base.Init();
+	}
+
 	public override void EnterTree()
 	{
 		LoadResource();
@@ -35,17 +41,23 @@ public partial class ResourceAsset : BaseAsset
 
 	public override void Process(double delta)
 	{
-		if (_queueLoadResource)
+		if (!_queueLoadResource)
 		{
-			_queueLoadResource = false;
-			LoadResource();
+			SetProcess(false);
+			return;
 		}
+
+		_queueLoadResource = false;
+		LoadResource();
+		SetProcess(false);
+
 		base.Process(delta);
 	}
 
 	public void QueueLoadResource()
 	{
 		_queueLoadResource = true;
+		SetProcess(true);
 	}
 
 	public virtual void LoadResource() { }

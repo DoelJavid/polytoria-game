@@ -40,6 +40,8 @@ public sealed partial class CaptureService : Instance
 	{
 		GDNode.AddChild(_shutterSound = new(), false, Node.InternalMode.Front);
 		_shutterSound.Stream = GD.Load<AudioStream>(CaptureSoundPath);
+
+		SetProcess(false);
 		base.Init();
 	}
 
@@ -67,11 +69,14 @@ public sealed partial class CaptureService : Instance
 
 	public override void Process(double delta)
 	{
-		if (_spectatorCam != null && SpectatorAttach != null)
+		if (_spectatorCam == null || SpectatorAttach == null)
 		{
-			_spectatorCam.GlobalTransform = SpectatorAttach.GetGlobalTransform();
-			_spectatorCam.RotateObjectLocal(Vector3.Up, Mathf.DegToRad(180));
+			SetProcess(false);
+			return;
 		}
+
+		_spectatorCam.GlobalTransform = SpectatorAttach.GetGlobalTransform();
+		_spectatorCam.RotateObjectLocal(Vector3.Up, Mathf.DegToRad(180));
 		base.Process(delta);
 	}
 
@@ -102,6 +107,7 @@ public sealed partial class CaptureService : Instance
 		}
 
 		_cameraAttach.PopupCentered();
+		SetProcess(true);
 	}
 
 	private void CameraAttachClose()
@@ -109,6 +115,9 @@ public sealed partial class CaptureService : Instance
 		_cameraAttach?.Visible = false;
 		_cameraAttach?.QueueFree();
 		_cameraAttach?.CloseRequested -= CameraAttachClose;
+		_cameraAttach = null;
+		_spectatorCam = null;
+		SetProcess(false);
 	}
 
 	public void SaveCurrentPhoto()

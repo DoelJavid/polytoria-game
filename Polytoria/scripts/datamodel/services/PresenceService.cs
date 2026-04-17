@@ -65,6 +65,7 @@ public sealed partial class PresenceService : Instance
 	public override void Init()
 	{
 		Globals.BeforeQuit += BeforeQuit;
+		SetProcess(true);
 		base.Init();
 	}
 

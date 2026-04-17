@@ -266,6 +266,9 @@ public sealed partial class InputService : Instance
 
 		Input.Singleton.JoyConnectionChanged += OnJoyConnectionChanged;
 		Globals.GodotNotification += OnNotification;
+
+		SetProcess(true);
+
 		base.Init();
 	}
 

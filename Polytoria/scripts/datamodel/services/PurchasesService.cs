@@ -40,6 +40,8 @@ public sealed partial class PurchasesService : Instance
 		{
 			Root.Loaded.Once(OnGameReady);
 		}
+
+		SetProcess(true);
 		base.Init();
 	}
 

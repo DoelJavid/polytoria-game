@@ -38,6 +38,12 @@ public partial class NetworkTransformSync : Instance
 		_useNetworkLog = OS.HasFeature("netlog");
 	}
 
+	public override void Init()
+	{
+		SetProcess(true);
+		base.Init();
+	}
+
 	public override void Process(double delta)
 	{
 		base.Process(delta);

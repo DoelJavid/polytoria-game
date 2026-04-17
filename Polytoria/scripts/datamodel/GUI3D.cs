@@ -48,6 +48,7 @@ public partial class GUI3D : Dynamic
 			_faceCamera = value;
 			_material.BillboardMode = value ? BaseMaterial3D.BillboardModeEnum.Enabled : BaseMaterial3D.BillboardModeEnum.Disabled;
 			UpdateSize();
+			SetProcess(value);
 			OnPropertyChanged();
 		}
 	}
@@ -101,8 +102,6 @@ public partial class GUI3D : Dynamic
 		_area.MouseExited += OnAreaMouseExit;
 
 		base.Init();
-
-		ProcessAlwaysOn = true;
 	}
 
 	public override void Ready()

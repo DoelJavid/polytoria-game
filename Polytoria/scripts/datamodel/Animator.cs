@@ -84,6 +84,8 @@ public partial class Animator : Instance
 		{
 			Root?.Network?.PeerPreInit += OnPeerPreInit;
 		}
+
+		SetProcess(true);
 		base.Init();
 	}
 
