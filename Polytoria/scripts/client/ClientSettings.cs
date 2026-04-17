@@ -40,7 +40,7 @@ public sealed partial class ClientSettings : Node
 		}
 	}
 
-	public override void _Ready()
+	public void Init()
 	{
 		// Prevent settings on Creator
 		if (Globals.CurrentAppEntry != Globals.AppEntryEnum.Client)
@@ -51,7 +51,6 @@ public sealed partial class ClientSettings : Node
 		UpdateAllSettings();
 		Globals.BeforeQuit += SaveSettings;
 		RenderingDeviceSwitcher.Switch(Settings.RenderingMethod);
-		base._Ready();
 	}
 
 	private void SelfOnSettingsChanged(string propName)

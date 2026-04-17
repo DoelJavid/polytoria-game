@@ -186,6 +186,7 @@ public sealed partial class ClientEntry : Node3D
 			Name = "ClientSettings"
 		};
 		AddChild(clientSettings, true, InternalMode.Front);
+		clientSettings.Init();
 
 		DatamodelBridge bridge = new()
 		{

@@ -30,6 +30,14 @@ public partial class CreatorEntry : Node
 			Name = "ClientSettings"
 		};
 		AddChild(clientSettings, true, InternalMode.Front);
+		try
+		{
+			clientSettings.Init();
+		}
+		catch (RenderingDeviceSwitcher.SwitchingRenderingDeviceException)
+		{
+			return;
+		}
 
 		CreatorSettings creatorSettings = new()
 		{

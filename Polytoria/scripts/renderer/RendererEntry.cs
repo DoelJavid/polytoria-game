@@ -19,6 +19,14 @@ public partial class RendererEntry : AppEntry
 			Name = "ClientSettings"
 		};
 		AddChild(clientSettings, true, InternalMode.Front);
+		try
+		{
+			clientSettings.Init();
+		}
+		catch (RenderingDeviceSwitcher.SwitchingRenderingDeviceException)
+		{
+			return;
+		}
 
 		Stopwatch sw = new();
 		sw.Restart();

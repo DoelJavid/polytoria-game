@@ -29,7 +29,7 @@ public static class RenderingDeviceSwitcher
 		string exePath = OS.GetExecutablePath();
 		OS.CreateProcess(exePath, [.. args]);
 		Globals.Singleton.Quit(force: true);
-		throw new Exception("Switching rendering device");
+		throw new SwitchingRenderingDeviceException();
 	}
 
 	public static string GetCurrentDriverName()
@@ -47,6 +47,8 @@ public static class RenderingDeviceSwitcher
 			_ => throw new IndexOutOfRangeException()
 		};
 	}
+
+	public class SwitchingRenderingDeviceException : Exception { }
 
 	public enum RenderingDeviceEnum
 	{
