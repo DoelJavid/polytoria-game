@@ -123,7 +123,7 @@ public partial class DatamodelBridge : Node3D
 				{
 					ChunkBatch batch = _batches[handle.Key];
 					batch.MultiMesh.SetInstanceTransform(handle.Index, part.GetGlobalTransform());
-					batch.MultiMesh.SetInstanceColor(handle.Index, part.Color);
+					batch.MultiMesh.SetInstanceColor(handle.Index, part.Color.SrgbToLinear());
 				}
 			}
 			else
@@ -239,7 +239,7 @@ public partial class DatamodelBridge : Node3D
 		batch.MultiMesh.VisibleInstanceCount = batch.Count;
 
 		batch.MultiMesh.SetInstanceTransform(index, part.GetGlobalTransform());
-		batch.MultiMesh.SetInstanceColor(index, part.Color);
+		batch.MultiMesh.SetInstanceColor(index, part.Color.SrgbToLinear());
 		// batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(part));
 
 		_handles[part] = new PartHandle { Key = key, Index = index };
