@@ -878,6 +878,22 @@ public partial class Physical : Dynamic
 		return GetCollisionObject()?.GetRid() ?? default;
 	}
 
+	internal Rid[] GetRids()
+	{
+		List<Rid> rids = [];
+		if (PhysicalArea != null)
+		{
+			rids.Add(PhysicalArea.GetRid());
+		}
+
+		if (GetCollisionObject() is CollisionObject3D val)
+		{
+			rids.Add(val.GetRid());
+		}
+
+		return [.. rids];
+	}
+
 	internal void InvokeTouched(Physical hit)
 	{
 		//if (!IsInstanceValid(this) || !IsInsideTree()) return;

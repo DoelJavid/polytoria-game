@@ -483,7 +483,7 @@ public sealed partial class Environment : Instance
 		{
 			if (inst is Physical p)
 			{
-				rids.Add(p.GetRid());
+				rids.AddRange(p.GetRids());
 			}
 
 #if CREATOR
@@ -497,7 +497,7 @@ public sealed partial class Environment : Instance
 			{
 				if (child is Physical pc)
 				{
-					rids.Add(pc.GetRid());
+					rids.AddRange(pc.GetRids());
 				}
 
 #if CREATOR
