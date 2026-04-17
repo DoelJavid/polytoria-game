@@ -38,6 +38,12 @@ public sealed partial class NetworkReplicateSync : Instance
 		_useNetworkLog = OS.HasFeature("netlog");
 	}
 
+	public override void Init()
+	{
+		SetProcess(true);
+		base.Init();
+	}
+
 	public void SyncPlaceToPlayer(Player plr)
 	{
 		World game = NetService.Root;

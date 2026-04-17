@@ -251,6 +251,7 @@ public partial class UIField : Instance
 		IgnoreMouse = false;
 
 		base.Init();
+		SetProcess(true);
 	}
 
 	public override void PreDelete()

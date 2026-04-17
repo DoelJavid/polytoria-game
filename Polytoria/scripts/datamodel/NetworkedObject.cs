@@ -35,8 +35,9 @@ public partial class NetworkedObject : IScriptObject
 	private World _game = null!;
 	private bool _isReplicating = true;
 	private bool _isDeleted = false;
-	private bool _processAlwaysOn = false;
-	private bool _physicsProcessAlwaysOn = false;
+
+	private bool _processRegistered = false;
+	private bool _physicsProcessRegistered = false;
 
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _editablePropertiesCache = [];
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _scriptPropertiesCache = [];
@@ -269,33 +270,8 @@ public partial class NetworkedObject : IScriptObject
 		}
 	}
 
-	// NOTE: This part is kinda messy/verbose.
-
-	/// <summary>
-	/// If true, the process is always on despite SetProcess calls. Set this to true if you wanted to use Process always
-	/// </summary>
-	internal bool ProcessAlwaysOn
-	{
-		get => _processAlwaysOn;
-		set
-		{
-			SetProcess(value);
-			_processAlwaysOn = value;
-		}
-	}
-
-	/// <summary>
-	/// If true, the physics process is always on despite SetPhysicsProcess calls.  Set this to true if you wanted to use Physics process always
-	/// </summary>
-	internal bool PhysicsProcessAlwaysOn
-	{
-		get => _physicsProcessAlwaysOn;
-		set
-		{
-			SetPhysicsProcess(value);
-			_physicsProcessAlwaysOn = value;
-		}
-	}
+	public bool IsProcessRegistered => _processRegistered;
+	public bool IsPhysicsProcessRegistered => _physicsProcessRegistered;
 
 	/// <summary>
 	/// Set to false if InvokePropReady is called manually (eg. after properties set)
@@ -594,8 +570,6 @@ public partial class NetworkedObject : IScriptObject
 	{
 		if (InvokedEntry) return;
 		InvokedEntry = true;
-		Globals.GodotProcess += Process;
-		Globals.GodotPhysicsProcess += PhysicsProcess;
 
 		// Assign network ID
 		if (Root != null && Root.Network != null)
@@ -621,6 +595,10 @@ public partial class NetworkedObject : IScriptObject
 			if (CallInitOverrides)
 				InitOverrides();
 
+#if DEBUG
+			ValidateProcessRegistration();
+#endif
+
 			if (AutoInvokeReady)
 			{
 				InvokePropReady();
@@ -632,8 +610,8 @@ public partial class NetworkedObject : IScriptObject
 
 	private void InvokeDeleted()
 	{
-		Globals.GodotProcess -= Process;
-		Globals.GodotPhysicsProcess -= PhysicsProcess;
+		SetProcess(false);
+		SetPhysicsProcess(false);
 
 		NonInstanceChildren.Clear();
 		PendingProps.Clear();
@@ -1874,20 +1852,40 @@ public partial class NetworkedObject : IScriptObject
 		InitGDNode();
 	}
 
-	public void SetProcess(bool to)
+	public void SetProcess(bool enabled)
 	{
 		if (IsDeleted) return;
-		if (ProcessAlwaysOn) return;
-		Globals.GodotProcess -= Process;
-		if (to) Globals.GodotProcess += Process;
+
+		if (enabled)
+		{
+			if (_processRegistered) return;
+			Globals.GodotProcess += Process;
+			_processRegistered = true;
+		}
+		else
+		{
+			if (!_processRegistered) return;
+			Globals.GodotProcess -= Process;
+			_processRegistered = false;
+		}
 	}
 
-	public void SetPhysicsProcess(bool to)
+	public void SetPhysicsProcess(bool enabled)
 	{
 		if (IsDeleted) return;
-		if (PhysicsProcessAlwaysOn) return;
-		Globals.GodotPhysicsProcess -= PhysicsProcess;
-		if (to) Globals.GodotPhysicsProcess += PhysicsProcess;
+
+		if (enabled)
+		{
+			if (_physicsProcessRegistered) return;
+			Globals.GodotPhysicsProcess += PhysicsProcess;
+			_physicsProcessRegistered = true;
+		}
+		else
+		{
+			if (!_physicsProcessRegistered) return;
+			Globals.GodotPhysicsProcess -= PhysicsProcess;
+			_physicsProcessRegistered = false;
+		}
 	}
 
 	protected byte[] BuildRpcPacket(string methodName, params object?[] args)
@@ -1973,4 +1971,27 @@ public partial class NetworkedObject : IScriptObject
 	{
 		return base.GetHashCode();
 	}
+
+#if DEBUG
+	private void ValidateProcessRegistration()
+	{
+		const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+
+		var declaredProcess = GetType().GetMethod(nameof(Process), flags);
+		var declaredPhysics = GetType().GetMethod(nameof(PhysicsProcess), flags);
+
+		bool declaresProcess = declaredProcess != null && declaredProcess.DeclaringType != typeof(NetworkedObject);
+		bool declaresPhysics = declaredPhysics != null && declaredPhysics.DeclaringType != typeof(NetworkedObject);
+
+		if (declaresProcess && !IsProcessRegistered)
+		{
+			PT.PrintWarn($"{ClassName} declares Process() but doesn't call SetProcess(true)");
+		}
+
+		if (declaresPhysics && !IsPhysicsProcessRegistered)
+		{
+			PT.PrintWarn($"{ClassName} declares PhysicsProcess() but doesn't call SetPhysicsProcess(true)");
+		}
+	}
+#endif
 }

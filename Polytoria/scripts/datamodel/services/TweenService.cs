@@ -18,17 +18,22 @@ public sealed partial class TweenService : Instance
 	private readonly Dictionary<int, WeakReference<Tween>> _legacyTweenIDs = [];
 	private int _tweenCount = 0;
 
-	public override void Process(double delta)
+	private void CleanupTweens()
 	{
-		// Cleanup legacy tween references
+		List<int> dead = [];
+
 		foreach (var (twid, twr) in _legacyTweenIDs)
 		{
-			if (!twr.TryGetTarget(out var _))
+			if (!twr.TryGetTarget(out _))
 			{
-				_legacyTweenIDs.Remove(twid);
+				dead.Add(twid);
 			}
 		}
-		base.Process(delta);
+
+		foreach (int id in dead)
+		{
+			_legacyTweenIDs.Remove(id);
+		}
 	}
 
 	[ScriptMethod]
@@ -44,6 +49,8 @@ public sealed partial class TweenService : Instance
 
 	private int RegisterTween(Tween tw)
 	{
+		CleanupTweens();
+
 		_tweenCount++;
 		int myID = _tweenCount;
 		_legacyTweenIDs.Add(myID, new(tw));

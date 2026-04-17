@@ -235,6 +235,7 @@ public sealed partial class World : Instance
 	public override void Init()
 	{
 		base.Init();
+		SetProcess(true);
 #if CREATOR
 		Properties.Singleton?.Insert(this);
 #endif

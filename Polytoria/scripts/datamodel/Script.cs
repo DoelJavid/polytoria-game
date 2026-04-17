@@ -139,6 +139,13 @@ public partial class Script : Instance
 		base.PreDelete();
 	}
 
+	public override void Init()
+	{
+		SetProcess(true);
+		SetPhysicsProcess(true);
+		base.Init();
+	}
+
 	public override void Ready()
 	{
 		if (Root.IsLoaded)

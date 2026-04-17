@@ -433,8 +433,8 @@ public partial class NPC : Physical
 		RecalculateNametagOffset();
 
 		// Force these to always be on
-		ProcessAlwaysOn = true;
-		PhysicsProcessAlwaysOn = true;
+		SetProcess(true);
+		SetPhysicsProcess(true);
 	}
 
 	public override void InitOverrides()

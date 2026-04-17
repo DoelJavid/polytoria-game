@@ -395,7 +395,7 @@ public sealed partial class Camera : Dynamic
 			Root.Input.GameUnfocused.Connect(OnGameUnfocused);
 		}
 
-		ProcessAlwaysOn = true;
+		SetProcess(true);
 	}
 
 	public override void PreDelete()
