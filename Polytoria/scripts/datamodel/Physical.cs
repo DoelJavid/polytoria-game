@@ -512,13 +512,14 @@ public partial class Physical : Dynamic
 		if (!Root.Network.IsServer) throw new InvalidOperationException("Set authority can only be called from server");
 		int peerId = plr?.PeerID ?? 1;
 		NetTransformAuthority = peerId;
-		RpcId(peerId, nameof(NetSetAuthority), peerId);
+		RpcId(peerId, nameof(NetGivenAuthority));
 		UpdateFreeze();
 	}
 
 	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
-	private void NetSetAuthority()
+	private void NetGivenAuthority()
 	{
+		NetTransformAuthority = Root.Network.LocalPeerID;
 		UpdateFreeze();
 	}
 
