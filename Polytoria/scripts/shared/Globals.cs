@@ -468,7 +468,7 @@ public sealed partial class Globals : Node
 	{
 #if CREATOR
 		// Request confirmation from interface
-		if (CreatorService.Interface != null && force)
+		if (CreatorService.Interface != null && !force)
 		{
 			if (!await CreatorService.Interface.OnQuitRequested()) return;
 		}
