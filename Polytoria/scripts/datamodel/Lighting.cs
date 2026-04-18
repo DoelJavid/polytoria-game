@@ -5,6 +5,8 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Client;
+using Polytoria.Client.Settings;
+
 #if CREATOR
 using Polytoria.Creator;
 #endif
@@ -36,17 +38,19 @@ public sealed partial class Lighting : Instance
 		environment = _worldEnv.Environment;
 		_sky = environment.Sky;
 
-		ClientSettings.Singleton.OnSettingChanged += OnClientSettingChanged;
-
 #if CREATOR
 		if (CreatorSettings.Singleton != null)
 		{
 			CreatorSettings.Singleton.GetSettingProperty("Graphics.PhotoMode")!.ValueChanged += CreatorLightingValueChanged;
 			CreatorSettings.Singleton.GetSettingProperty("Graphics.PostProcessing")!.ValueChanged += CreatorLightingValueChanged;
+			ApplyCreatorLightingEffects();
 		}
+		else
 #endif
+		{
+			ApplyGraphicsSettings();
+		}
 
-		ApplyLightingEffects();
 
 		UpdateSkybox();
 
@@ -55,7 +59,6 @@ public sealed partial class Lighting : Instance
 
 	public override void PreDelete()
 	{
-		ClientSettings.Singleton.OnSettingChanged -= OnClientSettingChanged;
 #if CREATOR
 		if (CreatorSettings.Singleton != null)
 		{
@@ -69,30 +72,18 @@ public sealed partial class Lighting : Instance
 #if CREATOR
 	private void CreatorLightingValueChanged(object? _)
 	{
-		ApplyLightingEffects();
+		ApplyCreatorLightingEffects();
 	}
 #endif
 
-	private void OnClientSettingChanged(string propName)
+	private void ApplyCreatorLightingEffects()
 	{
-		if (propName == "PostProcessing" || propName == "PhotoMode")
-		{
-			ApplyLightingEffects();
-		}
-	}
+		#if CREATOR
+		if (CreatorSettings.Singleton == null)
+			return;
 
-	private void ApplyLightingEffects()
-	{
-		bool photoMode = ClientSettings.Singleton.Settings.PhotoMode;
-		bool postProcessing = ClientSettings.Singleton.Settings.PostProcessing;
-
-#if CREATOR
-		if (CreatorSettings.Singleton != null)
-		{
-			photoMode = CreatorSettings.Singleton.GetSetting<bool>("Graphics.PhotoMode");
-			postProcessing = CreatorSettings.Singleton.GetSetting<bool>("Graphics.PostProcessing");
-		}
-#endif
+		bool photoMode = CreatorSettings.Singleton.GetSetting<bool>("Graphics.PhotoMode");
+		bool postProcessing = CreatorSettings.Singleton.GetSetting<bool>("Graphics.PostProcessing");
 
 		if (Globals.IsMobileBuild)
 		{
@@ -109,9 +100,43 @@ public sealed partial class Lighting : Instance
 			environment.SsaoEnabled = setTo;
 			environment.GlowEnabled = setTo;
 		}
+
 		environment.SsrEnabled = photoMode;
 		environment.SdfgiEnabled = photoMode;
 		environment.SsilEnabled = photoMode;
+		#endif
+	}
+
+	public void ApplyGraphicsSettings()
+	{
+		var settings = ClientSettingsService.Instance;
+		bool mobile = Globals.IsMobileBuild;
+
+		bool glow = settings.Get<bool>(ClientSettingKeys.PostProcessing.Glow);
+		bool ssao = settings.Get<bool>(ClientSettingKeys.PostProcessing.Ssao);
+		bool ssr = settings.Get<bool>(ClientSettingKeys.PostProcessing.Ssr);
+		bool ssil = settings.Get<bool>(ClientSettingKeys.PostProcessing.Ssil);
+		bool sdfgi = settings.Get<bool>(ClientSettingKeys.PostProcessing.Sdfgi);
+
+		if (mobile)
+		{
+			glow = false;
+			ssao = false;
+			ssr = false;
+			ssil = false;
+			sdfgi = false;
+		}
+
+		environment.GlowEnabled = glow;
+		environment.SsaoEnabled = ssao;
+		environment.SsrEnabled = ssr;
+		environment.SsilEnabled = ssil;
+		environment.SdfgiEnabled = sdfgi;
+
+		// advanced settings
+		environment.SdfgiCascades = settings.Get<int>(ClientSettingKeys.PostProcessing.SdfgiCascades);
+		environment.SdfgiMinCellSize = settings.Get<float>(ClientSettingKeys.PostProcessing.SdfgiCellSize);
+		environment.SsilRadius = settings.Get<float>(ClientSettingKeys.PostProcessing.SsilRadius);
 	}
 
 	public void ApplySky(Sky sky)

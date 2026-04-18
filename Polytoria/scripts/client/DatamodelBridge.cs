@@ -216,7 +216,7 @@ public partial class DatamodelBridge : Node3D
 
 			Material mat = GetMaterial(part.Material, part.Color.A < 1f);
 			RenderingServer.InstanceGeometrySetMaterialOverride(rid, mat.GetRid());
-	
+
 			batch = new ChunkBatch
 			{
 				Key = key,

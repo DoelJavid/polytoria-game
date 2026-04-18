@@ -108,7 +108,7 @@ public partial class InternalNetMsg : IScriptObject
 			OriginSender = payload.OriginSender,
 #if DEBUG
 			StackTrace = payload.StackTrace
-#endif	
+#endif
 		};
 	}
 

@@ -3,6 +3,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
+using Polytoria.Client.Settings;
 using Polytoria.Datamodel;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,6 @@ public partial class UIIndicators : Control
 	{
 		_root = CoreUIRoot.Singleton.Root;
 		UpdateVisible();
-		ClientSettings.Singleton.OnSettingChanged += OnSettingChanged;
 
 		LinkIndicator(GetNode<Control>("HighPing"), () =>
 		{
@@ -41,17 +41,11 @@ public partial class UIIndicators : Control
 		MainUpdateLoop();
 	}
 
-	private void OnSettingChanged(string name)
-	{
-		if (name == "ShowConnectionIndicators")
-		{
-			UpdateVisible();
-		}
-	}
-
 	private void UpdateVisible()
 	{
-		Visible = ClientSettings.Singleton.Settings.ShowConnectionIndicators;
+		bool to = ClientSettingsService.Instance.Get<bool>(ClientSettingKeys.Overlay.ConnectionIndicators);
+		if (Visible != to)
+			Visible = to;
 	}
 
 	private void LinkIndicator(Control target, Func<bool> func)
@@ -65,6 +59,7 @@ public partial class UIIndicators : Control
 	private async void MainUpdateLoop()
 	{
 		UpdateAll();
+		UpdateVisible();
 		await ToSignal(GetTree().CreateTimer(0.5), SceneTreeTimer.SignalName.Timeout);
 		MainUpdateLoop();
 	}

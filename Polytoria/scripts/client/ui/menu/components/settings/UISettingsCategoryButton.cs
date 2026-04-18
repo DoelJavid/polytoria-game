@@ -8,23 +8,23 @@ namespace Polytoria.Client.UI;
 
 public partial class UISettingsCategoryButton : Button
 {
-	[Export]
-	public SettingsViewEnum SwitchTo;
+	// [Export]
+	// public SettingsViewEnum SwitchTo;
 
-	public override void _Ready()
-	{
-		UIMenuSettings.Singleton.RegisterCategoryButton(this);
-		Pressed += OnPressed;
-		UIMenuSettings.Singleton.ViewChanged += OnViewChanged;
-	}
+	// public override void _Ready()
+	// {
+	// 	UIMenuSettings.Singleton.RegisterCategoryButton(this);
+	// 	Pressed += OnPressed;
+	// 	UIMenuSettings.Singleton.ViewChanged += OnViewChanged;
+	// }
 
-	private void OnViewChanged(SettingsViewEnum @enum)
-	{
-		SetPressedNoSignal(SwitchTo == @enum);
-	}
+	// private void OnViewChanged(SettingsViewEnum @enum)
+	// {
+	// 	SetPressedNoSignal(SwitchTo == @enum);
+	// }
 
-	private void OnPressed()
-	{
-		UIMenuSettings.Singleton.SwitchView(SwitchTo);
-	}
+	// private void OnPressed()
+	// {
+	// 	UIMenuSettings.Singleton.SwitchView(SwitchTo);
+	// }
 }

@@ -2,8 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Client.Settings;
+
 #if CREATOR
 using Polytoria.Creator.Spatial;
 #endif
@@ -20,6 +23,8 @@ public partial class Light : Dynamic
 	private float _brightness = 2;
 	private float _specular = 0.5f;
 	private bool _shadows = false;
+
+	private static Action? ShadowSettingsChanged;
 
 	internal override void OnNodeSizeChanged(Vector3 newSize)
 	{
@@ -70,9 +75,25 @@ public partial class Light : Dynamic
 		set
 		{
 			_shadows = value;
-			LightNode.ShadowEnabled = value;
+			UpdateShadows();
 			OnPropertyChanged();
 		}
+	}
+
+	internal void UpdateShadows()
+	{
+		bool shadows = Shadows;
+
+		ClientSettingsService? settings = ClientSettingsService.Instance;
+		if (settings != null)
+		{
+			ShadowQuality shadowQuality = settings.Get<ShadowQuality>(ClientSettingKeys.Graphics.ShadowQuality);
+			if (shadowQuality == ShadowQuality.Off)
+			{
+				shadows = false;
+			}
+		}
+		LightNode.ShadowEnabled = shadows;
 	}
 
 	public override Node CreateGDNode()
@@ -85,6 +106,12 @@ public partial class Light : Dynamic
 #if CREATOR
 		GDNode.AddChild(new SpatialIcon(ClassName));
 #endif
+		ShadowSettingsChanged += UpdateShadows;
 		base.Init();
+	}
+
+	public static void NotifyShadowSettingsChanged()
+	{
+		ShadowSettingsChanged?.Invoke();
 	}
 }

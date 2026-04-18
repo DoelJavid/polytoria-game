@@ -14,20 +14,6 @@ public partial class RendererEntry : AppEntry
 {
 	public override async void _Ready()
 	{
-		ClientSettings clientSettings = new()
-		{
-			Name = "ClientSettings"
-		};
-		AddChild(clientSettings, true, InternalMode.Front);
-		try
-		{
-			clientSettings.Init();
-		}
-		catch (RenderingDeviceSwitcher.SwitchingRenderingDeviceException)
-		{
-			return;
-		}
-
 		Stopwatch sw = new();
 		sw.Restart();
 
