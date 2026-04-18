@@ -16,18 +16,8 @@ public static class RenderingDeviceSwitcher
 			return;
 		}
 
-		List<string> args = [.. System.Environment.GetCommandLineArgs()];
-
-		if (args.Contains("--rendering-method"))
-		{
-			// Already tried switching rendering method, but godot may have denied it, let's just go with that anyways
-			return;
-		}
-
-		args.AddRange("--rendering-method", renderingName);
-
 		string exePath = OS.GetExecutablePath();
-		OS.CreateProcess(exePath, [.. args]);
+		OS.CreateProcess(exePath, [.. OS.GetCmdlineArgs(), "--rendering-method", renderingName]);
 		Globals.Singleton.Quit(force: true);
 		throw new SwitchingRenderingDeviceException();
 	}
