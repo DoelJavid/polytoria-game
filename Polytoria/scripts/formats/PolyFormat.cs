@@ -326,6 +326,7 @@ public static partial class PolyFormat
 			if (!loadContext.LoadedModel.TryGetValue(obj.LinkedModel, out PolyRootData data))
 			{
 				data = ReadRootDataBytes(linkedModelData);
+				loadContext.LoadedModel[obj.LinkedModel] = data;
 			}
 
 			loadContext.LoadingModelChain.Add(obj.LinkedModel);
@@ -400,6 +401,7 @@ public static partial class PolyFormat
 
 		// Load properties
 		LoadProperties(obj, netObj, loadContext);
+		ResolvePendingRef(obj.ID, netObj, loadContext);
 
 		if (loadContext.InsertChild && !skipChildren)
 		{
@@ -463,6 +465,44 @@ public static partial class PolyFormat
 		return [.. i];
 	}
 
+	private static void QueuePendingRef(string objID, NetworkedObject requester, PropertyInfo prop, PolyLoadContext ctx)
+	{
+		if (!ctx.PendingReferences.TryGetValue(objID, out var list))
+		{
+			list = [];
+			ctx.PendingReferences[objID] = list;
+		}
+
+		requester.PendingProps.Add(prop.Name);
+		list.Add((requester, prop));
+	}
+
+	private static void ResolvePendingRef(string objID, NetworkedObject resolvedObj, PolyLoadContext ctx)
+	{
+		if (!ctx.PendingReferences.TryGetValue(objID, out var list))
+		{
+			return;
+		}
+
+		foreach (var (requester, property) in list)
+		{
+			if (requester.IsDeleted) continue;
+
+			try
+			{
+				property.SetValue(requester, resolvedObj);
+			}
+			catch (Exception ex)
+			{
+				GD.PushError(ex);
+			}
+
+			requester.PendingProps.Remove(property.Name);
+		}
+
+		ctx.PendingReferences.Remove(objID);
+	}
+
 	private static void LoadProperties(PolyObject obj, NetworkedObject netObj, PolyLoadContext loadContext)
 	{
 		Type dataModelType = netObj.GetType();
@@ -506,7 +546,12 @@ public static partial class PolyFormat
 			else if (propType.IsAssignableTo(typeof(NetworkedObject)))
 			{
 				string? objID = (string?)DeserializePropValue(propVal, typeof(string));
-				if (objID == null) { PT.PrintWarn(propName, " doesn't have ID"); continue; }
+
+				if (objID == null)
+				{
+					PT.PrintWarn(propName, " doesn't have ID");
+					continue;
+				}
 
 				if (loadContext.SpawnedObjects.TryGetValue(objID, out NetworkedObject? refObj))
 				{
@@ -516,8 +561,7 @@ public static partial class PolyFormat
 				else
 				{
 					// Add prop to pending
-					netObj.PendingProps.Add(property.Name);
-					loadContext.PendingReferences.Add(new(objID, (netObj, property)));
+					QueuePendingRef(objID, netObj, property, loadContext);
 					continue;
 				}
 			}
@@ -533,16 +577,6 @@ public static partial class PolyFormat
 			catch (Exception ex)
 			{
 				GD.PushError(ex);
-			}
-		}
-
-		foreach (var item in loadContext.PendingReferences)
-		{
-			if (item.Key == obj.ID)
-			{
-				// Resolve pending reference
-				item.Value.prop.SetValue(item.Value.obj, netObj);
-				item.Value.obj.PendingProps.Remove(obj.ID);
 			}
 		}
 	}
@@ -840,7 +874,7 @@ public static partial class PolyFormat
 		public PolyRootData RootData;
 		public World Root = null!;
 		public Dictionary<string, NetworkedObject> SpawnedObjects = [];
-		public HashSet<KeyValuePair<string, (NetworkedObject obj, PropertyInfo prop)>> PendingReferences = [];
+		public Dictionary<string, List<(NetworkedObject obj, PropertyInfo prop)>> PendingReferences = [];
 		public bool IsRootHint = false;
 		public Instance? ModelRoot = null;
 		public bool AssignModelRoot = true;
