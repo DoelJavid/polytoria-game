@@ -200,7 +200,7 @@ public static class ClientSettingsRegistry
 					ValueKind = SettingValueKind.Float,
 					ControlKind = SettingControlKind.Slider,
 					DefaultValue = 1.0f,
-					MinValue = 0.25f,
+					MinValue = 0.2f,
 					MaxValue = 1.0f,
 					Step = 0.05f
 				}
@@ -321,12 +321,77 @@ public static class ClientSettingsRegistry
 					Key = ClientSettingKeys.PostProcessing.Sdfgi,
 					SectionKey = "post_processing",
 					Label = "SDFGI",
-					Description = "Toggle SDGFI (semi-real-time global illumination) effect.",
+					Description = "Toggle SDFGI (semi-real-time global illumination) effect.",
 					ValueKind = SettingValueKind.Bool,
 					ControlKind = SettingControlKind.Toggle,
 					DefaultValue = true,
 				}
 			},
+			{
+				ClientSettingKeys.Advanced.ShowAdvancedSettings,
+				new SettingDef<bool>
+				{
+					Key = ClientSettingKeys.Advanced.ShowAdvancedSettings,
+					SectionKey = "advanced",
+					Label = "Show Advanced Settings",
+					Description = "Shows hidden advanced settings.",
+					ValueKind = SettingValueKind.Bool,
+					ControlKind = SettingControlKind.Toggle,
+					DefaultValue = true,
+				}
+			},
+			// Put advanced settings under here
+			{
+				ClientSettingKeys.PostProcessing.SdfgiCellSize,
+				new SettingDef<float>
+				{
+					Key = ClientSettingKeys.PostProcessing.SdfgiCellSize,
+					IsAdvanced = true,
+					SectionKey = "post_processing",
+					Label = "SDFGI Cell Size",
+					Description = "Size of SDFGI cells. Larger cells improve performance but reduce quality.",
+					ValueKind = SettingValueKind.Float,
+					ControlKind = SettingControlKind.Slider,
+					DefaultValue = 0.8f,
+					MinValue = 0.2f,
+					MaxValue = 2f,
+					Step = 0.1f
+				}
+			},
+			{
+				ClientSettingKeys.PostProcessing.SdfgiCascades,
+				new SettingDef<int>
+				{
+					Key = ClientSettingKeys.PostProcessing.SdfgiCascades,
+					IsAdvanced = true,
+					SectionKey = "post_processing",
+					Label = "SDFGI Cascades",
+					Description = "Number of cascades for SDFGI.",
+					ValueKind = SettingValueKind.Int,
+					ControlKind = SettingControlKind.Slider,
+					DefaultValue = 6,
+					MinValue = 1,
+					MaxValue = 8,
+					Step = 1
+				}
+			},
+			{
+				ClientSettingKeys.PostProcessing.SsilRadius,
+				new SettingDef<float>
+				{
+					Key = ClientSettingKeys.PostProcessing.SsilRadius,
+					IsAdvanced = true,
+					SectionKey = "post_processing",
+					Label = "SSIL Radius",
+					Description = "Radius for SSIL effect",
+					ValueKind = SettingValueKind.Float,
+					ControlKind = SettingControlKind.Slider,
+					DefaultValue = 10f,
+					MinValue = 1f,
+					MaxValue = 50f,
+					Step = 1f
+				}
+			}
 		};
 
 		return defs;

@@ -39,6 +39,15 @@ public sealed partial class SliderSettingField : HBoxContainer
 			_step = Mathf.IsZeroApprox(f.Step) ? 1f : f.Step;
 			UpdateValueLabel((float)_slider.Value);
 		}
+		else if (Definition is SettingDef<int> i)
+		{
+			_slider.MinValue = i.MinValue;
+			_slider.MaxValue = i.MaxValue;
+			_slider.Step = i.Step;
+			_slider.Value = ClientSettingsService.Instance.Get<int>(Definition.Key);
+			_step = Mathf.IsZeroApprox(i.Step) ? 1f : i.Step;
+			UpdateValueLabel((float)_slider.Value);
+		}
 
 		_slider.ValueChanged += (value) =>
 		{

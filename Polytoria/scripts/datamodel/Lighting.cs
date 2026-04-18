@@ -130,6 +130,11 @@ public sealed partial class Lighting : Instance
 		environment.SsrEnabled = ssr;
 		environment.SsilEnabled = ssil;
 		environment.SdfgiEnabled = sdfgi;
+
+		// advanced settings
+		environment.SdfgiCascades = settings.Get<int>(ClientSettingKeys.PostProcessing.SdfgiCascades);
+		environment.SdfgiMinCellSize = settings.Get<float>(ClientSettingKeys.PostProcessing.SdfgiCellSize);
+		environment.SsilRadius = settings.Get<float>(ClientSettingKeys.PostProcessing.SsilRadius);
 	}
 
 	public void ApplySky(Sky sky)

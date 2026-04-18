@@ -18,6 +18,11 @@ public sealed partial class SettingsSectionPage : VBoxContainer
 
 		foreach (var def in defs)
 		{
+			if (def.IsAdvanced && !ClientSettingsService.Instance.Get<bool>(ClientSettingKeys.Advanced.ShowAdvancedSettings))
+			{
+				continue;
+			}
+
 			SettingRow row = new()
 			{
 				Definition = def

@@ -39,5 +39,14 @@ public static class ClientSettingKeys
 		public const string Ssr = "graphics.post_processing.ssr";
 		public const string Ssil = "graphics.post_processing.ssil";
 		public const string Sdfgi = "graphics.post_processing.sdfgi";
+
+		public const string SdfgiCellSize = "graphics.post_processing.sdfgi_cell_size";
+		public const string SdfgiCascades = "graphics.post_processing.sdfgi_cascades";
+		public const string SsilRadius = "graphics.post_processing.ssil_radius";
+	}
+
+	public static class Advanced
+	{
+		public const string ShowAdvancedSettings = "advanced.show_advanced_settings";
 	}
 }
