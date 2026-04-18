@@ -679,7 +679,6 @@ public partial class NPC : Physical
 	[ScriptMethod]
 	public void Kill()
 	{
-		if (IsDead) return;
 		Health = 0;
 		RpcId(1, nameof(NetKill));
 	}
@@ -687,12 +686,12 @@ public partial class NPC : Physical
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.Reliable)]
 	private void NetKill()
 	{
-		if (IsDead) return;
 		Health = 0;
 	}
 
 	private void TriggerNPCDead()
 	{
+		if (IsDead) return;
 		Anchored = true;
 		OverrideCanCollide = true;
 		OverrideCanCollideTo = false;
@@ -1056,14 +1055,12 @@ public partial class NPC : Physical
 	[ScriptMethod]
 	public void TakeDamage(float dmg)
 	{
-		if (IsDead) return;
 		Health -= dmg;
 	}
 
 	[ScriptMethod]
 	public void Heal(float amount)
 	{
-		if (IsDead) return;
 		Health += amount;
 	}
 }
