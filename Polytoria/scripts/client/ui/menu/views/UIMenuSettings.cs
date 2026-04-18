@@ -3,90 +3,130 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
-using System;
-using System.Collections.Generic;
+using Polytoria.Client.Settings;
+using System.Linq;
 
 namespace Polytoria.Client.UI;
 
 public sealed partial class UIMenuSettings : UIMenuViewBase
 {
-	private UISettingsView? _currentView = null;
-	public event Action<SettingsViewEnum>? ViewChanged;
-	private readonly List<UISettingsCategoryButton> _categoryButtons = [];
-
 	[Export] private Control _viewContainer = null!;
+	[Export] private VBoxContainer _categoryContainer = null!;
 
-	public static UIMenuSettings Singleton { get; private set; } = null!;
+	private readonly ButtonGroup _categoryButtonGroup = new();
+	private readonly System.Collections.Generic.Dictionary<string, Button> _categoryButtons = [];
+	private string? _currentSectionKey;
 
-	public UIMenuSettings()
+
+	public override void _Ready()
 	{
-		Singleton = this;
-	}
-
-	public void RegisterCategoryButton(UISettingsCategoryButton btn)
-	{
-		_categoryButtons.Add(btn);
-
-		if (_currentView != null && _currentView.FirstFocus != null)
-		{
-			btn.FocusNeighborRight = btn.GetPathTo(_currentView.FirstFocus);
-		}
+		BuildCategories();
+		base._Ready();
 	}
 
 	public override void ShowView()
 	{
-		SwitchView(SettingsViewEnum.General);
+		string firstSection = ClientSettingsRegistry.Sections.OrderBy(s => s.SortOrder).First().Key;
+		SwitchSection(firstSection);
 		base.ShowView();
 	}
 
-	public override void HideView()
+	private void BuildCategories()
 	{
-		ClientSettings.Singleton.SaveSettings();
-		base.HideView();
-	}
+		_categoryButtons.Clear();
 
-	public void SwitchView(SettingsViewEnum switchTo)
-	{
-		_currentView?.QueueFree();
-		_currentView = null;
-
-		string pathToLoad = switchTo switch
+		foreach (Node child in _categoryContainer.GetChildren())
 		{
-			SettingsViewEnum.General => "res://scenes/client/ui/menu/components/settings/views/general.tscn",
-			SettingsViewEnum.Graphics => "res://scenes/client/ui/menu/components/settings/views/graphics.tscn",
-			SettingsViewEnum.Advanced => "res://scenes/client/ui/menu/components/settings/views/advanced.tscn",
-			_ => throw new ArgumentOutOfRangeException(nameof(switchTo), $"No scene defined for {switchTo}")
-		};
+			child.QueueFree();
+		}
 
-		PackedScene scene = GD.Load<PackedScene>(pathToLoad);
-		if (scene != null)
+		foreach (var section in ClientSettingsRegistry.Sections.OrderBy(s => s.SortOrder))
 		{
-			_currentView = scene.Instantiate<UISettingsView>();
+			string sectionKey = section.Key;
+			Button btn = CreateCategoryButton(section);
+			btn.ButtonGroup = _categoryButtonGroup;
 
-			_viewContainer.AddChild(_currentView);
-			ViewChanged?.Invoke(switchTo);
-
-			// Update first focus
-			if (_currentView.FirstFocus != null)
-			{
-				foreach (UISettingsCategoryButton btn in _categoryButtons)
-				{
-					btn.FocusNeighborRight = btn.GetPathTo(_currentView.FirstFocus);
-				}
-			}
-			else
-			{
-				GD.PushWarning(switchTo, " doesn't have first focus, this might break gamepad functionality");
-			}
+			btn.Pressed += () => SwitchSection(sectionKey);
+			_categoryContainer.AddChild(btn);
+			_categoryButtons[sectionKey] = btn;
 		}
 	}
-}
 
-public enum SettingsViewEnum
-{
-	General,
-	Graphics,
-	Admin,
-	Advanced,
-	Beta
+	private static Button CreateCategoryButton(Shared.Settings.SettingSectionDef section)
+	{
+		Button btn = new()
+		{
+			ToggleMode = true,
+			CustomMinimumSize = new Vector2(0, 50),
+			SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+			MouseDefaultCursorShape = CursorShape.PointingHand,
+			Text = string.Empty,
+			FocusMode = FocusModeEnum.All
+		};
+
+		HBoxContainer layout = new()
+		{
+			MouseFilter = MouseFilterEnum.Ignore
+		};
+		layout.AddThemeConstantOverride("separation", 12);
+		layout.SetAnchorsPreset(LayoutPreset.FullRect);
+		layout.OffsetLeft = 16;
+		layout.OffsetRight = -16;
+		btn.AddChild(layout);
+
+		if (!string.IsNullOrEmpty(section.IconPath))
+		{
+			TextureRect icon = new()
+			{
+				MouseFilter = MouseFilterEnum.Ignore,
+				CustomMinimumSize = new Vector2(28, 0),
+				Texture = GD.Load<Texture2D>(section.IconPath),
+				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered
+			};
+			layout.AddChild(icon);
+		}
+
+		Label label = new()
+		{
+			MouseFilter = MouseFilterEnum.Ignore,
+			Text = section.Label,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		label.AddThemeFontSizeOverride("font_size", 16);
+		layout.AddChild(label);
+
+		return btn;
+	}
+
+	private void SwitchSection(string key)
+	{
+		if (_currentSectionKey == key)
+		{
+			return;
+		}
+
+		_currentSectionKey = key;
+		UpdateCategoryButtons();
+
+		foreach (Node child in _viewContainer.GetChildren())
+		{
+			child.QueueFree();
+		}
+
+		SettingsSectionPage page = new()
+		{
+			SectionKey = key
+		};
+
+		_viewContainer.AddChild(page);
+	}
+
+	private void UpdateCategoryButtons()
+	{
+		foreach (var pair in _categoryButtons)
+		{
+			pair.Value.SetPressedNoSignal(pair.Key == _currentSectionKey);
+		}
+	}
 }

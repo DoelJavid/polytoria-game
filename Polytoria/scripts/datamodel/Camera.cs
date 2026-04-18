@@ -6,6 +6,7 @@ using Godot;
 using Godot.Collections;
 using Polytoria.Attributes;
 using Polytoria.Client;
+using Polytoria.Client.Settings;
 using Polytoria.Scripting;
 using Polytoria.Shared.Misc;
 using Polytoria.Utils;
@@ -243,7 +244,7 @@ public sealed partial class Camera : Dynamic
 	[ScriptProperty]
 	public float Sensitivity
 	{
-		get => (float)(ClientSettings.Singleton.Settings.CameraSensitivity * _sensitivityMultipler);
+		get => ClientSettingsService.Instance.Get<float>(ClientSettingKeys.General.CameraSensitivity) * _sensitivityMultipler;
 	}
 
 	[ScriptProperty]
@@ -720,7 +721,7 @@ public sealed partial class Camera : Dynamic
 		}
 
 		// Ctrl Lock Toggle
-		if (CanLock && @event.IsActionPressed("ctrllock") && !IsFirstPerson && ClientSettings.Singleton.GetSetting<bool>("UseCtrlLock"))
+		if (CanLock && @event.IsActionPressed("ctrllock") && !IsFirstPerson && ClientSettingsService.Instance.Get<bool>(ClientSettingKeys.General.CtrlLock))
 		{
 			if (AlwaysLocked) return;
 			CtrlLocked = !CtrlLocked;

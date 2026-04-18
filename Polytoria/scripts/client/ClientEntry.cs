@@ -7,6 +7,8 @@
 #endif
 
 using Godot;
+using Polytoria.Client.Settings;
+using Polytoria.Client.Settings.Appliers;
 using Polytoria.Client.WebAPI;
 #if CREATOR
 using Polytoria.Creator.Utils;
@@ -181,12 +183,15 @@ public sealed partial class ClientEntry : Node3D
 		}
 
 		// Setup essentials 
-		ClientSettings clientSettings = new()
+		ClientSettingsService settings = new()
 		{
 			Name = "ClientSettings"
 		};
-		AddChild(clientSettings, true, InternalMode.Front);
-		clientSettings.Init();
+		AddChild(settings, true, InternalMode.Front);
+
+		settings.AddChild(new DisplaySettingsApplier { Name = "DisplaySettingsApplier" }, true, InternalMode.Front);
+		settings.AddChild(new AudioSettingsApplier { Name = "AudioSettingsApplier" }, true, InternalMode.Front);
+		settings.AddChild(new GraphicsSettingsApplier { Name = "GraphicsSettingsApplier" }, true, InternalMode.Front);
 
 		DatamodelBridge bridge = new()
 		{

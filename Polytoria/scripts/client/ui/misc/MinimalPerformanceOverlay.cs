@@ -3,6 +3,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
+using Polytoria.Client.Settings;
 
 namespace Polytoria.Client.UI;
 
@@ -17,22 +18,12 @@ public partial class MinimalPerformanceOverlay : Control
 		_fpsLabel = GetNode<Label>("FPS/Layout/Label");
 		_pingLabel = GetNode<Label>("Ping/Layout/Label");
 		Visible = false;
-		ClientSettings.Singleton.OnSettingChanged += OnSettingChanged;
-		UpdateVisible();
 		MainUpdateLoop();
-	}
-
-	private void OnSettingChanged(string name)
-	{
-		if (name == "PerformanceOverlayMode")
-		{
-			UpdateVisible();
-		}
 	}
 
 	private void UpdateVisible()
 	{
-		Visible = ClientSettings.Singleton.Settings.PerformanceOverlayMode >= ClientSettingsData.PerformanceOverlayModeEnum.Minimal;
+		Visible = ClientSettingsService.Instance.Get<OverlayMode>(ClientSettingKeys.Overlay.PerformanceOverlayMode) >= OverlayMode.Minimal;
 	}
 
 	private void UpdateAll()
@@ -44,6 +35,7 @@ public partial class MinimalPerformanceOverlay : Control
 	private async void MainUpdateLoop()
 	{
 		UpdateAll();
+		UpdateVisible();
 		await ToSignal(GetTree().CreateTimer(1), SceneTreeTimer.SignalName.Timeout);
 		MainUpdateLoop();
 	}

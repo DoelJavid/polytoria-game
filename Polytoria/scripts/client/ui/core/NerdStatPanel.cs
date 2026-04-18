@@ -4,6 +4,7 @@
 
 using Godot;
 using Humanizer;
+using Polytoria.Client.Settings;
 using Polytoria.Datamodel;
 using Polytoria.Shared.AssetLoaders;
 using System;
@@ -22,7 +23,6 @@ public partial class NerdStatPanel : Control
 		_root = CoreUIRoot.Singleton.Root;
 		_layout = GetNode<Control>("Layout");
 		Visible = false;
-		ClientSettings.Singleton.OnSettingChanged += OnSettingChanged;
 		UpdateVisible();
 
 		CreateLabel("FPS", () =>
@@ -92,8 +92,6 @@ public partial class NerdStatPanel : Control
 
 	public override void _ExitTree()
 	{
-		ClientSettings.Singleton.OnSettingChanged -= OnSettingChanged;
-
 		base._ExitTree();
 	}
 
@@ -107,7 +105,9 @@ public partial class NerdStatPanel : Control
 
 	private void UpdateVisible()
 	{
-		Visible = ClientSettings.Singleton.Settings.PerformanceOverlayMode == ClientSettingsData.PerformanceOverlayModeEnum.Full;
+		bool to = ClientSettingsService.Instance.Get<OverlayMode>(ClientSettingKeys.Overlay.PerformanceOverlayMode) == OverlayMode.Full;
+		if (Visible != to)
+			Visible = to;
 	}
 
 	private void CreateLabel(string startText, Func<string> getter)
@@ -133,6 +133,7 @@ public partial class NerdStatPanel : Control
 		while (true)
 		{
 			UpdateAll();
+			UpdateVisible();
 			await ToSignal(GetTree().CreateTimer(1), SceneTreeTimer.SignalName.Timeout);
 		}
 	}
