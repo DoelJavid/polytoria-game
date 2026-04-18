@@ -72,6 +72,7 @@ public partial class Part : Entity
 		AddCollisionShape(_collider);
 		UpdateCollision();
 		UpdateMeshSize();
+		UpdateShape();
 
 		base.Ready();
 	}
