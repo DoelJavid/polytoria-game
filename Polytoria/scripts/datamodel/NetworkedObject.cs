@@ -1173,6 +1173,7 @@ public partial class NetworkedObject : IScriptObject
 			ParentNodePath = NetworkParent?.NetworkPath ?? "",
 			ParentNodeID = NetworkParent?.NetworkedObjectID ?? "",
 			NetworkID = NetworkedObjectID,
+			Index = this is Instance i ? i.Index : 0,
 			Sequence = _sequence
 		};
 	}
@@ -1210,6 +1211,10 @@ public partial class NetworkedObject : IScriptObject
 			netObj.AutoInvokeReady = false;
 			netObj.NetworkedObjectID = data.NetworkID;
 			netObj.AppliedSequence = data.Sequence;
+			if (netObj is Instance i)
+			{
+				i.Index = data.Index;
+			}
 			netObj.SetNetworkAuthority(authority, false);
 
 			netObj.ApplyNetProps(props, data.IsSyncOnce);
@@ -1230,6 +1235,10 @@ public partial class NetworkedObject : IScriptObject
 		netobj.NetworkedObjectID = data.NetworkID;
 		netobj.AutoInvokeReady = false;
 		netobj.AppliedSequence = data.Sequence;
+		if (netobj is Instance i2)
+		{
+			i2.Index = data.Index;
+		}
 		netobj.SetNetworkAuthority(authority, false);
 		netobj.NetworkParent = this;
 

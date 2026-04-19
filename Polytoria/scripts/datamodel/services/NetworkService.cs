@@ -926,6 +926,7 @@ public sealed partial class NetworkService : Instance
 		[JsonInclude] public string NetworkID = "";
 		[JsonInclude] public NetPropReplicateData[] Props = [];
 		[JsonInclude] public bool IsSyncOnce = false;
+		[JsonInclude] public int Index = 0;
 		[JsonInclude] public int Sequence = 0;
 
 		public override readonly bool Equals(object? obj)
