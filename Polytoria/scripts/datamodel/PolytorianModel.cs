@@ -241,6 +241,29 @@ public sealed partial class PolytorianModel : CharacterModel
 		_helper = new() { Name = "CharacterHelper", Target = this };
 		Globals.Singleton.AddChild(_helper, true);
 
+		Skeleton = GDNode.GetNode<Skeleton3D>("Character/Poly/Skeleton3D");
+		Skeleton.ShowRestOnly = false;
+		_ragdollBoneSim = GDNode.GetNode<PhysicalBoneSimulator3D>("Character/Poly/Skeleton3D/RagdollBone");
+		HeadMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/Head");
+		TorsoMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/Torso");
+		LeftArmMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/LeftArm");
+		RightArmMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/RightArm");
+		LeftLegMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/LeftLeg");
+		RightLegMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/RightLeg");
+		Pivot = GDNode.GetNode<Node3D>("Character/Poly");
+
+		Pivot.Scale = NodeSize;
+
+		HeadMeshInstance.MaterialOverride = _headMat;
+		TorsoMeshInstance.MaterialOverride = _torsoMat;
+		LeftArmMeshInstance.MaterialOverride = _leftArmMat;
+		RightArmMeshInstance.MaterialOverride = _rightArmMat;
+		LeftLegMeshInstance.MaterialOverride = _leftLegMat;
+		RightLegMeshInstance.MaterialOverride = _rightLegMat;
+
+		AnimTree = GDNode.GetNode<AnimationTree>("AnimationTree");
+		AnimTree.Active = true;
+
 		base.Init();
 		SetProcess(true);
 	}
@@ -276,29 +299,6 @@ public sealed partial class PolytorianModel : CharacterModel
 
 	public override async void Ready()
 	{
-		Skeleton = GDNode.GetNode<Skeleton3D>("Character/Poly/Skeleton3D");
-		Skeleton.ShowRestOnly = false;
-		_ragdollBoneSim = GDNode.GetNode<PhysicalBoneSimulator3D>("Character/Poly/Skeleton3D/RagdollBone");
-		HeadMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/Head");
-		TorsoMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/Torso");
-		LeftArmMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/LeftArm");
-		RightArmMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/RightArm");
-		LeftLegMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/LeftLeg");
-		RightLegMeshInstance = GDNode.GetNode<MeshInstance3D>("Character/Poly/Skeleton3D/RightLeg");
-		Pivot = GDNode.GetNode<Node3D>("Character/Poly");
-
-		Pivot.Scale = NodeSize;
-
-		HeadMeshInstance.MaterialOverride = _headMat;
-		TorsoMeshInstance.MaterialOverride = _torsoMat;
-		LeftArmMeshInstance.MaterialOverride = _leftArmMat;
-		RightArmMeshInstance.MaterialOverride = _rightArmMat;
-		LeftLegMeshInstance.MaterialOverride = _leftLegMat;
-		RightLegMeshInstance.MaterialOverride = _rightLegMat;
-
-		AnimTree = GDNode.GetNode<AnimationTree>("AnimationTree");
-		AnimTree.Active = true;
-
 		if (Root == null)
 		{
 			// Create default character on null root (eg. loading screens/mobile)
