@@ -3,7 +3,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
-using Humanizer;
 using MemoryPack;
 using Polytoria.Attributes;
 using Polytoria.Client;
@@ -665,6 +664,11 @@ public sealed partial class NetworkService : Instance
 		{
 			// Admin chat color
 			plr.ChatColor = Color.FromHtml("#DD5555");
+		}
+		else
+		{
+			// Default chat color
+			plr.ChatColor = Root.PlayerDefaults.ChatColor;
 		}
 
 		// Assign network authorties
