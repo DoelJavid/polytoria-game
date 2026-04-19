@@ -144,7 +144,7 @@ public class DefaultMovement : IPlayerMovement
 					};
 				}
 
-				if (sprinting)
+				if (sprinting && Target.SprintSpeed != Target.WalkSpeed)
 				{
 					finalState = CharacterModel.CharacterState.Running;
 					Target.Character?.SetAnimSpeed(gdWalkSpeed / 20);
