@@ -35,6 +35,8 @@ public sealed partial class PolytorianModel : CharacterModel
 	private const float LookBlendSpeed = 15f;
 	private const string DefaultBodyColor = "#FFFFFF";
 
+	private int _loadAppearanceCount = 0;
+
 	internal Skeleton3D Skeleton = null!;
 	internal AnimationTree AnimTree = null!;
 
@@ -685,7 +687,14 @@ public sealed partial class PolytorianModel : CharacterModel
 
 	internal async Task<AvatarLoadResponse> InternalLoadAppearance(int userID, bool loadTool = false, bool loadToolNpc = false)
 	{
+		_loadAppearanceCount++;
+
+		// Prevent reloading
+		int myCount = _loadAppearanceCount;
+
 		APIAvatarResponse avatarData = await PolyAPI.GetUserAvatarFromID(userID);
+		if (myCount != _loadAppearanceCount) throw new OperationCanceledException("The avatar is cancelled");
+
 		if (IsDeleted)
 		{
 			throw new OperationCanceledException("The avatar is deleted");
@@ -731,6 +740,7 @@ public sealed partial class PolytorianModel : CharacterModel
 				try
 				{
 					Accessory? accessory = await Root.Insert.AccessoryAsync(asset.ID);
+					if (myCount != _loadAppearanceCount) throw new OperationCanceledException("The avatar is cancelled");
 					if (IsDeleted)
 					{
 						accessory?.Delete();
@@ -751,6 +761,7 @@ public sealed partial class PolytorianModel : CharacterModel
 					try
 					{
 						Tool? tool = await Root.Insert.ToolAsync(asset.ID);
+						if (myCount != _loadAppearanceCount) throw new OperationCanceledException("The avatar is cancelled");
 						if (IsDeleted)
 						{
 							tool?.Delete();
@@ -769,6 +780,7 @@ public sealed partial class PolytorianModel : CharacterModel
 					try
 					{
 						Tool? tool = await Root.Insert.ToolAsync(asset.ID);
+						if (myCount != _loadAppearanceCount) throw new OperationCanceledException("The avatar is cancelled");
 						if (IsDeleted)
 						{
 							tool?.Delete();
