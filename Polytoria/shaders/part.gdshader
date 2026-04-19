@@ -2,13 +2,14 @@ shader_type spatial;
 render_mode cull_back, diffuse_burley, specular_schlick_ggx;
 
 instance uniform vec4 color : source_color = vec4(1.0);
-instance uniform float emissive_strength : hint_range(0.0, 1.0) = 0.0;
 
 uniform sampler2D albedo : source_color;
 uniform bool use_albedo_texture = true;
 
 uniform sampler2D orm;
 uniform bool use_orm_texture = true;
+
+uniform float emissive_strength : hint_range(0.0, 5.0) = 0.0;
 
 uniform float metallic_specular : hint_range(0.0, 1.0) = 0.2;
 uniform float roughness : hint_range(0.0, 1.0) = 0.7;
@@ -67,8 +68,6 @@ void fragment() {
 	float roughness_tex = 1.0;
 	float metallic_tex = 1.0;
 
-	float emission = emissive_strength;
-
 	if (use_albedo_texture) {
 		albedo_color *= texture(albedo, uv);
 	}
@@ -84,12 +83,8 @@ void fragment() {
 	ROUGHNESS = roughness_tex * roughness;
 	METALLIC = metallic_tex * metallic;
 
-	if (emissive_strength < 0.01 && instance_custom.r > 0.01) {
-		emission = instance_custom.r;
-	}
-
-	if (emission > 0.0) {
-		EMISSION = ALBEDO * emission;
+	if (emissive_strength > 0.0) {
+		EMISSION = ALBEDO * emissive_strength;
 	}
 }
 

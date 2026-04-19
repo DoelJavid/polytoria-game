@@ -2,10 +2,11 @@ shader_type spatial;
 render_mode blend_mix, depth_prepass_alpha, cull_back, diffuse_burley, specular_schlick_ggx;
 
 instance uniform vec4 color : source_color = vec4(1.0);
-instance uniform float emissive_strength : hint_range(0.0, 1.0) = 0.0;
 
 uniform sampler2D albedo : source_color;
 uniform bool use_albedo_texture = true;
+
+uniform float emissive_strength : hint_range(0.0, 5.0) = 0.0;
 
 uniform float studs_per_tile = 2.0;
 uniform float roughness_value : hint_range(0.0, 1.0) = 0.7;
@@ -58,8 +59,6 @@ void fragment() {
 	vec3 part_space = v_local_pos * v_object_scale;
 	vec2 uv = calculate_uv(part_space, n) / studs_per_tile;
 	vec4 albedo_color = color;
-
-	float emission = emissive_strength;
 	
 	if (use_albedo_texture) {
 		albedo_color *= texture(albedo, uv);
@@ -70,12 +69,8 @@ void fragment() {
 	SPECULAR = specular_value;
 	ALPHA = albedo_color.a * COLOR.a;
 
-	if (emissive_strength < 0.01 && instance_custom.r > 0.01) {
-		emission = instance_custom.r;
-	}
-
-	if (emission > 0.0) {
-		EMISSION = ALBEDO * emission;
+	if (emissive_strength > 0.0) {
+		EMISSION = ALBEDO * emissive_strength;
 	}
 }
 

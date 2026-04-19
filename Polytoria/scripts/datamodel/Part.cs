@@ -240,9 +240,6 @@ public partial class Part : Entity
 			}
 
 			_mesh.SetInstanceShaderParameter("color", _color);
-
-			float emissiveStrength = _material == PartMaterialEnum.Neon ? 2.0f : 0.0f;
-			_mesh.SetInstanceShaderParameter("emissive_strength", emissiveStrength);
 		}
 
 		UpdateCamLayer();
