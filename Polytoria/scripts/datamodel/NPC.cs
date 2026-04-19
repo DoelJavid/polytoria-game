@@ -692,6 +692,7 @@ public partial class NPC : Physical
 	private void TriggerNPCDead()
 	{
 		if (IsDead) return;
+		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
 		Anchored = true;
 		OverrideCanCollide = true;
 		OverrideCanCollideTo = false;
