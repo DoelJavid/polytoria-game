@@ -22,7 +22,7 @@ public sealed class SyncVarAttribute : Attribute
 	/// </summary>
 	public bool ServerOnly = false;
 	/// <summary>
-	/// Set to sync unreliably, this will also skip the duplicate value check
+	/// Set to sync to server unreliably, this will also skip the duplicate value check. This only affect client to server, not server to client
 	/// </summary>
 	public bool Unreliable = false;
 }

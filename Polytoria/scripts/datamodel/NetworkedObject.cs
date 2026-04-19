@@ -1052,13 +1052,16 @@ public partial class NetworkedObject : IScriptObject
 				// AllowAuthorWrite rule
 				|| (syncvar.AllowAuthorWrite && NetworkAuthority == Root.Network.LocalPeerID)
 				// ServerOnly rule
-				|| (syncvar.ServerOnly && Root.Network.IsServer);
+				|| (syncvar.ServerOnly && Root.Network.IsServer)
+				// Server rule, server has authority over everything
+				|| Root.Network.IsServer;
 
 			bool broadcastUnreliable = false;
 
 			if (syncvar != null)
 			{
-				if (syncvar.Unreliable)
+				// Ignore unreliable rule when syncing from server
+				if (syncvar.Unreliable && !Root.Network.IsServer)
 				{
 					broadcastUnreliable = true;
 				}
@@ -1412,15 +1415,6 @@ public partial class NetworkedObject : IScriptObject
 			{
 				return;
 			}
-		}
-
-		// Check SyncVar
-		SyncVarAttribute? sv = prop.GetCustomAttribute<SyncVarAttribute>();
-
-		if (sv != null)
-		{
-			// Ignore property override if author writable is true
-			if (sv.AllowAuthorWrite && Root.Network.LocalPeerID == NetworkAuthority) return;
 		}
 
 		Type targetType = prop.PropertyType;
