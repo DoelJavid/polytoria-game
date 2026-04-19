@@ -1,6 +1,5 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 
 namespace Polytoria.Shared;
 
@@ -16,8 +15,16 @@ public static class RenderingDeviceSwitcher
 			return;
 		}
 
+		string[] args = OS.GetCmdlineArgs();
+
+		if (args.Contains("-rmswignore"))
+		{
+			// Already switched, but godot may have refused it. let's just go with that anyways
+			return;
+		}
+
 		string exePath = OS.GetExecutablePath();
-		OS.CreateProcess(exePath, [.. OS.GetCmdlineArgs(), "--rendering-method", renderingName]);
+		OS.CreateProcess(exePath, [.. args, "--rendering-method", renderingName, "-rmswignore"]);
 		Globals.Singleton.Quit(force: true);
 		throw new SwitchingRenderingDeviceException();
 	}
