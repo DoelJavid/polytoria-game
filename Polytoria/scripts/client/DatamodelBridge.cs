@@ -124,6 +124,7 @@ public partial class DatamodelBridge : Node3D
 					ChunkBatch batch = _batches[handle.Key];
 					batch.MultiMesh.SetInstanceTransform(handle.Index, part.GetGlobalTransform());
 					batch.MultiMesh.SetInstanceColor(handle.Index, part.Color.SrgbToLinear());
+					batch.MultiMesh.SetInstanceCustomData(handle.Index, GetCustomDataForPart(part));
 				}
 			}
 			else
@@ -240,7 +241,7 @@ public partial class DatamodelBridge : Node3D
 
 		batch.MultiMesh.SetInstanceTransform(index, part.GetGlobalTransform());
 		batch.MultiMesh.SetInstanceColor(index, part.Color.SrgbToLinear());
-		// batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(part));
+		batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(part));
 
 		_handles[part] = new PartHandle { Key = key, Index = index };
 	}
@@ -264,7 +265,7 @@ public partial class DatamodelBridge : Node3D
 			_handles[lastPart] = new PartHandle { Key = handle.Key, Index = index };
 			batch.MultiMesh.SetInstanceTransform(index, lastPart.GetGlobalTransform());
 			batch.MultiMesh.SetInstanceColor(index, lastPart.Color.SrgbToLinear());
-			// batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(lastPart));
+			batch.MultiMesh.SetInstanceCustomData(index, GetCustomDataForPart(lastPart));
 		}
 
 		batch.Parts.RemoveAt(lastIndex);
@@ -300,16 +301,15 @@ public partial class DatamodelBridge : Node3D
 			var p = batch.Parts[i];
 			batch.MultiMesh.SetInstanceTransform(i, p.GetGlobalTransform());
 			batch.MultiMesh.SetInstanceColor(i, p.Color.SrgbToLinear());
+			batch.MultiMesh.SetInstanceCustomData(i, GetCustomDataForPart(p));
 		}
 	}
-
-	// can be used to send emission data to shader, needs more work in shader
-	//
-	// private static Color GetCustomDataForPart(Part part)
-	// {
-	// 	float emissiveStrength = part.Material == Part.PartMaterialEnum.Neon ? 2.0f : 0.0f;
-	// 	return new Color(emissiveStrength, 0f, 0f, 0f);
-	// }
+	
+	private static Color GetCustomDataForPart(Part part)
+	{
+		float emissiveStrength = part.Material == Part.PartMaterialEnum.Neon ? 2.0f : 0.0f;
+		return new Color(emissiveStrength, 0f, 0f, 0f);
+	}
 
 	public void AddPart(Part part)
 	{
@@ -349,7 +349,7 @@ public partial class DatamodelBridge : Node3D
 	public static bool IsPartEligible(Part part)
 	{
 		if (part.IsHidden || part.IsInTemporary) return false;
-		if (part.Anchored && !part.OverrideNoMultiMesh && part.Material != Part.PartMaterialEnum.Neon && part.CastShadows)
+		if (part.Anchored && !part.OverrideNoMultiMesh && part.CastShadows)
 		{
 			if (!IsInstanceValid(part.GDNode3D) || !part.GDNode3D.IsInsideTree()) return false;
 			if (part.IsDeleted) return false;

@@ -19,6 +19,8 @@ varying vec3 v_local_pos;
 varying vec3 v_local_normal;
 varying vec3 v_object_scale;
 
+varying vec4 instance_custom;
+
 vec2 calculate_uv(vec3 pos, vec3 normal)
 {
 	vec3 an = abs(normal);
@@ -52,6 +54,8 @@ void vertex() {
 		length(MODEL_MATRIX[1].xyz),
 		length(MODEL_MATRIX[2].xyz)
 	);
+
+	instance_custom = INSTANCE_CUSTOM;
 }
 
 void fragment() {
@@ -62,6 +66,8 @@ void fragment() {
 	
 	float roughness_tex = 1.0;
 	float metallic_tex = 1.0;
+
+	float emission = emissive_strength;
 
 	if (use_albedo_texture) {
 		albedo_color *= texture(albedo, uv);
@@ -78,8 +84,12 @@ void fragment() {
 	ROUGHNESS = roughness_tex * roughness;
 	METALLIC = metallic_tex * metallic;
 
-	if (emissive_strength > 0.0) {
-		EMISSION = ALBEDO * emissive_strength;
+	if (emissive_strength < 0.01 && instance_custom.r > 0.01) {
+		emission = instance_custom.r;
+	}
+
+	if (emission > 0.0) {
+		EMISSION = ALBEDO * emission;
 	}
 }
 
