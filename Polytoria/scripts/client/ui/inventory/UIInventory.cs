@@ -209,6 +209,11 @@ public partial class UIInventory : Control
 
 	public void PutToolInBackpack(Tool tool, int slot)
 	{
+		if (tool.Holder == _localplr)
+		{
+			// Unequip tool if holding right now
+			_localplr.UnequipTool();
+		}
 		UIToolItem? item = GetToolItemFromTool(tool);
 		if (item != null)
 		{
@@ -244,24 +249,27 @@ public partial class UIInventory : Control
 
 	public void PutToolInSlot(Tool tool, int slot)
 	{
+		_toolSlot.Remove(tool);
+		_backpackSlot.Remove(tool);
+
 		_toolSlot.Insert(slot, tool);
+
 		UIToolItem? item = GetToolItemFromTool(tool);
 		if (item != null)
 		{
-			item.GetParent().RemoveChild(item);
+			item.GetParent()?.RemoveChild(item);
 		}
 		else
 		{
 			item = CreateUIToolItem(tool);
+			_tools[tool] = item;
 		}
 
-		item.ToolIndex = slot;
 		item.IsInBackpack = false;
 		item.Root = this;
 
-		_backpackSlot.Remove(tool);
-		_tools.TryAdd(tool, item);
 		_layout.AddChild(item);
+		item.ToolIndex = slot;
 
 		if (_toolSlot.Count > MaximumToolSlot)
 		{
@@ -274,8 +282,8 @@ public partial class UIInventory : Control
 
 		if (tool.Holder == _localplr)
 		{
-			// If equipped, set active
-			item.ButtonPressed = true;
+			// Set active if holding
+			item.SetPressedNoSignal(true);
 		}
 	}
 

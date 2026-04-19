@@ -40,13 +40,14 @@ public partial class UIToolItem : Button
 	private Label _toolNameLabel = null!;
 	private TextureRect _toolIconRect = null!;
 	private Label _toolIndexLabel = null!;
-	private TouchScreenButton _touchscreenButton = null!;
+	private TouchScreenButton? _touchscreenButton;
 	private Control _touchscreenBlock = null!;
 	private Control _baseControl = null!;
 	private bool _initialized = false;
 
 	public override void _EnterTree()
 	{
+		base._EnterTree();
 		if (!_initialized)
 		{
 			Init();
@@ -55,12 +56,14 @@ public partial class UIToolItem : Button
 
 	public override void _ExitTree()
 	{
+		base._ExitTree();
 		if (_initialized)
 		{
 			DeInit();
 		}
-		base._ExitTree();
 	}
+
+	private bool _toggledConnected = false;
 
 	private void Init()
 	{
@@ -70,22 +73,26 @@ public partial class UIToolItem : Button
 		_toolIconRect = _baseControl.GetNode<TextureRect>("Icon");
 		_toolIndexLabel = _baseControl.GetNode<Label>("Index");
 		_touchscreenBlock = _baseControl.GetNode<Control>("TouchscreenBlock");
-		_touchscreenButton = _touchscreenBlock.GetNode<TouchScreenButton>("TSB");
+		_touchscreenButton = _touchscreenBlock.GetNodeOrNull<TouchScreenButton>("TSB");
+
 		UpdateLabel();
 		UpdateName();
+
 		LinkedTool.PropertyChanged.Connect(OnToolPropChanged);
 		LinkedTool.Equipped.Connect(OnToolEquipped);
 		LinkedTool.Unequipped.Connect(OnToolUnequipped);
-		Toggled += OnToggled;
 
-		if (LinkedTool.Root.Input.IsTouchscreen)
+		if (!_toggledConnected)
 		{
-			_touchscreenBlock.Visible = true;
-			_touchscreenButton.Pressed += OnPressed;
+			Toggled += OnToggled;
+			_toggledConnected = true;
 		}
-		else
+
+		bool isTouchscreen = LinkedTool.Root.Input.IsTouchscreen;
+		_touchscreenBlock.Visible = isTouchscreen;
+		if (isTouchscreen && _touchscreenButton != null)
 		{
-			_touchscreenBlock.QueueFree();
+			_touchscreenButton.Pressed += OnPressed;
 		}
 
 		if (LinkedTool.ToolImgTexture != null)
@@ -95,21 +102,29 @@ public partial class UIToolItem : Button
 		LinkedTool.ToolImgTextureLoaded += InsertToolImage;
 	}
 
+	private void DeInit()
+	{
+		_initialized = false;
+		LinkedTool.ToolImgTextureLoaded -= InsertToolImage;
+
+		if (_toggledConnected)
+		{
+			Toggled -= OnToggled;
+			_toggledConnected = false;
+		}
+
+		LinkedTool.PropertyChanged.Disconnect(OnToolPropChanged);
+		LinkedTool.Equipped.Disconnect(OnToolEquipped);
+		LinkedTool.Unequipped.Disconnect(OnToolUnequipped);
+
+		_touchscreenButton?.Pressed -= OnPressed;
+	}
+
 	private void InsertToolImage()
 	{
 		Texture2D? img = LinkedTool.ToolImgTexture;
 		_toolIconRect.Texture = LinkedTool.ToolImgTexture;
 		_toolNameLabel.Visible = img == null;
-	}
-
-	private void DeInit()
-	{
-		_initialized = false;
-		LinkedTool.ToolImgTextureLoaded -= InsertToolImage;
-		Toggled -= OnToggled;
-		LinkedTool.PropertyChanged.Disconnect(OnToolPropChanged);
-		LinkedTool.Equipped.Disconnect(OnToolEquipped);
-		LinkedTool.Unequipped.Disconnect(OnToolUnequipped);
 	}
 
 	private void UpdateLabel()
