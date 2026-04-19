@@ -131,17 +131,22 @@ public partial class FileBrowserTree : Tree
 
 	public string[] GetSelectedFiles()
 	{
-		TreeItem item = GetSelected();
 		List<string> files = [];
+		CollectSelected(GetRoot(), files);
+		return [.. files];
+	}
+
+	private void CollectSelected(TreeItem? item, List<string> files)
+	{
 		while (item != null)
 		{
-			if (ItemToFile.TryGetValue(item, out string? v))
-			{
+			if (item.IsSelected(0) && ItemToFile.TryGetValue(item, out var v))
 				files.Add(v);
-			}
-			item = GetNextSelected(item);
+
+			// Recurse into children
+			CollectSelected(item.GetFirstChild(), files);
+			item = item.GetNext();
 		}
-		return [.. files];
 	}
 
 	public override Variant _GetDragData(Vector2 atPosition)

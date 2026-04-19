@@ -452,7 +452,7 @@ public partial class CreatorInterface : Control, IScriptObject
 		if (files.Length == 0) return;
 		if (CreatorService.CurrentSession == null) return;
 		CreatorSession session = CreatorService.CurrentSession;
-		string wordToUse = "these files/folders";
+		string wordToUse = $"these {files.Length} files/folders";
 
 		if (files.Length == 1)
 		{
