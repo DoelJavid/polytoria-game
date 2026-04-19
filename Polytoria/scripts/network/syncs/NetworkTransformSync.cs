@@ -13,7 +13,6 @@ using Polytoria.Utils;
 using Polytoria.Utils.Compression;
 using Polytoria.Utils.DTOs;
 using System.Collections.Generic;
-using System.Text.Json;
 using static Polytoria.Datamodel.Services.NetworkService;
 
 namespace Polytoria.Client.Networking;
