@@ -5,6 +5,7 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Datamodel.Data;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel.Resources;
 
@@ -12,6 +13,8 @@ namespace Polytoria.Datamodel.Resources;
 public partial class GradientImageAsset : ImageAsset
 {
 	private const int MaxTextureSize = 1024 * 2;
+	private const int GradientSizeLimit = 24;
+
 	private readonly GradientTexture2D _texture = new();
 	private ColorSeries _series;
 	private int _width;
@@ -27,7 +30,15 @@ public partial class GradientImageAsset : ImageAsset
 		set
 		{
 			_series = value;
-			_texture.Gradient = _series.ToGradient();
+			var gradient = _series.ToGradient();
+			if (gradient.Colors.Length <= GradientSizeLimit)
+			{
+				_texture.Gradient = gradient;
+			}
+			else
+			{
+				PT.PrintWarn($"Gradient Image exceeded {GradientSizeLimit} points limit, the gradient won't be rendered.");
+			}
 
 			LoadResource();
 			OnPropertyChanged();

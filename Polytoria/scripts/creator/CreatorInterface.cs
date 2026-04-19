@@ -317,61 +317,6 @@ public partial class CreatorInterface : Control, IScriptObject
 			}
 		});
 	}
-
-	public void ExportSelectedGLB()
-	{
-		if (World.Current == null) return;
-
-		List<Instance> instances = World.Current.CreatorContext.Selections.SelectedInstances;
-		if (instances.Count == 0)
-		{
-			PopupAlert("Please select any instance before exporting");
-			return;
-		}
-
-		Instance target = instances[0];
-
-		PromptFileSelect(new()
-		{
-			Title = "Export GLB",
-			FileName = $"{target.Name}.glb",
-			DialogMode = DisplayServer.FileDialogMode.SaveFile,
-			Filters = ["*.glb;GLB Model"]
-		}, async (string[] paths) =>
-		{
-			if (paths.Length > 0)
-			{
-				string path = paths[0];
-				if (!path.EndsWith(".glb"))
-				{
-					path += ".glb";
-				}
-
-				try
-				{
-					foreach (Instance i in target.GetDescendants())
-					{
-						if (i is Part p)
-						{
-							p.OverrideNoMultiMesh = true;
-							p.CreateSeparateMesh();
-						}
-					}
-					GltfDocument document = new();
-					GltfState state = new() { CreateAnimations = false };
-
-					document.AppendFromScene(target.GDNode, state);
-					document.WriteToFilesystem(state, path);
-					CreatorService.Interface.StatusBar?.SetStatus("Exported model to " + path);
-				}
-				catch (Exception ex)
-				{
-					PopupAlert(ex.Message, "Error exporting model");
-				}
-			}
-		});
-	}
-
 	public void PromptOpenWorld()
 	{
 		PromptFileSelect(new FileSelectPromptPayload()
