@@ -330,14 +330,7 @@ public sealed partial class Menu : PanelContainer
 					Pressed = () => {
 						CreatorService.Interface.ExportSelectedModel();
 					}
-				},
-				new MenuSeperatorItem(),
-				new MenuButtonItem() {
-					Text = "Export GLB",
-					Pressed = () => {
-						CreatorService.Interface.ExportSelectedGLB();
-					}
-				},
+				}
 			]
 		);
 
