@@ -422,7 +422,8 @@ public partial class NPC : Physical
 		FootFwdRaycast.Position = new Vector3(0, -3, 0);
 		FootFwdRaycast.TargetPosition = new Vector3(0, 0, ForwardRaycastRange);
 
-		ChildRemoved.Connect(OnChildExitingTree);
+		ChildAdded.Connect(OnChildAdded);
+		ChildRemoved.Connect(OnChildRemoved);
 
 		// Add remote offset to the default collision
 		var collision = GDNode3D.GetNode<CollisionShape3D>("Collision");
@@ -445,12 +446,21 @@ public partial class NPC : Physical
 
 	public override void PreDelete()
 	{
-		ChildRemoved.Disconnect(OnChildExitingTree);
+		ChildAdded.Disconnect(OnChildAdded);
+		ChildRemoved.Disconnect(OnChildRemoved);
 		_navAgent?.NavigationFinished -= OnNavFinished;
 		base.PreDelete();
 	}
 
-	private void OnChildExitingTree(Instance n)
+	private void OnChildAdded(Instance n)
+	{
+		if (n is Tool t)
+		{
+			InternalAttachTool(t);
+		}
+	}
+
+	private void OnChildRemoved(Instance n)
 	{
 		if (n is Tool)
 		{
@@ -918,7 +928,6 @@ public partial class NPC : Physical
 				tool.Parent = this;
 			}
 
-			InternalAttachTool(tool);
 			tool.InvokeEquipped();
 		}
 	}
