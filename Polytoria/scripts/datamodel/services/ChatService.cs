@@ -5,7 +5,6 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Client.WebAPI;
-using Polytoria.Formats;
 using Polytoria.Networking;
 using Polytoria.Networking.RateLimiters;
 using Polytoria.Scripting;
@@ -209,13 +208,13 @@ public sealed partial class ChatService : Instance
 	[ScriptLegacyMethod("BroadcastMessage")]
 	public void LegacyBroadcastMessage(string msg, object? _ = null)
 	{
-		BroadcastMessage(XmlFormat.ConvertRichText(msg));
+		BroadcastMessage(msg);
 	}
 
 	[ScriptLegacyMethod("UnicastMessage")]
 	public void LegacyUnicastMessage(string msg, Player plr)
 	{
-		UnicastMessage(XmlFormat.ConvertRichText(msg), plr);
+		UnicastMessage(msg, plr);
 	}
 
 	public static string FormatEmojis(string msg, int sizeMultipler = 1)

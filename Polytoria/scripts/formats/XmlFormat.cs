@@ -272,11 +272,6 @@ public static class XmlFormat
 							return;
 						}
 
-						if (_propName == "Text" && value is string str)
-						{
-							value = ConvertRichText(str);
-						}
-
 						if (item.Class == typeof(Part))
 						{
 							if (value is int idx)
@@ -631,10 +626,5 @@ public static class XmlFormat
 		}
 
 		return className;
-	}
-
-	public static string ConvertRichText(string text)
-	{
-		return text.Replace("<", "[").Replace(">", "]");
 	}
 }

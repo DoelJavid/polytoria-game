@@ -6,7 +6,6 @@ using Godot;
 using Polytoria.Attributes;
 using Polytoria.Datamodel.Resources;
 using Polytoria.Enums;
-using Polytoria.Formats;
 
 namespace Polytoria.Datamodel;
 
@@ -41,16 +40,6 @@ public partial class UILabel : UIView
 			_richLabel.Text = _text;
 			_label.Text = _text;
 			OnPropertyChanged();
-		}
-	}
-
-	[ScriptLegacyProperty("Text")]
-	public string LegacyText
-	{
-		get => Text;
-		set
-		{
-			Text = XmlFormat.ConvertRichText(value);
 		}
 	}
 

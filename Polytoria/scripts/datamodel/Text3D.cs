@@ -6,7 +6,6 @@ using Godot;
 using Polytoria.Attributes;
 using Polytoria.Datamodel.Resources;
 using Polytoria.Enums;
-using Polytoria.Formats;
 using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
@@ -47,18 +46,6 @@ public sealed partial class Text3D : Dynamic
 			OnPropertyChanged();
 		}
 	}
-
-	[ScriptLegacyProperty("Text")]
-	public string LegacyText
-	{
-		get => Text;
-		set
-		{
-			Text = XmlFormat.ConvertRichText(value);
-			OnPropertyChanged();
-		}
-	}
-
 
 	[Editable, ScriptProperty]
 	public float FontSize
