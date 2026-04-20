@@ -36,6 +36,8 @@ public partial class UILeaderboardUserItem : Button
 		}
 
 		TargetPlayer.StatChanged.Connect(OnStatChanged);
+
+		if (TargetPlayer.IsCreator) SetBadgeIcon("creator");
 	}
 
 	private void OnStatChanged(Stat s, object? _)
@@ -72,7 +74,14 @@ public partial class UILeaderboardUserItem : Button
 	private void UpdateUserInfo(APIUserInfo info)
 	{
 		TargetPlayer.UserInfoReady -= UpdateUserInfo;
-		string badgePath = BadgeImageDirPath.PathJoin(info.UserRoleClass + ".png");
+		string role = info.UserRoleClass;
+		if (TargetPlayer.IsCreator) role = "creator";
+		SetBadgeIcon(role);
+	}
+
+	private void SetBadgeIcon(string role)
+	{
+		string badgePath = BadgeImageDirPath.PathJoin(role + ".png");
 		if (ResourceLoader.Exists(badgePath))
 		{
 			_badgeRect.Texture = GD.Load<Texture2D>(badgePath);
