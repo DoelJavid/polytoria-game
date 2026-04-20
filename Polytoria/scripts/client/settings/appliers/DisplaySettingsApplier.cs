@@ -38,7 +38,12 @@ public sealed partial class DisplaySettingsApplier : Node
 	private void ApplyFullscreen()
 	{
 		bool fullscreen = ClientSettingsService.Instance.Get<bool>(ClientSettingKeys.Display.Fullscreen);
-		DisplayServer.WindowSetMode(fullscreen ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
+		var defaultMode = DisplayServer.WindowMode.Maximized;
+		if (Globals.IsInGDEditor)
+		{
+			defaultMode = DisplayServer.WindowMode.Windowed;
+		}
+		DisplayServer.WindowSetMode(fullscreen ? DisplayServer.WindowMode.Fullscreen : defaultMode);
 	}
 
 	private void ApplyVsync()
