@@ -1,6 +1,5 @@
 using Godot;
 using Polytoria.Datamodel;
-using Polytoria.Shared;
 using Polytoria.Shared.Settings;
 
 namespace Polytoria.Client.Settings.Appliers;

@@ -4,7 +4,6 @@
 
 using Godot;
 using Polytoria.Attributes;
-using Polytoria.Client;
 using Polytoria.Client.Settings;
 
 #if CREATOR
@@ -78,7 +77,7 @@ public sealed partial class Lighting : Instance
 
 	private void ApplyCreatorLightingEffects()
 	{
-		#if CREATOR
+#if CREATOR
 		if (CreatorSettings.Singleton == null)
 			return;
 
@@ -104,7 +103,7 @@ public sealed partial class Lighting : Instance
 		environment.SsrEnabled = photoMode;
 		environment.SdfgiEnabled = photoMode;
 		environment.SsilEnabled = photoMode;
-		#endif
+#endif
 	}
 
 	public void ApplyGraphicsSettings()

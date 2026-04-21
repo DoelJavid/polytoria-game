@@ -3,7 +3,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Polytoria.Attributes;
-using Polytoria.Client;
 using Polytoria.Scripting;
 
 namespace Polytoria.Datamodel.Services;

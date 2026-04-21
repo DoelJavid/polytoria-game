@@ -1,5 +1,4 @@
 using Godot;
-using Polytoria.Shared;
 using Polytoria.Shared.Settings;
 
 namespace Polytoria.Client.Settings.Appliers;

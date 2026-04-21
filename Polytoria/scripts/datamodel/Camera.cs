@@ -5,7 +5,6 @@
 using Godot;
 using Godot.Collections;
 using Polytoria.Attributes;
-using Polytoria.Client;
 using Polytoria.Client.Settings;
 using Polytoria.Scripting;
 using Polytoria.Shared.Misc;

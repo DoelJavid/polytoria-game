@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Polytoria.Shared.Settings;
+using System.Collections.Generic;
 
 namespace Polytoria.Client.Settings;
 

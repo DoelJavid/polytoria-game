@@ -5,10 +5,10 @@
 using Godot;
 using Polytoria.Client;
 #if DEBUG
+using System;
 using Polytoria.DatamodelTest;
 #endif
 using Polytoria.DocsGen;
-using System;
 using System.Collections.Generic;
 using static Polytoria.Shared.Globals;
 

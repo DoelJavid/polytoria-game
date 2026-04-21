@@ -1,7 +1,7 @@
-using System.Globalization;
 using Godot;
 using Polytoria.Client.Settings;
 using Polytoria.Shared.Settings;
+using System.Globalization;
 
 namespace Polytoria.Client.UI;
 
