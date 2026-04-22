@@ -13,7 +13,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TurboXml;
 using static Polytoria.Datamodel.Part;
@@ -102,7 +101,7 @@ public static class XmlFormat
 			if (value.IndexOf('\\') < 0)
 				return value.ToString();
 
-			return Regex.Unescape(value.ToString());
+			return value.ToString();
 		}
 
 		private static int ParseInt(string? value)
