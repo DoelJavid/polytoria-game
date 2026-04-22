@@ -1,5 +1,5 @@
 {
-  "Version": "2.0.0-beta84\u002Bdev",
+  "Version": "2.0.0-beta85\u002Bdev",
   "FileType": 0,
   "Objects": [
     {
@@ -68,8 +68,6 @@
               "Properties": {
                 "Material": 5,
                 "Color": "aeff9aff",
-                "Anchored": true,
-                "CanCollide": true,
                 "Velocity": [
                   0,
                   0,
@@ -80,6 +78,8 @@
                   0,
                   0
                 ],
+                "Anchored": true,
+                "CanCollide": true,
                 "LocalPosition": [
                   7.9231944E-07,
                   0,
@@ -110,8 +110,6 @@
                 "Material": 2,
                 "Color": "ffffffff",
                 "IsSpawn": true,
-                "Anchored": true,
-                "CanCollide": true,
                 "Velocity": [
                   0,
                   0,
@@ -122,6 +120,8 @@
                   0,
                   0
                 ],
+                "Anchored": true,
+                "CanCollide": true,
                 "LocalPosition": [
                   -0,
                   3,
@@ -172,8 +172,6 @@
                   "ID": "eed179a1-a73a-44db-af9d-3d90e5df6cb1",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       0,
                       0,
@@ -184,6 +182,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       1.5,
                       0.6666665,
@@ -211,8 +211,6 @@
                   "ID": "736dec07-c830-4531-8ce8-fb508bad0f53",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       0,
                       0,
@@ -223,6 +221,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       -1.5,
                       -1.3333335,
@@ -250,8 +250,6 @@
                   "ID": "817325ce-6f7b-4607-919f-fc1a8b7833f2",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       0,
                       0,
@@ -262,6 +260,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       -0,
                       0.6666665,
@@ -343,8 +343,6 @@
                   "ID": "deeae264-4abb-4bdf-8b46-52a32edb7a97",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       -0,
                       0,
@@ -355,6 +353,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       -0,
                       0,
@@ -382,8 +382,6 @@
                   "ID": "75462023-371d-4956-a6b2-ba7e730b077c",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       -0,
                       0,
@@ -394,6 +392,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       -0,
                       0,
@@ -421,8 +421,6 @@
                   "ID": "606f1f2b-afeb-49a9-ae0d-61a1b66aad01",
                   "Properties": {
                     "Color": "ffffffff",
-                    "Anchored": true,
-                    "CanCollide": true,
                     "Velocity": [
                       -0,
                       0,
@@ -433,6 +431,8 @@
                       0,
                       0
                     ],
+                    "Anchored": true,
+                    "CanCollide": true,
                     "LocalPosition": [
                       -0,
                       0,
@@ -459,6 +459,11 @@
                   "ClassName": "NPC",
                   "ID": "297651b0-836e-4ebd-87c9-99363fcc1e6c",
                   "Properties": {
+                    "Velocity": [
+                      -0,
+                      0,
+                      0
+                    ],
                     "SeatOffset": [
                       0,
                       1.5,
@@ -480,11 +485,6 @@
                     "Character": "c4f96fd9-aba4-4141-80e8-f4bb0086646d",
                     "Anchored": false,
                     "CanCollide": true,
-                    "Velocity": [
-                      -0,
-                      0,
-                      0
-                    ],
                     "AngularVelocity": [
                       0,
                       0,
@@ -882,6 +882,20 @@
                   "Properties": {
                     "IsEnabled": true,
                     "LinkedScript": "506eea7c-40f9-43e7-9a07-f6602d81a6b9",
+                    "Compatibility": false,
+                    "Tags": []
+                  },
+                  "Children": [],
+                  "LinkedModel": null,
+                  "IsLinkedChild": false
+                },
+                {
+                  "Name": "DeletedRef",
+                  "ClassName": "ServerScript",
+                  "ID": "fd5afceb-ada2-48b5-b10e-7c54bb7b5feb",
+                  "Properties": {
+                    "IsEnabled": true,
+                    "LinkedScript": "37e77c09-86de-4e47-99e4-65d15a2cb6e0",
                     "Compatibility": false,
                     "Tags": []
                   },
