@@ -561,9 +561,15 @@ public class LuaMetatable : LuaObject
 
 	public virtual void RegisterMetamethods()
 	{
-		foreach ((MethodInfo m, ScriptMetamethodAttribute attr) in ScriptService.GetMetamethods(TargetType))
+		var grouped = ScriptService.GetMetamethods(TargetType)
+			.GroupBy(x => x.Attribute.Metamethod);
+
+		foreach (var group in grouped)
 		{
-			HandlesLuaStateAttribute? handleLuaState = m.GetCustomAttribute<HandlesLuaStateAttribute>();
+			var attr = group.First().Attribute;
+			var methods = group.Select(x => x.Method).ToArray();
+
+			HandlesLuaStateAttribute? handleLuaState = methods[0].GetCustomAttribute<HandlesLuaStateAttribute>();
 
 			string indexer = attr.Metamethod switch
 			{
@@ -617,7 +623,7 @@ public class LuaMetatable : LuaObject
 
 				if (handleLuaState != null)
 				{
-					return (int)m.Invoke(targetObject, [state])!;
+					return (int)methods[0].Invoke(targetObject, [state])!;
 				}
 
 				int additional = 0;
@@ -638,56 +644,17 @@ public class LuaMetatable : LuaObject
 					return 1;
 				}
 
-				if (targetObject == null && m.IsStatic)
+				List<object?> argList = [];
+				for (int i = 0; i < argsCount; i++)
 				{
-					state.PushNil();
-					return 1;
+					var v = LangProvider.LuaToObject(state, i + 1 + additional, attr.ConvertParamsToGD);
+					if (v != null || allowNilInArg)
+						argList.Add(v);
 				}
 
-				ParameterInfo[] parameters = m.GetParameters();
-				object?[] args;
+				object?[] args = [.. argList];
 
-				// Check if the last parameter is a params array
-				bool hasParams = parameters.Length > 0 &&
-								 parameters[^1].GetCustomAttribute<ParamArrayAttribute>() != null;
-
-				if (hasParams)
-				{
-					int regularParamCount = parameters.Length - 1;
-					int paramsArrayCount = argsCount - regularParamCount;
-
-					args = new object?[parameters.Length];
-
-					// Fill regular parameters
-					for (int i = 0; i < regularParamCount; i++)
-					{
-						args[i] = LangProvider.LuaToObject(state, i + 2, attr.ConvertParamsToGD);
-					}
-
-					// Create and fill the params array
-					object?[] paramsArray = new object?[Math.Max(0, paramsArrayCount)];
-
-					for (int i = 0; i < paramsArrayCount; i++)
-					{
-						paramsArray[i] = LangProvider.LuaToObject(state, regularParamCount + i + 2);
-					}
-
-					args[regularParamCount] = paramsArray;
-				}
-				else
-				{
-					// non-params methods
-					List<object?> argList = new(argsCount);
-					for (int i = 0; i < argsCount; i++)
-					{
-						var v = LangProvider.LuaToObject(state, i + 1 + additional, attr.ConvertParamsToGD);
-						if (v != null || allowNilInArg)
-						{
-							argList.Add(v);
-						}
-					}
-					args = [.. argList];
-				}
+				MethodInfo m = ResolveOverload(methods, args, out bool hasParams) ?? throw new Exception("couldn't find metamethod with matching overload");
 
 				try
 				{
@@ -835,61 +802,18 @@ public class LuaMetatable : LuaObject
 		int argsCount = args.Length;
 
 		MethodInfo? targetMethod = null;
-		bool hasParams = false;
 
-		targetMethod = methodInfos.Methods.FirstOrDefault(m =>
-		{
-			ParameterInfo[] parameters = m.GetParameters();
-			ParameterInfo[] eligibleParams = [.. parameters.Where(p => !p.IsDefined(typeof(ScriptingCallerAttribute)))];
-			hasParams = eligibleParams.Length > 0 && Attribute.IsDefined(eligibleParams[^1], typeof(ParamArrayAttribute));
-			int fixedParamCount = hasParams ? eligibleParams.Length - 1 : eligibleParams.Length;
-
-			if (!hasParams && argsCount > eligibleParams.Length) { return false; }
-			if (hasParams && argsCount < fixedParamCount) { return false; }
-
-			for (int i = argsCount; i < fixedParamCount; i++)
-				if (!eligibleParams[i].HasDefaultValue) { return false; }
-
-			for (int i = 0; i < argsCount; i++)
-			{
-				Type paramType = (hasParams && i >= fixedParamCount)
-					? eligibleParams[^1].ParameterType.GetElementType()!
-					: eligibleParams[i].ParameterType;
-				object? arg = args[i];
-
-				if (arg == null)
-				{
-					if (!paramType.IsClass && Nullable.GetUnderlyingType(paramType) == null)
-					{
-						PT.PrintV(m.Name, " is null");
-						return false;
-					}
-				}
-				else
-				{
-					Type argType = arg.GetType();
-					if (!paramType.IsAssignableFrom(argType) && !ScriptService.IsObjectConvertible(arg, paramType))
-					{
-						PT.PrintV(arg, " not convertible");
-						return false;
-					}
-				}
-			}
-
-			return true;
-		});
-
-		bool methodHasParams = hasParams;
+		targetMethod = ResolveOverload(methodInfos.Methods, args, out bool hasParams);
 
 		if (targetMethod == null)
 		{
 			if (!script.Compatibility)
 			{
-				throw new InvalidOperationException("couldn't find method with matching signature (" + key + ")");
+				throw new InvalidOperationException("couldn't find method with matching overload (" + key + ")");
 			}
 			else
 			{
-				PT.PrintErr(script.LuaPath, " couldn't find method with matching signature (" + key + ")");
+				PT.PrintErr(script.LuaPath, " couldn't find method with matching overload (" + key + ")");
 			}
 			return 0;
 		}
@@ -920,7 +844,7 @@ public class LuaMetatable : LuaObject
 
 		List<object?> finalArgs = [];
 
-		if (methodHasParams)
+		if (hasParams)
 		{
 			int fixedParamCount = parametersFinal.Length - 1;
 			int paramsCount = Math.Max(0, argsCount - fixedParamCount);
@@ -993,5 +917,57 @@ public class LuaMetatable : LuaObject
 
 		// Check for Nullable<T> (e.g. int?, float?)
 		return Nullable.GetUnderlyingType(type) != null;
+	}
+
+	private static MethodInfo? ResolveOverload(MethodInfo[] methods, object?[] args, out bool hasParams)
+	{
+		hasParams = false;
+
+		foreach (var m in methods)
+		{
+			ParameterInfo[] parameters = m.GetParameters();
+			ParameterInfo[] eligible = [.. parameters.Where(p => !p.IsDefined(typeof(ScriptingCallerAttribute)))];
+
+			bool isParams = eligible.Length > 0 && Attribute.IsDefined(eligible[^1], typeof(ParamArrayAttribute));
+			int fixedCount = isParams ? eligible.Length - 1 : eligible.Length;
+
+			// Arity checks
+			if (!isParams && args.Length > eligible.Length) continue;
+			if (isParams && args.Length < fixedCount) continue;
+
+			// Type compatibility
+			bool compatible = true;
+
+			// All fixed params beyond args must have defaults
+			for (int i = args.Length; i < fixedCount; i++)
+				if (!eligible[i].HasDefaultValue) { compatible = false; break; }
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				Type paramType = (isParams && i >= fixedCount)
+					? eligible[^1].ParameterType.GetElementType()!
+					: eligible[i].ParameterType;
+
+				object? arg = args[i];
+				if (arg is null)
+				{
+					if (!paramType.IsClass && Nullable.GetUnderlyingType(paramType) == null)
+					{ compatible = false; break; }
+				}
+				else
+				{
+					if (!paramType.IsAssignableFrom(arg.GetType()) &&
+						!ScriptService.IsObjectConvertible(arg, paramType))
+					{ compatible = false; break; }
+				}
+			}
+
+			if (!compatible) continue;
+
+			hasParams = isParams;
+			return m;
+		}
+
+		return null;
 	}
 }

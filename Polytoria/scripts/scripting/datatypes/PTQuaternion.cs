@@ -5,7 +5,6 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Utils;
-using System;
 
 namespace Polytoria.Scripting.Datatypes;
 
@@ -57,33 +56,24 @@ public class PTQuaternion : IScriptGDObject
 	}
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Sub)]
-	public static PTQuaternion Sub(object a, object b)
-	{
-		// Vector3 - Vector3
-		if (a is PTQuaternion va && b is PTQuaternion vb)
-			return FromGDClass(va.quat - vb.quat);
+	public static PTQuaternion SubQuaternionQuaternion(PTQuaternion a, PTQuaternion b)
+		=> FromGDClass(a.quat - b.quat);
 
-		// Quaternion - Vector3
-		if (a is PTQuaternion va2 && b is PTVector3 q)
-			return FromGDClass(va2.quat - new Quaternion(q.X, q.Y, q.Z, 1));
-
-		throw new InvalidOperationException(
-			$"Unsupported operand types for subdivision: {a?.GetType().Name} and {b?.GetType().Name}"
-		);
-	}
+	[ScriptMetamethod(ScriptObjectMetamethod.Sub)]
+	public static PTQuaternion SubQuaternionVector(PTQuaternion a, PTVector3 v)
+		=> FromGDClass(a.quat - new Quaternion(v.X, v.Y, v.Z, 1));
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
-	public static object Mul(PTQuaternion a, object b)
-	{
-		if (b is PTQuaternion bq)
-			return FromGDClass(a.quat.Normalized() * bq.quat.Normalized());
-		if (b is PTVector3 bv)
-			return PTVector3.FromGDClass(a.quat.Normalized() * bv.vector);
+	public static PTQuaternion MulQuaternionQuaternion(PTQuaternion a, PTQuaternion b)
+		=> FromGDClass(a.quat.Normalized() * b.quat.Normalized());
 
-		throw new InvalidOperationException(
-			$"Unsupported operand types for multiplication: {a?.GetType().Name} and {b?.GetType().Name}"
-		);
-	}
+	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
+	public static PTVector3 MulQuaternionVector(PTQuaternion a, PTVector3 v)
+		=> PTVector3.FromGDClass(a.quat.Normalized() * v.vector);
+
+	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
+	public static PTVector3 MulVectorQuaternion(PTVector3 v, PTQuaternion q)
+	=> PTVector3.FromGDClass(q.quat.Normalized() * v.vector);
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Eq)]
 	public static bool Eq(PTQuaternion a, PTQuaternion b)

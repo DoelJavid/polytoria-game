@@ -916,6 +916,20 @@
                   "Children": [],
                   "LinkedModel": null,
                   "IsLinkedChild": false
+                },
+                {
+                  "Name": "BindableEventTest",
+                  "ClassName": "ServerScript",
+                  "ID": "795cf821-3497-4ab1-b3b3-ff31b4fd4fdc",
+                  "Properties": {
+                    "IsEnabled": true,
+                    "LinkedScript": "24ae6edd-ea4c-4b2d-a8e2-5f0bf2873ac5",
+                    "Compatibility": false,
+                    "Tags": []
+                  },
+                  "Children": [],
+                  "LinkedModel": null,
+                  "IsLinkedChild": false
                 }
               ],
               "LinkedModel": null,

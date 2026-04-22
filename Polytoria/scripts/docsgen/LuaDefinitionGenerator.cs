@@ -141,7 +141,7 @@ public class LuaDefinitionGenerator
 		{
 			if (m.IsObsolete) continue;
 			if (SkippedMetamethods.Contains(m.Name)) continue;
-			if (m.IsStatic) { hasStatic = true; continue; }
+			if (m.IsStatic && !m.Name.StartsWith("__")) { hasStatic = true; continue; }
 			List<string> args = [];
 
 			foreach (ScriptParameter param in m.Parameters)
@@ -181,6 +181,8 @@ public class LuaDefinitionGenerator
 		{
 			if (m.IsObsolete) continue;
 			if (!m.IsStatic) continue;
+			// Ignore metamethods
+			if (m.Name.StartsWith("__")) continue;
 			List<string> args = [];
 
 			foreach (ScriptParameter param in m.Parameters)

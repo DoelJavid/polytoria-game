@@ -105,44 +105,28 @@ public class PTVector3 : IScriptGDObject
 	}
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Sub)]
-	public static PTVector3 Sub(object a, object b)
-	{
-		// Vector3 - Vector3
-		if (a is PTVector3 va && b is PTVector3 vb)
-			return FromGDClass(va.vector - vb.vector);
+	public static PTVector3 SubVectorVector(PTVector3 a, PTVector3 b)
+	=> FromGDClass(a.vector - b.vector);
 
-		// Quaternion - Vector3
-		if (a is PTVector3 va2 && b is PTQuaternion q)
-			return FromGDClass(va2.vector - new Vector3(q.X, q.Y, q.Z));
-
-		throw new InvalidOperationException(
-			$"Unsupported operand types for subdivision: {a?.GetType().Name} and {b?.GetType().Name}"
-		);
-	}
+	[ScriptMetamethod(ScriptObjectMetamethod.Sub)]
+	public static PTVector3 SubVectorQuaternion(PTVector3 a, PTQuaternion q)
+		=> FromGDClass(a.vector - new Vector3(q.X, q.Y, q.Z));
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
-	public static object Mul(object a, object b)
-	{
-		// Vector3 * Vector3
-		if (a is PTVector3 va && b is PTVector3 vb)
-			return FromGDClass(va.vector * vb.vector);
+	public static PTVector3 MulVectorVector(PTVector3 a, PTVector3 b)
+	=> FromGDClass(a.vector * b.vector);
 
-		// Vector3 * scalar
-		if (a is PTVector3 va2 && b is double d1)
-			return FromGDClass(va2.vector * (float)d1);
+	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
+	public static PTVector3 MulVectorScalar(PTVector3 a, double scalar)
+		=> FromGDClass(a.vector * (float)scalar);
 
-		// scalar * Vector3
-		if (a is double d2 && b is PTVector3 vb2)
-			return FromGDClass(vb2.vector * (float)d2);
+	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
+	public static PTVector3 MulScalarVector(double scalar, PTVector3 b)
+		=> FromGDClass(b.vector * (float)scalar);
 
-		// Vector3 * Quaternion
-		if (a is PTVector3 va3 && b is PTQuaternion q)
-			return FromGDClass(va3.vector * q.quat.Normalized());
-
-		throw new InvalidOperationException(
-			$"Unsupported operand types for multiplication: {a?.GetType().Name} and {b?.GetType().Name}"
-		);
-	}
+	[ScriptMetamethod(ScriptObjectMetamethod.Mul)]
+	public static PTVector3 MulVectorQuaternion(PTVector3 a, PTQuaternion q)
+		=> FromGDClass(a.vector * q.quat.Normalized());
 
 	[ScriptMetamethod(ScriptObjectMetamethod.Div)]
 	public static PTVector3 Div(PTVector3 a, double b)

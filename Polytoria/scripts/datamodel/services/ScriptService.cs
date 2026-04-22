@@ -344,32 +344,67 @@ public sealed partial class ScriptService : Instance
 
 	internal static bool IsObjectConvertible(object arg, Type targetType)
 	{
-		try
+		if (targetType == typeof(object)) return true;
+
+		Type argType = arg.GetType();
+		if (argType == targetType) return true;
+		if (targetType.IsAssignableFrom(argType)) return true;
+
+		// unwrap Nullable and check the inner type
+		Type underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+		// Enum, any integer-ish value works
+		if (underlying.IsEnum)
+			return arg is int or long or short or byte or double;
+
+		// Numeric widening from double
+		if (arg is double)
+			return underlying == typeof(float)
+				|| underlying == typeof(int)
+				|| underlying == typeof(long)
+				|| underlying == typeof(short);
+
+		// Array target, check element type compatibility
+		if (targetType.IsArray && arg is object[] objArr)
 		{
-			if (targetType == typeof(object))
-			{
-				return true;
-			}
-
-			if (arg.GetType() == targetType)
-			{
-				return true;
-			}
-
-			object? converted = ConvertToPropertyType(arg, targetType);
-
-			// If conversion succeeded and result matches target type, it's convertible
-			return converted != null && targetType.IsInstanceOfType(converted);
+			Type? elemType = targetType.GetElementType();
+			if (elemType == null) return false;
+			foreach (object? elem in objArr)
+				if (elem != null && !elemType.IsAssignableFrom(elem.GetType()))
+					return false;
+			return true;
 		}
-		catch (Exception ex)
+
+		// Empty array to dictionary
+		if (arg is Array { Length: 0 } && typeof(IDictionary).IsAssignableFrom(targetType))
+			return true;
+
+		// Empty dictionary to array
+		if (arg is IDictionary { Count: 0 } && targetType.IsArray)
+			return true;
+
+		// Dictionary to dictionary
+		if (arg is IDictionary srcDict && typeof(IDictionary).IsAssignableFrom(targetType))
 		{
-			if (Globals.IsInGDEditor)
+			if (!targetType.IsGenericType) return true;
+			Type[] ga = targetType.GetGenericArguments();
+			if (ga.Length != 2) return true;
+			Type keyType = ga[0], valType = ga[1];
+			foreach (DictionaryEntry entry in srcDict)
 			{
-				PT.PrintErr(ex);
+				if (entry.Key != null && !keyType.IsAssignableFrom(entry.Key.GetType()))
+					return false;
+				if (entry.Value != null && !valType.IsAssignableFrom(entry.Value.GetType()))
+					return false;
 			}
-			// If conversion throws, it's not convertible
-			return false;
+			return true;
 		}
+
+		// IConvertible fallback
+		if (arg is IConvertible && typeof(IConvertible).IsAssignableFrom(underlying))
+			return true;
+
+		return false;
 	}
 
 	internal static object? ConvertToPropertyType(object? value, Type targetType)
