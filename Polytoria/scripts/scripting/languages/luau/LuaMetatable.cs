@@ -631,7 +631,8 @@ public class LuaMetatable : LuaObject
 
 				object? val;
 
-				if (IsThisInvalid(targetObject))
+				// Ignore for equals in-case of deletion
+				if (IsThisInvalid(targetObject) && attr.Metamethod != ScriptObjectMetamethod.Eq)
 				{
 					state.PushNil();
 					return 1;
