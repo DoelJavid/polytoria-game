@@ -121,7 +121,12 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			byte[] compiled = LuaState.Compile(source);
 			state.Load(script.LuaPath, compiled);
 
-			_ = ResumeThread(state, null, 0, isMainThread: true);
+			async void run()
+			{
+				await ResumeThread(state, null, 0, isMainThread: true);
+			}
+
+			run();
 		}
 		catch (Exception e)
 		{
@@ -774,7 +779,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		int funcRef = state.Ref();
 
 		LuaState co = NewThread(state);
-		state.Pop(1);
+		int coRef = state.Ref();
 
 		state.GetRef(funcRef);
 		state.XMove(co, 1);
@@ -783,15 +788,29 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		if (numArgs > 0)
 		{
 			for (int i = 2; i <= argCount; i++)
-			{
 				state.PushValue(i);
-			}
 			state.XMove(co, numArgs);
 		}
 
-		_ = ResumeThread(co, state, numArgs);
-
 		state.Unref(funcRef);
+
+		async void run()
+		{
+			try
+			{
+				await ResumeThread(co, null, numArgs);
+			}
+			finally
+			{
+				lock (state)
+				{
+					state.Unref(coRef);
+				}
+			}
+		}
+
+		run();
+
 		return 0;
 	}
 
@@ -876,7 +895,12 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			return lua.Error("coroutine.resume requires a thread");
 		}
 
-		_ = ResumeThread(lua.ToThread(1), lua, lua.GetTop() - 1);
+		async void run()
+		{
+			await ResumeThread(lua.ToThread(1), lua, lua.GetTop() - 1);
+		}
+
+		run();
 
 		return 0;
 	}
