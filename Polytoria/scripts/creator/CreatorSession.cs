@@ -233,34 +233,39 @@ public partial class CreatorSession : Node, IDisposable
 		StartBackupTimer();
 	}
 
-	// note: this does not need to be async, but just doing it for the loading screen
-	public async Task<World> OpenWorld(string filePath)
+	public World OpenWorld(string filePath, World? worldOverride = null)
 	{
 		filePath = filePath.SanitizePath();
 		if (WorldPathToRoot.ContainsKey(filePath)) throw new InvalidOperationException("World already opened");
 		string placePath = GlobalizePath(filePath);
 		if (!File.Exists(placePath)) throw new FileNotFoundException("World file not found");
-		byte[] worldData = await File.ReadAllBytesAsync(placePath);
+		byte[] worldData = File.ReadAllBytes(placePath);
 
-		World root = Globals.LoadInstance<World>();
+		World root = worldOverride ?? Globals.LoadInstance<World>();
+
+		root.SessionType = World.SessionTypeEnum.Creator;
 
 		_worldSessionCounter++;
 		root.WorldSessionID = _worldSessionCounter;
 
-		NetworkService netService = new();
 		DatamodelBridge dmBridge = new();
 
 		root.WorldFilePath = filePath;
 		root.LinkedSession = this;
 
-		netService.Attach(root);
-		netService.NetworkParent = root;
+		if (worldOverride == null)
+		{
+			// Attach new netService if no override
+			NetworkService netService = new();
+			netService.Attach(root);
+			netService.NetworkParent = root;
+			netService.NetworkMode = NetworkService.NetworkModeEnum.Creator;
+			netService.IsServer = true;
+		}
+
 		root.InitEntry();
 
 		root.GDNode.AddChild(dmBridge, true, Node.InternalMode.Back);
-
-		netService.NetworkMode = NetworkService.NetworkModeEnum.Creator;
-		netService.IsServer = true;
 
 		PT.Print("Opening ", filePath);
 		PT.Print("-> Full Path: ", placePath);
@@ -292,7 +297,7 @@ public partial class CreatorSession : Node, IDisposable
 
 		root.Deleted += deletedHandler;
 
-		dmBridge.Attach(root);
+		dmBridge.Attach(root, worldOverride != null);
 
 		root.Root = root;
 		root.Setup();
@@ -302,15 +307,23 @@ public partial class CreatorSession : Node, IDisposable
 		root.IO.IndexToFile = IndexToFile;
 		root.IO.FileToIndex = FileToIndex;
 
-		try
+		if (worldOverride == null)
 		{
-			PolyFormat.LoadWorld(root, worldData);
-			root.InvokeReady();
+			// Load world
+			try
+			{
+				PolyFormat.LoadWorld(root, worldData);
+				root.InvokeReady();
+			}
+			catch (Exception ex)
+			{
+				PT.PrintErr(ex);
+				CreatorService.Interface.PopupAlert(ex.Message, "World load failure");
+			}
 		}
-		catch (Exception ex)
+		else
 		{
-			PT.PrintErr(ex);
-			CreatorService.Interface.PopupAlert(ex.Message, "World load failure");
+			root.InvokeReady();
 		}
 
 		RescanFolder();
@@ -321,9 +334,9 @@ public partial class CreatorSession : Node, IDisposable
 		return root;
 	}
 
-	public async Task<World?> OpenMainWorld()
+	public World? OpenMainWorld(World? worldOverride = null)
 	{
-		return await OpenWorld(Metadata.MainWorld);
+		return OpenWorld(Metadata.MainWorld, worldOverride);
 	}
 
 	public void RescanFolder()

@@ -239,7 +239,7 @@ public sealed partial class InputService : Instance
 
 		if (Root != null && Root.Network != null)
 		{
-			if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Client)
+			if (Root.SessionType == World.SessionTypeEnum.Client)
 			{
 				SetupCursors();
 			}
@@ -402,7 +402,7 @@ public sealed partial class InputService : Instance
 #endif
 		if (Root.CoreUI != null && Root.CoreUI.CoreUI != null && Root.CoreUI.CoreUI.CoreUIActive) return false;
 		if (Root.Entry != null && !Root.Entry.IsFocused) return false;
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator) return false;
+		if (Root.SessionType == World.SessionTypeEnum.Creator) return false;
 		if (Root.Network.IsServer) return false;
 		Control? focusOwner = GDNode.GetViewport().GuiGetFocusOwner();
 		if (focusOwner != null)

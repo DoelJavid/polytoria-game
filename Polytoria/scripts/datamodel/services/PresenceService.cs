@@ -116,7 +116,7 @@ public sealed partial class PresenceService : Instance
 
 	private void SetupIntegrations()
 	{
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator)
+		if (Root.SessionType == World.SessionTypeEnum.Creator)
 		{
 			// TODO: We need a separate global for managing creator presence
 			if (_creatorActivityStarted) return;
@@ -180,7 +180,7 @@ public sealed partial class PresenceService : Instance
 		string defaultSmallImg = "poly-sm";
 		string defaultSmallText = "Polytoria";
 
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator)
+		if (Root.SessionType == World.SessionTypeEnum.Creator)
 		{
 			defaultImg = "creating";
 			defaultSmallImg = "creator-sm";

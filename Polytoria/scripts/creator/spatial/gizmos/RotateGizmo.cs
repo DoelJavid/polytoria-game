@@ -25,7 +25,7 @@ public partial class RotateGizmo : Node, IGizmo
 	private ArrayMesh[] _rotateGizmo = new ArrayMesh[4];
 	private MeshInstance3D[] _rotateGizmoInstance = new MeshInstance3D[4];
 
-	private Camera3D _camera = null!;
+	private Camera3D GDCamera => RootGizmos!.Root.Environment.CurrentGDCamera!;
 	private RotateGizmoAxis _currentAxis = RotateGizmoAxis.None;
 
 	private ShaderMaterial[] _rotateColor = new ShaderMaterial[3];
@@ -50,7 +50,6 @@ public partial class RotateGizmo : Node, IGizmo
 
 	public override void _EnterTree()
 	{
-		_camera = GetViewport().GetCamera3D();
 		CreateSurfTool();
 		CreateInstances();
 	}
@@ -186,10 +185,10 @@ public partial class RotateGizmo : Node, IGizmo
 	{
 		if (Targets.Count == 0) return;
 
-		Vector2 mousePos = _camera.GetViewport().GetMousePosition();
-		Vector3 rayOrigin = _camera.ProjectRayOrigin(mousePos);
-		Vector3 rayNormal = _camera.ProjectRayNormal(mousePos);
-		Vector3 cameraNormal = -_camera.GlobalBasis.Column2;
+		Vector2 mousePos = GDCamera.GetViewport().GetMousePosition();
+		Vector3 rayOrigin = GDCamera.ProjectRayOrigin(mousePos);
+		Vector3 rayNormal = GDCamera.ProjectRayNormal(mousePos);
+		Vector3 cameraNormal = -GDCamera.GlobalBasis.Column2;
 
 		if (@event is InputEventMouseButton btn)
 		{
@@ -236,7 +235,7 @@ public partial class RotateGizmo : Node, IGizmo
 		if (!Visible) return;
 
 		Transform3D pform = Gizmos.GetCenterPivot([.. Targets]);
-		float gizmoScale = pform.Origin.DistanceTo(_camera.GlobalPosition) * 0.12f;
+		float gizmoScale = pform.Origin.DistanceTo(GDCamera.GlobalPosition) * 0.12f;
 		Vector3 pScale = new(gizmoScale, gizmoScale, gizmoScale);
 
 		for (int i = 0; i < 3; i++)
@@ -274,7 +273,7 @@ public partial class RotateGizmo : Node, IGizmo
 	private void UpdateAxis(Vector3 rayOrigin, Vector3 rayNormal, Vector3 cameraNormal)
 	{
 		Transform3D pivot = Gizmos.GetCenterPivot([.. Targets]);
-		_gizmoScale = pivot.Origin.DistanceTo(_camera.GlobalPosition) * 0.12f;
+		_gizmoScale = pivot.Origin.DistanceTo(GDCamera.GlobalPosition) * 0.12f;
 
 		float colD = 1e20f;
 		int colAxis = -1;

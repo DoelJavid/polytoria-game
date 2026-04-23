@@ -64,6 +64,8 @@ public sealed partial class World : Instance
 	[ScriptProperty]
 	public bool IsLocalTest => _worldID == 0;
 
+	public SessionTypeEnum SessionType { get; set; } = SessionTypeEnum.Client;
+
 	// TODO: Server Vitals/world properties doesn't work yet, make it work
 	[ScriptProperty, SyncVar]
 	public bool IsLegacyWorld
@@ -256,30 +258,32 @@ public sealed partial class World : Instance
 		Rendered.Invoke(delta);
 
 		// Clock sync
-		if (Network.IsServer)
+		if (Network != null)
 		{
-			// Server: increment authoritative time
-			_serverTime += (decimal)delta;
-
-			_vitalTimer += delta;
-
-			if (_vitalTimer > VitalInterval)
+			if (Network.IsServer)
 			{
-				_vitalTimer = 0;
-				SyncVitals();
+				// Server: increment authoritative time
+				_serverTime += (decimal)delta;
+
+				_vitalTimer += delta;
+
+				if (_vitalTimer > VitalInterval)
+				{
+					_vitalTimer = 0;
+					SyncVitals();
+				}
+			}
+			else if (SessionType == SessionTypeEnum.Client)
+			{
+				// Client: periodically request sync
+				double currentTime = Time.GetTicksMsec() / 1000.0;
+				if (currentTime - _lastSyncRequest >= SyncInterval)
+				{
+					_lastSyncRequest = currentTime;
+					RequestClockSync();
+				}
 			}
 		}
-		else if (Network.NetworkMode == NetworkService.NetworkModeEnum.Client)
-		{
-			// Client: periodically request sync
-			double currentTime = Time.GetTicksMsec() / 1000.0;
-			if (currentTime - _lastSyncRequest >= SyncInterval)
-			{
-				_lastSyncRequest = currentTime;
-				RequestClockSync();
-			}
-		}
-
 		base.Process(delta);
 	}
 
@@ -634,7 +638,7 @@ public sealed partial class World : Instance
 		}
 
 #if CREATOR
-		if (Network != null && Network.NetworkMode == NetworkService.NetworkModeEnum.Creator)
+		if (SessionType == SessionTypeEnum.Creator)
 		{
 			CreatorContextService? creatorContext = FindChild<CreatorContextService>("CreatorContext");
 			if (creatorContext == null)
@@ -876,11 +880,17 @@ public sealed partial class World : Instance
 
 		// Use freelook in creator
 #if CREATOR
-		if (Network != null)
-			if (Network.NetworkMode == NetworkService.NetworkModeEnum.Creator && CreatorContext?.Freelook != null)
-				environment.CurrentCamera = CreatorContext.Freelook;
+		if (SessionType == SessionTypeEnum.Creator && CreatorContext?.Freelook != null)
+			environment.CurrentCamera = CreatorContext.Freelook;
 #endif
 
 		return this;
+	}
+
+	public enum SessionTypeEnum
+	{
+		Client,
+		Creator,
+		Renderer
 	}
 }

@@ -11,7 +11,6 @@ using Polytoria.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Polytoria.Datamodel.Services.NetworkService;
 
 namespace Polytoria.Datamodel;
 
@@ -123,13 +122,13 @@ public partial class Physical : Dynamic
 
 		if (Root != null && Root.Network != null)
 		{
-			if (Root.Network.NetworkMode == NetworkModeEnum.Creator || !Root.IsLoaded)
+			if (Root.SessionType == World.SessionTypeEnum.Creator || !Root.IsLoaded)
 			{
 				finalVal = true;
 			}
 
 			// Freeze the object on non physics authority
-			if (Root.Network.NetworkMode == NetworkModeEnum.Client && Root.Network.LocalPeerID != NetTransformAuthority && ExistInNetwork)
+			if (Root.SessionType == World.SessionTypeEnum.Client && Root.Network.LocalPeerID != NetTransformAuthority && ExistInNetwork)
 			{
 				finalVal = true;
 			}

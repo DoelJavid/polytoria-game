@@ -41,6 +41,8 @@ public partial class RendererViewport : SubViewport
 		};
 		NetworkService = networkService;
 
+		Root.SessionType = World.SessionTypeEnum.Renderer;
+
 		networkService.Attach(Root);
 		networkService.IsServer = true;
 		networkService.NetworkMode = NetworkService.NetworkModeEnum.Renderer;

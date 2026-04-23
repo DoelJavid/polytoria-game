@@ -208,6 +208,8 @@ public static class ProjectManager
 
 	public static async Task ImportLegacyWorld(string placePath, string destFolder, CreatorProjectMetadata metadata)
 	{
+		Stopwatch sw = new();
+		sw.Start();
 		destFolder = Path.GetFullPath(destFolder);
 
 		string projectMainWorldPath = Path.GetFullPath(Path.Join(destFolder, metadata.MainWorld));
@@ -240,27 +242,33 @@ public static class ProjectManager
 			Directory.CreateDirectory(modulePath);
 		}
 
+		World3D world3D = new();
+
 		SubViewport tempViewport = new()
 		{
 			RenderTargetClearMode = SubViewport.ClearMode.Never,
-			RenderTargetUpdateMode = SubViewport.UpdateMode.Disabled
+			RenderTargetUpdateMode = SubViewport.UpdateMode.Disabled,
+			World3D = world3D
 		};
 
-		World game = Globals.LoadInstance<World>();
+		World root = Globals.LoadInstance<World>();
+		root.SessionType = World.SessionTypeEnum.Creator;
+		root.World3D = world3D;
+
 		NetworkService netService = new();
-		netService.Attach(game);
+		netService.Attach(root);
 
 		netService.NetworkMode = NetworkService.NetworkModeEnum.Creator;
 		netService.IsServer = true;
 
 		CreatorService.Singleton.AddChild(tempViewport);
-		tempViewport.AddChild(game.GDNode);
+		tempViewport.AddChild(root.GDNode);
 
-		game.Root = game;
-		game.InitEntry();
-		game.Setup();
+		root.Root = root;
+		root.InitEntry();
+		root.Setup();
 
-		await XmlFormat.LoadFile(game, placePath);
+		await XmlFormat.LoadFile(root, placePath);
 
 		Dictionary<string, string> addedScripts = [];
 		Dictionary<string, int> nameCounters = [];
@@ -270,11 +278,10 @@ public static class ProjectManager
 
 		List<Script> scripts = [];
 
-		foreach (Instance item in game.GetDescendants())
+		foreach (Instance item in root.GetDescendants())
 		{
 			if (item is Script s)
 			{
-				PT.Print("Loop over found ", s.Name);
 				scripts.Add(s);
 			}
 		}
@@ -308,7 +315,7 @@ public static class ProjectManager
 			if (sourceToPath.TryGetValue(s.Source, out string? existingPath))
 			{
 				// Reuse the existing file path
-				s.LinkedScript = game.Assets.GetFileLinkByPath(existingPath);
+				s.LinkedScript = root.Assets.GetFileLinkByPath(existingPath);
 				i++;
 				continue;
 			}
@@ -347,7 +354,7 @@ public static class ProjectManager
 			// Path Mapping
 			sourceToPath[s.Source] = relativeScriptPath;
 
-			s.LinkedScript = game.Assets.GetFileLinkByPath(relativeScriptPath);
+			s.LinkedScript = root.Assets.GetFileLinkByPath(relativeScriptPath);
 			addedScripts[fullKey] = targetFile;
 
 			indexToFile[s.LinkedScript.LinkedID] = relativeScriptPath;
@@ -364,13 +371,16 @@ public static class ProjectManager
 		}
 
 		CreatorService.Interface.LoadOverlay?.SetStatus("Saving world...");
-		PolyFormat.SaveWorldToFile(game, projectMainWorldPath);
+		PolyFormat.SaveWorldToFile(root, projectMainWorldPath);
 
-		game.ForceDelete();
+		tempViewport.RemoveChild(root.GDNode);
 		tempViewport.QueueFree();
+
+		root.ForceDelete();
 
 		CreatorService.Interface.LoadOverlay?.Hide();
 		await CreatorService.Singleton.CreateNewSession(projectMetaPath);
+		PT.Print("Legacy conversion took ", sw.ElapsedMilliseconds, "ms");
 	}
 
 	public static async Task InitializeGit(string projPath)

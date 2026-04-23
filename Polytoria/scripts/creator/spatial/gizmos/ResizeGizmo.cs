@@ -25,7 +25,7 @@ public partial class ResizeGizmo : Node, IGizmo
 	private StandardMaterial3D[] _gizmoColor = new StandardMaterial3D[6];
 	private StandardMaterial3D[] _gizmoHoverColor = new StandardMaterial3D[6];
 
-	private Camera3D _camera = null!;
+	private Camera3D GDCamera => RootGizmos!.Root.Environment.CurrentGDCamera!;
 	private ResizeGizmoAxis _currentAxis = ResizeGizmoAxis.None;
 
 	private bool _isMouseDragging;
@@ -50,7 +50,6 @@ public partial class ResizeGizmo : Node, IGizmo
 
 	public override void _EnterTree()
 	{
-		_camera = GetViewport().GetCamera3D();
 		CreateSurfTool();
 		CreateInstances();
 	}
@@ -126,10 +125,10 @@ public partial class ResizeGizmo : Node, IGizmo
 	{
 		if (Targets.Count == 0) return;
 
-		Vector2 mousePos = _camera.GetViewport().GetMousePosition();
-		Vector3 rayOrigin = _camera.ProjectRayOrigin(mousePos);
-		Vector3 rayNormal = _camera.ProjectRayNormal(mousePos);
-		Vector3 cameraNormal = -_camera.GlobalBasis.Column2;
+		Vector2 mousePos = GDCamera.GetViewport().GetMousePosition();
+		Vector3 rayOrigin = GDCamera.ProjectRayOrigin(mousePos);
+		Vector3 rayNormal = GDCamera.ProjectRayNormal(mousePos);
+		Vector3 cameraNormal = -GDCamera.GlobalBasis.Column2;
 
 		if (@event is InputEventMouseButton btn)
 		{
@@ -203,7 +202,7 @@ public partial class ResizeGizmo : Node, IGizmo
 				Origin = worldCenter + targetRotation.Xform(localOffsets[i])
 			};
 
-			float gizmoScale = gizmoTransform.Origin.DistanceTo(_camera.GlobalPosition) * 0.12f;
+			float gizmoScale = gizmoTransform.Origin.DistanceTo(GDCamera.GlobalPosition) * 0.12f;
 			gizmoTransform.Basis = gizmoTransform.Basis.Scaled(new Vector3(gizmoScale, gizmoScale, gizmoScale));
 
 			_resizeGizmoInstance[i].GlobalTransform = gizmoTransform;
@@ -223,7 +222,7 @@ public partial class ResizeGizmo : Node, IGizmo
 	private void UpdateAxis(Vector3 rayOrigin, Vector3 rayNormal)
 	{
 		Transform3D pivot = Gizmos.GetCenterPivot([.. Targets]);
-		_gizmoScale = pivot.Origin.DistanceTo(_camera.GlobalPosition) * 0.12f;
+		_gizmoScale = pivot.Origin.DistanceTo(GDCamera.GlobalPosition) * 0.12f;
 
 		float colD = 1e20f;
 		int colAxis = -1;

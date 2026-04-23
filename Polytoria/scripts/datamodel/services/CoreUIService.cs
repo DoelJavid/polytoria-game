@@ -118,7 +118,7 @@ public sealed partial class CoreUIService : Instance
 
 	private void OnGameLoaded()
 	{
-		if (Root.Network.IsServer || Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) { return; }
+		if (Root.Network.IsServer || Root.SessionType != World.SessionTypeEnum.Client) { return; }
 
 		CoreUIRoot coreUI = Globals.CreateInstanceFromScene<CoreUIRoot>(CoreUIPath);
 		coreUI.Root = Root;

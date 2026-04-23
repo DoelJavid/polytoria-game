@@ -39,7 +39,7 @@ public sealed partial class IOService : Instance
 	{
 		if (!AllowedExtensions.Contains(path.GetExtension())) throw new Exception("Reading this file extension is not allowed");
 #if CREATOR
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator)
+		if (Root.SessionType == World.SessionTypeEnum.Creator)
 		{
 			string baseFolder = Root.LinkedSession.ProjectFolderPath;
 			if (path.StartsWith("@temp/"))
@@ -92,7 +92,7 @@ public sealed partial class IOService : Instance
 	{
 		if (!AllowedExtensions.Contains(path.GetExtension())) throw new Exception("Writing to this file extension is not allowed");
 #if CREATOR
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator)
+		if (Root.SessionType == World.SessionTypeEnum.Creator)
 		{
 			string baseFolder = Root.LinkedSession.ProjectFolderPath;
 			if (path.StartsWith("@temp/"))

@@ -341,7 +341,7 @@ public sealed partial class Player : NPC
 
 		Root.Input.GodotInputEvent += OnInput;
 
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Client && Root.Network.IsServer)
+		if (Root.SessionType != World.SessionTypeEnum.Client && Root.Network.IsServer)
 		{
 			Inventory inventory = Globals.LoadInstance<Inventory>(Root);
 			inventory.NameOverride = "Inventory";
@@ -555,7 +555,7 @@ public sealed partial class Player : NPC
 
 	public override void PhysicsProcess(double delta)
 	{
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client || !IsLocal || !IsReady) { return; }
+		if (Root.SessionType != World.SessionTypeEnum.Client || !IsLocal || !IsReady) { return; }
 
 		if (Character is PolytorianModel pt && pt.Ragdolling)
 		{
@@ -635,7 +635,7 @@ public sealed partial class Player : NPC
 
 	public void OnInput(InputEvent @event)
 	{
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) { return; }
+		if (Root.SessionType != World.SessionTypeEnum.Client) { return; }
 		if (!IsLocal || !Root.Input.IsGameFocused) { return; }
 
 		if (@event.IsActionPressed("activate"))

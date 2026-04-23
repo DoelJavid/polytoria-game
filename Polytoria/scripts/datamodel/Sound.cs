@@ -5,7 +5,6 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Datamodel.Resources;
-using Polytoria.Datamodel.Services;
 using Polytoria.Networking;
 using Polytoria.Scripting;
 
@@ -368,7 +367,7 @@ public sealed partial class Sound : Dynamic
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.Reliable)]
 	private void NetSoundPlay()
 	{
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) { return; }
+		if (Root.SessionType != World.SessionTypeEnum.Client) { return; }
 		InternalPlay();
 	}
 
@@ -380,7 +379,7 @@ public sealed partial class Sound : Dynamic
 
 	private void InternalPlay()
 	{
-		if (Root.Network.NetworkMode == NetworkService.NetworkModeEnum.Creator) return;
+		if (Root.SessionType == World.SessionTypeEnum.Creator) return;
 
 		if (!Loading && Audio != null)
 		{

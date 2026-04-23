@@ -27,7 +27,7 @@ public partial class DatamodelBridge : Node3D
 
 	private bool isGameReady = false;
 
-	public void Attach(World root)
+	public void Attach(World root, bool manualRebuild = false)
 	{
 		if (Root != null)
 		{
@@ -43,6 +43,17 @@ public partial class DatamodelBridge : Node3D
 		root.InstanceEnteredTree += OnInstanceAdded;
 		root.InstanceExitingTree += OnInstanceRemoving;
 		root.Loaded.Once(OnGameReady);
+
+		if (manualRebuild)
+		{
+			foreach (var item in Root.Environment.GetDescendants())
+			{
+				if (item is Part p)
+				{
+					AddPart(p);
+				}
+			}
+		}
 	}
 
 	public override void _ExitTree()

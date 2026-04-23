@@ -44,7 +44,7 @@ public partial class LogDispatcher : NetworkedObject
 
 	private void OnGameReady()
 	{
-		if (!Root.Network.IsServer && Root.Network.NetworkMode != Datamodel.Services.NetworkService.NetworkModeEnum.Creator)
+		if (!Root.Network.IsServer && Root.SessionType != World.SessionTypeEnum.Creator)
 		{
 			RpcId(1, nameof(NetReqServerLogs));
 		}
@@ -76,7 +76,7 @@ public partial class LogDispatcher : NetworkedObject
 
 	internal async void DispatchLog(LogData data)
 	{
-		if (Root.Network.IsServer && Root.Network.NetworkMode == Datamodel.Services.NetworkService.NetworkModeEnum.Client)
+		if (Root.Network.IsServer && Root.SessionType == World.SessionTypeEnum.Client)
 		{
 			// Explicitly set on server if is client/ from server
 			data.LogFrom = LogFromEnum.Server;
@@ -141,7 +141,7 @@ public partial class LogDispatcher : NetworkedObject
 	private void RegisterLogItem(LogData item)
 	{
 		// Clear loggedAt data if from server and receiver is client (time from sserver may be desynchronized with the client)
-		if (item.LogFrom == LogFromEnum.Server && Root.Network.NetworkMode == Datamodel.Services.NetworkService.NetworkModeEnum.Client && Root.Network.IsProd)
+		if (item.LogFrom == LogFromEnum.Server && Root.SessionType == World.SessionTypeEnum.Client && Root.Network.IsProd)
 		{
 			item.LoggedAt = DateTime.UtcNow;
 		}

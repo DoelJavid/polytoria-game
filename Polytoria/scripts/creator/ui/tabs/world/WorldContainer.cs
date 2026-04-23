@@ -88,7 +88,7 @@ public sealed partial class WorldContainer : SubViewportContainer
 
 	public override bool _CanDropData(Vector2 atPosition, Variant data)
 	{
-		if (World.Network.NetworkMode != Datamodel.Services.NetworkService.NetworkModeEnum.Creator) return false;
+		if (World.SessionType != World.SessionTypeEnum.Creator) return false;
 		IDragDataUnion? dragData = DragData.Deserialize(data);
 
 		if (dragData is FileDragData fd)

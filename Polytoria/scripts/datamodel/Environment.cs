@@ -24,6 +24,8 @@ public sealed partial class Environment : Instance
 	private bool _navBaking = false;
 	private readonly List<StaticBody3D> _navTemps = [];
 
+	internal Camera3D? CurrentGDCamera;
+
 	[ScriptProperty]
 	public Camera? CurrentCamera
 	{
@@ -184,10 +186,12 @@ public sealed partial class Environment : Instance
 		if (CameraOverride != null)
 		{
 			CameraOverride.MakeCurrent();
+			CurrentGDCamera = CameraOverride;
 		}
 		else
 		{
 			CurrentCamera?.Camera3D?.MakeCurrent();
+			CurrentGDCamera = CurrentCamera?.Camera3D;
 		}
 	}
 

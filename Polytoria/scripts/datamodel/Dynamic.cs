@@ -4,7 +4,6 @@
 
 using Godot;
 using Polytoria.Attributes;
-using Polytoria.Datamodel.Services;
 #if CREATOR
 using Polytoria.Creator.UI;
 using Polytoria.Creator.Spatial;
@@ -631,7 +630,7 @@ public partial class Dynamic : Instance
 	private void CreateCreatorBounds()
 	{
 		if (Root == null) return;
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Creator) return;
+		if (Root.SessionType != World.SessionTypeEnum.Creator) return;
 
 		_boundArea3D = new()
 		{
@@ -658,7 +657,7 @@ public partial class Dynamic : Instance
 	{
 		if (_boundShape == null) return;
 		if (Root == null) return;
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Creator) return;
+		if (Root.SessionType != World.SessionTypeEnum.Creator) return;
 
 		Aabb bound = CalculateBounds();
 
@@ -756,7 +755,7 @@ public partial class Dynamic : Instance
 			if (Position.Y <= Root.Environment.PartDestroyHeight)
 			{
 				// If not client, ignore PartDestroyHeight rule
-				if (Root.Network != null && Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
+				if (Root.SessionType != World.SessionTypeEnum.Client) return;
 
 				// If network is not ready, return
 				if (!IsNetworkReady) return;

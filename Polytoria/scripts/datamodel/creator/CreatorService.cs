@@ -140,7 +140,7 @@ public sealed partial class CreatorService : Node, IScriptObject
 		base._Process(delta);
 	}
 
-	public async Task CreateNewSession(string projectFilePath = "")
+	public async Task CreateNewSession(string projectFilePath = "", World? worldOverride = null)
 	{
 		string? targetPlace = null;
 		projectFilePath = ProjectSettings.GlobalizePath(projectFilePath);
@@ -204,11 +204,11 @@ public sealed partial class CreatorService : Node, IScriptObject
 		// Open world
 		if (targetPlace != null)
 		{
-			await session.OpenWorld(Path.GetRelativePath(folder, targetPlace).SanitizePath());
+			session.OpenWorld(Path.GetRelativePath(folder, targetPlace).SanitizePath(), worldOverride);
 		}
 		else
 		{
-			await session.OpenMainWorld();
+			session.OpenMainWorld(worldOverride);
 		}
 
 		Interface.LoadOverlay?.Hide();
@@ -341,7 +341,7 @@ public sealed partial class CreatorService : Node, IScriptObject
 
 		if (ext == "poly")
 		{
-			await CurrentSession.OpenWorld(pathRelative);
+			CurrentSession.OpenWorld(pathRelative);
 			return;
 		}
 		else if (ext == "model")

@@ -5,7 +5,6 @@
 using Godot;
 using Polytoria.Attributes;
 using Polytoria.Datamodel.Resources;
-using Polytoria.Datamodel.Services;
 using Polytoria.Scripting;
 using System;
 using System.Collections.Generic;
@@ -110,7 +109,7 @@ public partial class Script : Instance
 	public void TryRun()
 	{
 		if (this is ModuleScript) return;
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
+		if (Root.SessionType != World.SessionTypeEnum.Client) return;
 		if (Ran) return;
 		if (IsHidden) return;
 		if (!IsEnabled) return;

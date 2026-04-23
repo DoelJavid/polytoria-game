@@ -6,7 +6,6 @@ using Godot;
 using Godot.Collections;
 using Polytoria.Attributes;
 using Polytoria.Client;
-using Polytoria.Datamodel.Services;
 using Polytoria.Networking;
 using Polytoria.Scripting;
 using Polytoria.Shared;
@@ -572,7 +571,7 @@ public partial class NPC : Physical
 		if (!Root.IsLoaded) return;
 
 		// Only enable physics in client mode
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
+		if (Root.SessionType != World.SessionTypeEnum.Client) return;
 
 		// Kill player if fall off the map
 		if (Position.Y < Root.Environment.PartDestroyHeight)
@@ -722,7 +721,7 @@ public partial class NPC : Physical
 	private void TriggerNPCDead()
 	{
 		if (IsDead) return;
-		if (Root.Network.NetworkMode != NetworkService.NetworkModeEnum.Client) return;
+		if (Root.SessionType != World.SessionTypeEnum.Client) return;
 		Anchored = true;
 		OverrideCanCollide = true;
 		OverrideCanCollideTo = false;
