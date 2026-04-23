@@ -32,8 +32,9 @@ public partial class Physical : Dynamic
 	private Vector3 _velocity = Vector3.Zero;
 	private Vector3 _angularVelocity = Vector3.Zero;
 
-	private CollisionObject3D? _registeredCollisionBody;
+	private bool _netEnsureTouchArea = false;
 
+	private CollisionObject3D? _registeredCollisionBody;
 
 	private int _touchedListenerCount = 0;
 	private bool _canTouch = false;
@@ -57,6 +58,22 @@ public partial class Physical : Dynamic
 	public event Action<CollisionShape3D>? CollisionShapeRemoved;
 
 	internal Area3D? PhysicalArea { get; private set; }
+
+	[SyncVar]
+	public bool NetEnsureTouchArea
+	{
+		get => _netEnsureTouchArea;
+		set
+		{
+			_netEnsureTouchArea = value;
+
+			if (_netEnsureTouchArea)
+			{
+				EnsureTouchArea();
+			}
+			OnPropertyChanged();
+		}
+	}
 
 	[Editable, ScriptProperty]
 	public virtual bool Anchored
@@ -287,6 +304,10 @@ public partial class Physical : Dynamic
 		Touched.Subscribed += OnTouchSubscribed;
 		Touched.Unsubscribed += OnTouchUnsubscribed;
 
+		Clicked.Subscribed += OnClickSubscribed;
+		Clicked.Subscribed += OnTouchSubscribed;
+		Clicked.Unsubscribed += OnTouchUnsubscribed;
+
 		TouchEnded.Subscribed += OnTouchSubscribed;
 		TouchEnded.Unsubscribed += OnTouchUnsubscribed;
 
@@ -346,6 +367,10 @@ public partial class Physical : Dynamic
 
 		Touched.Subscribed -= OnTouchSubscribed;
 		Touched.Unsubscribed -= OnTouchUnsubscribed;
+
+		Clicked.Subscribed -= OnClickSubscribed;
+		Clicked.Subscribed -= OnTouchSubscribed;
+		Clicked.Unsubscribed -= OnTouchUnsubscribed;
 
 		TouchEnded.Subscribed -= OnTouchSubscribed;
 		TouchEnded.Unsubscribed -= OnTouchUnsubscribed;
@@ -420,6 +445,11 @@ public partial class Physical : Dynamic
 		{
 			DisableCanTouch();
 		}
+	}
+
+	private void OnClickSubscribed()
+	{
+		NetEnsureTouchArea = true;
 	}
 
 	private void OnRootReady()
