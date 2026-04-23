@@ -98,9 +98,6 @@ public static class XmlFormat
 			if (value.IsEmpty)
 				return string.Empty;
 
-			if (value.IndexOf('\\') < 0)
-				return value.ToString();
-
 			return value.ToString();
 		}
 
