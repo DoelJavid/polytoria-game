@@ -202,10 +202,7 @@ public class LuaMetatable : LuaObject
 				}
 				else
 				{
-					object? obj = LangProvider.LuaToObject(targetState, -1, getAsFunction: true);
-
-					LangProvider.PushValueToLua(state, obj);
-					targetState.Pop(1);
+					targetState.XMove(state, 1);
 					return 1;
 				}
 			}
@@ -386,10 +383,9 @@ public class LuaMetatable : LuaObject
 			{
 				LuaState targetState = scriptref.LuauMainThread;
 
-				object? setTo = LangProvider.LuaToObject(state, 3, getAsFunction: true);
-				LangProvider.PushValueToLua(targetState, setTo);
+				state.PushValue(3);
+				state.XMove(targetState, 1);
 				targetState.SetGlobal(key);
-				targetState.Pop(1);
 				return 0;
 			}
 		}

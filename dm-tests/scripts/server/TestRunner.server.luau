@@ -3,18 +3,20 @@ local tests: Folder = script.Parent.Tests
 local successfulTests = 0
 local failedTests = 0
 
-print("=== Polytoria Lua Unit Test ===")
+print("=== Polytoria Datamodel Tests ===")
 
 function RunTest(s)
+	local startTime = os.clock()
 	local success, msg = pcall(function()
 		s.Entry()
 	end)
+	local elapsed = math.round((os.clock() - startTime) * 1000)
 
 	if success then
-		print("[✅] " .. s.Name .. " test successful")
+		print("[✅] " .. s.Name .. " test successful (" .. elapsed .. "ms)")
 		return true
 	else
-		print("[❌] " .. s.Name .. " test failed: " .. msg)
+		print("[❌] " .. s.Name .. " test failed (" .. elapsed .. "ms): " .. msg)
 		return false
 	end
 end

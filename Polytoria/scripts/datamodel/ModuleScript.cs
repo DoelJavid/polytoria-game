@@ -9,6 +9,8 @@ namespace Polytoria.Datamodel;
 [Instantiable]
 public sealed partial class ModuleScript : Script
 {
+	internal int? CachedLuauResultRef { get; set; } = null;
+
 	public override void EnterTree()
 	{
 		CheckSource();

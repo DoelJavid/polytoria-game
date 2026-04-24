@@ -38,6 +38,11 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 	private const string WeakUserdataCache = "__UDCACHE";
 	private static readonly int ThreadDataKey = 0x1247;
 
+	internal LuaState GlobalLuaState = null!;
+
+	private static readonly IntPtr _internalScriptPtr = 0x61;
+	private static readonly IntPtr _loggerPtr = 0x67;
+
 	public static readonly Dictionary<string, Type> LuaLibraries = new()
 	{
 		{ "json", typeof(LuaLibJSON) },
@@ -96,6 +101,9 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 	public LuauProvider()
 	{
 		Singleton = this;
+		GlobalLuaState = new();
+		InitializeCache(GlobalLuaState);
+		GlobalLuaState.OpenLibs();
 	}
 
 	public override void Run(Script script)
@@ -136,13 +144,14 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 
 	public LuaState InitalizeScript(Script script)
 	{
-		LuaState state = new();
+		LuaState state = NewThread(GlobalLuaState);
 		script.LuauState = state;
-		InitializeCache(state);
 
-		state.OpenLibs();
-		SetRegistry(state, "_INTERNAL_SCRIPT", script);
-		SetRegistry(state, "_LOGGER", script.Root.ScriptService.Logger);
+		state.SandboxGlobals();
+
+		// Internal script
+		SetGlobalTablePtr(state, _internalScriptPtr, script);
+		SetGlobalTablePtr(state, _loggerPtr, script.Root.ScriptService.Logger);
 
 		foreach (string item in DisallowedGlobals)
 		{
@@ -690,14 +699,25 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			chunkName = moduleScript.LuaPath;
 		}
 
-		if (source == null)
+		if (ms == null || source == null)
 		{
+			return 0;
+		}
+
+		// Return existing if already required
+		if (ms.LuauState != null)
+		{
+			if (ms.CachedLuauResultRef.HasValue)
+			{
+				state.GetRef(ms.CachedLuauResultRef.Value);
+				return 1;
+			}
 			return 0;
 		}
 
 		Exception? capturedException = null;
 
-		LuaState co = NewThread(state);
+		LuaState co = InitalizeScript(ms);
 		int coRef = state.Ref();
 
 		// Sandbox thread
@@ -705,10 +725,6 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 
 		if (ms != null)
 		{
-			// Set thread specific globals
-			PushValueToLua(co, ms);
-			co.SetGlobal("script");
-
 			// Global to identify if calling from server/client
 			bool isClient = script is ClientScript;
 			co.PushBoolean(isClient);
@@ -738,12 +754,12 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		TaskCompletionSource<int> tcs = new();
 		SetYieldTask(state, tcs.Task);
 
-		_ = HandleRequireAsync(co, state, coRef, chunkName, tcs);
+		_ = HandleRequireAsync(co, state, coRef, chunkName, tcs, ms);
 
 		return state.Yield(1);
 	}
 
-	private static async Task HandleRequireAsync(LuaState co, LuaState state, int coRef, string chunkName, TaskCompletionSource<int> tcs)
+	private static async Task HandleRequireAsync(LuaState co, LuaState state, int coRef, string chunkName, TaskCompletionSource<int> tcs, ModuleScript ms)
 	{
 		try
 		{
@@ -755,6 +771,9 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 				for (int i = 1; i <= top; i++)
 					co.PushValue(i);
 				co.XMove(state, top);
+
+				state.PushValue(-top); // push copy of first result
+				ms.CachedLuauResultRef = state.Ref();
 			}
 			tcs.SetResult(top);
 		}
@@ -1007,37 +1026,6 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		state.SetThreadData(IntPtr.Zero);
 
 		return task;
-	}
-
-	public static void SetRegistry<T>(LuaState state, string key, T obj)
-	{
-		int top = state.GetTop();
-		state.PushString(key);
-		state.PushObject(obj);
-		state.SetTable(LuaState.LUA_REGISTRYINDEX);
-		state.SetTop(top);
-	}
-
-	public static T? GetRegistry<T>(LuaState state, string key, bool freeGCHandle = false)
-	{
-		state.PushString(key);
-		state.GetTable(LuaState.LUA_REGISTRYINDEX);
-
-		if (state.IsNil(-1))
-		{
-			state.Pop(1);
-			return default;
-		}
-
-		try
-		{
-			T obj = state.ToObject<T>(-1, freeGCHandle)!;
-			return obj;
-		}
-		finally
-		{
-			state.Pop(1);
-		}
 	}
 
 	public void PushValueToLua(LuaState state, object? value)
@@ -1663,14 +1651,30 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		lua.Pop(1);
 	}
 
+	private static void SetGlobalTablePtr<T>(LuaState state, nint ptr, T value) where T : class
+	{
+		state.PushLightUserData(ptr);
+		state.PushObject(value);
+		state.SetTable(LuaState.LUA_GLOBALSINDEX);
+	}
+
+	private static T? GetGlobalTablePtr<T>(LuaState state, nint ptr) where T : class
+	{
+		state.PushLightUserData(ptr);
+		state.GetTable(LuaState.LUA_GLOBALSINDEX);
+		var result = state.ToObject(-1) as T;
+		state.Pop(1);
+		return result;
+	}
+
 	public static Script GetScriptInstance(LuaState state)
 	{
-		return GetRegistry<Script>(state, "_INTERNAL_SCRIPT")!;
+		return GetGlobalTablePtr<Script>(state, _internalScriptPtr)!;
 	}
 
 	public static LogDispatcher GetLogger(LuaState state)
 	{
-		return GetRegistry<LogDispatcher>(state, "_LOGGER")!;
+		return GetGlobalTablePtr<LogDispatcher>(state, _loggerPtr)!;
 	}
 
 	private readonly struct MethodsCacheKey(Type type, string methodName, bool isCompatibility) : IEquatable<MethodsCacheKey>
