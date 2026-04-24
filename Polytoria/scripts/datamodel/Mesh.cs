@@ -430,8 +430,8 @@ public sealed partial class Mesh : Entity
 					};
 					GDNode3D.AddChild(collisionShape);
 
-					collisionShape.SetMeta("_remote_at", meshInstance);
-					collisionShape.SetMeta("_remote_offset", meshInstance.GetAabb().GetCenter());
+					SetRemoteLinkTarget(collisionShape, meshInstance);
+					SetRemoteLinkOffset(collisionShape, meshInstance.GetAabb().GetCenter());
 					AddCollisionShape(collisionShape);
 				}
 			}
@@ -468,7 +468,7 @@ public sealed partial class Mesh : Entity
 					};
 
 					GDNode3D.AddChild(collisionShape);
-					collisionShape.SetMeta("_remote_at", meshInstance);
+					SetRemoteLinkTarget(collisionShape, meshInstance);
 					AddCollisionShape(collisionShape);
 				}
 			}

@@ -655,24 +655,72 @@ public partial class NetworkedObject : IScriptObject
 		}
 	}
 
+	private sealed record DefaultInit(PropertyInfo Property, object? Value);
+	private static readonly ConcurrentDictionary<Type, DefaultInit[]> _defaultInitsCache = new();
+
+
+	private DefaultInit[] GetDefaultInits()
+	{
+		Type type = GetType();
+
+		return _defaultInitsCache.GetOrAdd(type, _ =>
+		{
+			return GetEditableProperties().Select(prop =>
+			{
+				DefaultValueAttribute? attr = prop.GetCustomAttribute<DefaultValueAttribute>();
+				if (attr == null)
+					return null;
+
+				object? val = ValidateValue(attr.DefaultValue, prop.PropertyType);
+				return new DefaultInit(prop, val);
+			}).Where(x => x != null).Cast<DefaultInit>().ToArray();
+		});
+	}
+
+	private static object? ValidateValue(object? raw, Type targetType)
+	{
+		if (raw == null)
+			return null;
+
+		Type type = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+		if (type.IsInstanceOfType(raw))
+			return raw;
+
+		if (type.IsEnum)
+		{
+			if (raw is string s)
+				return Enum.Parse(type, s);
+
+			return Enum.ToObject(type, raw);
+		}
+
+		return Convert.ChangeType(raw, type);
+	}
+
+	private static object? GetCopy(object? value)
+	{
+		return value switch
+		{
+			Array a => a.Clone(),
+			_ => value
+		};
+	}
+
 	/// <summary>
 	/// Init default values (editable properties with DefaultValue attribute)
 	/// </summary>
 	private void InitDefaultValues()
 	{
-		foreach (var prop in GetEditableProperties())
+		foreach (var defaults in GetDefaultInits())
 		{
-			DefaultValueAttribute? df = prop.GetCustomAttribute<DefaultValueAttribute>();
-			if (df != null)
+			try
 			{
-				try
-				{
-					prop.SetValue(this, Convert.ChangeType(df.DefaultValue, prop.PropertyType));
-				}
-				catch (Exception ex)
-				{
-					PT.PrintErr(ex);
-				}
+				defaults.Property.SetValue(this, GetCopy(defaults.Value));
+			}
+			catch (Exception ex)
+			{
+				PT.PrintErr(ex);
 			}
 		}
 	}

@@ -446,7 +446,7 @@ public partial class NPC : Physical
 
 		// Add remote offset to the default collision
 		var collision = GDNode3D.GetNode<CollisionShape3D>("Collision");
-		collision.SetMeta("_remote_offset", collision.Position);
+		SetRemoteLinkOffset(collision, collision.Position);
 
 		AddCollisionShape(collision);
 		UpdateCollision();

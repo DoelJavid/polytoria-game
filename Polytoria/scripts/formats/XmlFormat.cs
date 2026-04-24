@@ -8,11 +8,13 @@ using Polytoria.Datamodel;
 using Polytoria.Enums;
 using Polytoria.Shared;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TurboXml;
 using static Polytoria.Datamodel.Part;
@@ -71,13 +73,17 @@ public static class XmlFormat
 		{typeof(Datamodel.PlayerGUI), nameof(Datamodel.PlayerGUI) },
 	};
 
+	private static readonly ConditionalWeakTable<Type, Dictionary<string, PropertyInfo>> _editablePropertyCache = [];
+	private static readonly Assembly _datamodelAssembly = typeof(World).Assembly;
+	private static readonly ConcurrentDictionary<string, Type?> _datamodelTypeCache = new(StringComparer.Ordinal);
+
 	public class GameItem
 	{
 		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 		public Type? Class;
 		public string? Name;
-		public Dictionary<PropertyInfo, object> Properties = [];
-		public List<GameItem> Children = [];
+		public List<(PropertyInfo Property, object Value)> Properties = new(12);
+		public List<GameItem> Children = new(4);
 	}
 
 	public struct LegacyParser : IXmlReadHandler
@@ -155,16 +161,11 @@ public static class XmlFormat
 
 				className = ConvertClassName(className);
 
-				Type? datamodel = Type.GetType("Polytoria.Datamodel." + className);
-
+				Type? datamodel = GetDatamodelType(className);
 				if (datamodel == null)
 				{
-					datamodel = Type.GetType("Polytoria.Datamodel.Services." + className);
-					if (datamodel == null)
-					{
-						PT.Print("Unknown class: ", className);
-						return;
-					}
+					PT.Print("Unknown class: ", className);
+					return;
 				}
 
 				item.Class = datamodel;
@@ -356,23 +357,10 @@ public static class XmlFormat
 							}
 						}
 
-						PropertyInfo? property = item.Class.GetProperty(_propName, BindingFlags.Instance | BindingFlags.Public);
+						PropertyInfo? property = GetEditableProperty(item.Class, _propName);
 
 						if (property == null)
 						{
-							if (Globals.IsInGDEditor)
-							{
-								//PT.Print("Unknown property: ", item.Class.Name, ".", _propName);
-							}
-							return;
-						}
-
-						if (!property.IsDefined(typeof(EditableAttribute)))
-						{
-							if (Globals.IsInGDEditor)
-							{
-								//PT.Print("Uneditable Property: ", item.Class.Name, ".", _propName);
-							}
 							return;
 						}
 
@@ -381,7 +369,7 @@ public static class XmlFormat
 							value = ParseInt(value2);
 						}
 
-						item.Properties[property] = value;
+						SetProperty(item, property, value);
 					}
 
 					_propName = null;
@@ -390,6 +378,57 @@ public static class XmlFormat
 				_text = null;
 			}
 		}
+	}
+
+	private static void SetProperty(GameItem item, PropertyInfo property, object value)
+	{
+		for (int i = 0; i < item.Properties.Count; i++)
+		{
+			if (item.Properties[i].Property == property)
+			{
+				item.Properties[i] = (property, value);
+				return;
+			}
+		}
+
+		item.Properties.Add((property, value));
+	}
+
+	private static PropertyInfo? GetEditableProperty([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type, string propertyName)
+	{
+		Dictionary<string, PropertyInfo> properties = _editablePropertyCache.GetValue(type, static targetType =>
+		{
+			Dictionary<string, PropertyInfo> result = new(StringComparer.Ordinal);
+			PropertyInfo[] allProps = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+
+			foreach (PropertyInfo property in allProps)
+			{
+				if (!property.IsDefined(typeof(EditableAttribute)))
+				{
+					continue;
+				}
+
+				result[property.Name] = property;
+			}
+
+			return result;
+		});
+
+		return properties.GetValueOrDefault(propertyName);
+	}
+
+	private static Type? GetDatamodelType(string className)
+	{
+		return _datamodelTypeCache.GetOrAdd(className, static name =>
+		{
+			Type? datamodelType = _datamodelAssembly.GetType($"Polytoria.Datamodel.{name}", throwOnError: false, ignoreCase: false);
+			if (datamodelType != null)
+			{
+				return datamodelType;
+			}
+
+			return _datamodelAssembly.GetType($"Polytoria.Datamodel.Services.{name}", throwOnError: false, ignoreCase: false);
+		});
 	}
 
 	public static async Task LoadFile(World game, string path)
@@ -518,14 +557,14 @@ public static class XmlFormat
 		}
 
 		// Apply properties
-		foreach (KeyValuePair<PropertyInfo, object> property in item.Properties)
+		foreach ((PropertyInfo Property, object Value) property in item.Properties)
 		{
 			try
 			{
 				object val = property.Value;
 
 				// Handle conversions
-				val = (val, property.Key.PropertyType) switch
+				val = (val, property.Property.PropertyType) switch
 				{
 					// int -> string
 					(int intVal, Type t) when t == typeof(string) => intVal.ToString() ?? "",
@@ -533,11 +572,11 @@ public static class XmlFormat
 					(float floatVal, Type t) when t == typeof(int) => (int)floatVal,
 					_ => val
 				};
-				property.Key.SetValue(instance, val);
+				property.Property.SetValue(instance, val);
 			}
 			catch (Exception ex)
 			{
-				PT.PrintErr(property.Key.Name, " to ", property.Value, " set error ", ex);
+				PT.PrintErr(property.Property.Name, " to ", property.Value, " set error ", ex);
 			}
 		}
 

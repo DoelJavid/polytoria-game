@@ -11,6 +11,7 @@ using Polytoria.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Polytoria.Datamodel;
 
@@ -20,9 +21,21 @@ public partial class Physical : Dynamic
 	public const float MinMass = 0.01f;
 	private static readonly Dictionary<CollisionObject3D, Physical> _bodyToPhysical = [];
 	private static readonly Dictionary<Node, Physical> _proxyToPhysical = [];
+	private static readonly ConditionalWeakTable<CollisionShape3D, RemoteLinkConfig> _remoteLinkConfigs = [];
+	private static readonly ConditionalWeakTable<CollisionShape3D, TrackedNodesState> _trackedNodes = [];
 
-	private const string TouchAreaNodesMeta = "_touch_area_nodes";
-	private const string CollisionSyncNodesMeta = "_collision_sync_nodes";
+	private sealed class RemoteLinkConfig
+	{
+		public Node? Target;
+		public Vector3 Offset = Vector3.Zero;
+		public bool HasOffset;
+	}
+
+	private sealed class TrackedNodesState
+	{
+		public List<Node> TouchAreaNodes { get; } = [];
+		public List<Node> CollisionSyncNodes { get; } = [];
+	}
 
 	public virtual float SyncInterval { get; protected set; } = 0.1f;
 	private const float TouchedGapCheck = 20f;
@@ -576,9 +589,10 @@ public partial class Physical : Dynamic
 		if (!CollisionShapes.Contains(collisionShape)) return;
 		CollisionShapes.Remove(collisionShape);
 		_pendingAreaShapes.Remove(collisionShape);
+		_remoteLinkConfigs.Remove(collisionShape);
 
-		CleanupMetaNodes(collisionShape, TouchAreaNodesMeta, true);
-		CleanupMetaNodes(collisionShape, CollisionSyncNodesMeta, false);
+		CleanupTrackedNodes(collisionShape, static state => state.TouchAreaNodes, true);
+		CleanupTrackedNodes(collisionShape, static state => state.CollisionSyncNodes, false);
 
 		RevertCollisionShape(collisionShape);
 
@@ -590,29 +604,30 @@ public partial class Physical : Dynamic
 		}
 	}
 
-	private void CleanupMetaNodes(CollisionShape3D collisionShape, string key, bool removeAreaShapes)
+	private void CleanupTrackedNodes(CollisionShape3D collisionShape, Func<TrackedNodesState, List<Node>> selector, bool removeAreaShapes)
 	{
-		if (!collisionShape.HasMeta(key)) return;
+		if (!_trackedNodes.TryGetValue(collisionShape, out TrackedNodesState? state)) return;
 
-		var createdNodes = collisionShape.GetMeta(key).As<Godot.Collections.Array>();
-		if (createdNodes != null)
+		List<Node> createdNodes = selector(state);
+		foreach (Node node in createdNodes)
 		{
-			foreach (var nodeVariant in createdNodes)
+			if (node != null && Node.IsInstanceValid(node))
 			{
-				Node node = nodeVariant.As<Node>();
-				if (node != null && Node.IsInstanceValid(node))
+				if (removeAreaShapes && node is CollisionShape3D shape)
 				{
-					if (removeAreaShapes && node is CollisionShape3D shape)
-					{
-						AreaCollisionShapes.Remove(shape);
-					}
-
-					node.QueueFree();
+					AreaCollisionShapes.Remove(shape);
 				}
+
+				node.QueueFree();
 			}
 		}
 
-		collisionShape.RemoveMeta(key);
+		createdNodes.Clear();
+
+		if (state.TouchAreaNodes.Count == 0 && state.CollisionSyncNodes.Count == 0)
+		{
+			_trackedNodes.Remove(collisionShape);
+		}
 	}
 
 	protected void ClearCollisionShapes()
@@ -638,6 +653,86 @@ public partial class Physical : Dynamic
 		CreateAreaShapeInternal(origin);
 	}
 
+	protected static void SetRemoteLinkTarget(CollisionShape3D collisionShape, Node? target)
+	{
+		RemoteLinkConfig config = _remoteLinkConfigs.GetOrCreateValue(collisionShape);
+		config.Target = target != null && Node.IsInstanceValid(target) ? target : null;
+	}
+
+	protected static void SetRemoteLinkOffset(CollisionShape3D collisionShape, Vector3 offset)
+	{
+		RemoteLinkConfig config = _remoteLinkConfigs.GetOrCreateValue(collisionShape);
+		config.Offset = offset;
+		config.HasOffset = true;
+	}
+
+	private static RemoteLinkConfig? GetRemoteLinkConfig(CollisionShape3D collisionShape)
+	{
+		if (_remoteLinkConfigs.TryGetValue(collisionShape, out RemoteLinkConfig? config))
+		{
+			return config;
+		}
+
+		return null;
+	}
+
+	private static TrackedNodesState GetTrackedNodesState(CollisionShape3D collisionShape)
+	{
+		return _trackedNodes.GetOrCreateValue(collisionShape);
+	}
+
+	private static bool HasValidTrackedNodes(CollisionShape3D collisionShape, Func<TrackedNodesState, List<Node>> selector)
+	{
+		if (!_trackedNodes.TryGetValue(collisionShape, out TrackedNodesState? state))
+		{
+			return false;
+		}
+
+		List<Node> trackedNodes = selector(state);
+		for (int i = trackedNodes.Count - 1; i >= 0; i--)
+		{
+			Node node = trackedNodes[i];
+			if (node != null && Node.IsInstanceValid(node))
+			{
+				return true;
+			}
+
+			trackedNodes.RemoveAt(i);
+		}
+
+		if (state.TouchAreaNodes.Count == 0 && state.CollisionSyncNodes.Count == 0)
+		{
+			_trackedNodes.Remove(collisionShape);
+		}
+
+		return false;
+	}
+
+	private static void SetTrackedNodes(CollisionShape3D collisionShape, Func<TrackedNodesState, List<Node>> selector, IEnumerable<Node> nodes)
+	{
+		TrackedNodesState state = GetTrackedNodesState(collisionShape);
+		List<Node> trackedNodes = selector(state);
+		trackedNodes.Clear();
+		trackedNodes.AddRange(nodes);
+	}
+
+	private void AttachRemoteLinkNode(CollisionShape3D origin, Node3D scaleNode)
+	{
+		RemoteLinkConfig? config = GetRemoteLinkConfig(origin);
+		Node? target = config?.Target;
+
+		if (target != null && Node.IsInstanceValid(target))
+		{
+			target.AddChild(scaleNode);
+		}
+		else
+		{
+			GDNode.AddChild(scaleNode);
+		}
+
+		scaleNode.Position = config is { HasOffset: true } ? config.Offset : Vector3.Zero;
+	}
+
 	private Node3D CreateRemoteLinkNode(CollisionShape3D origin, Node target)
 	{
 		Node3D scaleNode = new();
@@ -647,23 +742,7 @@ public partial class Physical : Dynamic
 		};
 		scaleNode.AddChild(rt);
 
-		if (origin.HasMeta("_remote_at"))
-		{
-			origin.GetMeta("_remote_at").As<Node>()?.AddChild(scaleNode);
-		}
-		else
-		{
-			GDNode.AddChild(scaleNode);
-		}
-
-		if (origin.HasMeta("_remote_offset"))
-		{
-			scaleNode.Position = origin.GetMeta("_remote_offset").As<Vector3>();
-		}
-		else
-		{
-			scaleNode.Position = Vector3.Zero;
-		}
+		AttachRemoteLinkNode(origin, scaleNode);
 
 		rt.RemotePath = rt.GetPathTo(target);
 		return scaleNode;
@@ -673,28 +752,13 @@ public partial class Physical : Dynamic
 	{
 		if (!Node.IsInstanceValid(origin)) return;
 
-		if (origin.HasMeta(CollisionSyncNodesMeta))
+		if (HasValidTrackedNodes(origin, static state => state.CollisionSyncNodes))
 		{
-			var existing = origin.GetMeta(CollisionSyncNodesMeta).As<Godot.Collections.Array>();
-			if (existing != null)
-			{
-				foreach (var item in existing)
-				{
-					Node n = item.As<Node>();
-					if (n != null && Node.IsInstanceValid(n))
-					{
-						return;
-					}
-				}
-			}
-
-			origin.RemoveMeta(CollisionSyncNodesMeta);
+			return;
 		}
 
-		Godot.Collections.Array<Node> createdNodes = [];
 		Node3D scaleNode = CreateRemoteLinkNode(origin, origin);
-		createdNodes.Add(scaleNode);
-		origin.SetMeta(CollisionSyncNodesMeta, createdNodes);
+		SetTrackedNodes(origin, static state => state.CollisionSyncNodes, [scaleNode]);
 	}
 
 	private void CreateAreaShapeInternal(CollisionShape3D origin)
@@ -702,7 +766,7 @@ public partial class Physical : Dynamic
 		if (PhysicalArea == null || !Node.IsInstanceValid(origin) || origin.Shape == null) return;
 
 		Shape3D sharedShape = origin.Shape;
-		Godot.Collections.Array<Node> createdNodes = [];
+		List<Node> createdNodes = [];
 
 		CollisionShape3D CreateLinkedShape(Node parent)
 		{
@@ -728,24 +792,7 @@ public partial class Physical : Dynamic
 			scaleNode.AddChild(rt);
 			createdNodes.Add(scaleNode);
 
-			if (origin.HasMeta("_remote_at"))
-			{
-				origin.GetMeta("_remote_at").As<Node>()?.AddChild(scaleNode);
-			}
-			else
-			{
-				GDNode.AddChild(scaleNode);
-			}
-
-			// Apply manual offset if found
-			if (origin.HasMeta("_remote_offset"))
-			{
-				scaleNode.Position = origin.GetMeta("_remote_offset").As<Vector3>();
-			}
-			else
-			{
-				scaleNode.Position = Vector3.Zero;
-			}
+			AttachRemoteLinkNode(origin, scaleNode);
 
 			rt.RemotePath = rt.GetPathTo(newShape);
 			return newShape;
@@ -766,8 +813,7 @@ public partial class Physical : Dynamic
 			}
 		}
 
-		// Store all created nodes in origin's metadata for cleanup
-		origin.SetMeta("_area_nodes", createdNodes);
+		SetTrackedNodes(origin, static state => state.TouchAreaNodes, createdNodes);
 	}
 
 	public static Physical? GetPhysicalFromCollider(Node collider)

@@ -46,7 +46,7 @@ public partial class Part : Entity
 		base.Init();
 		GDNode3D.AddChild(_collider = new(), false);
 		GDNode3D.AddChild(_nRemoteAt = new(), false);
-		_collider.SetMeta("_remote_at", _nRemoteAt);
+		SetRemoteLinkTarget(_collider, _nRemoteAt);
 		_nRemoteAt.Rotation = Vector3.Zero;
 
 		if (OS.HasFeature("debug-face"))

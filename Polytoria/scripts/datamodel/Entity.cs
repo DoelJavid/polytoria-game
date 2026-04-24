@@ -11,6 +11,7 @@ namespace Polytoria.Datamodel;
 public abstract partial class Entity : RigidBody
 {
 	private bool _isSpawn = false;
+	private uint _camCollisionLayer = uint.MaxValue;
 
 	private Color _color = new(1, 1, 1);
 	private bool _castShadows = true;
@@ -86,15 +87,24 @@ public abstract partial class Entity : RigidBody
 
 	internal void UpdateCamLayer()
 	{
+		uint targetLayer;
 		if (Color.A > 0.5)
 		{
 			// Set layer for solid
-			GDRigidBody.CollisionLayer = 1 << 0 | 1 << 5;
+			targetLayer = 1u << 0 | 1u << 5;
 		}
 		else
 		{
 			// Set layer for transparent
-			GDRigidBody.CollisionLayer = 1;
+			targetLayer = 1u;
 		}
+
+		if (_camCollisionLayer == targetLayer)
+		{
+			return;
+		}
+
+		_camCollisionLayer = targetLayer;
+		GDRigidBody.CollisionLayer = targetLayer;
 	}
 }

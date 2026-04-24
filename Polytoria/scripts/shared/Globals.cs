@@ -11,7 +11,6 @@ using System.IO;
 using Polytoria.Datamodel;
 using Polytoria.Datamodel.Resources;
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -39,6 +38,15 @@ public sealed partial class Globals : Node
 #endif
 
 	public static Globals Singleton { get; private set; } = null!;
+	private const string DatamodelScenesPath = "res://scenes/datamodel/";
+#if CREATOR
+	private const string PropertiesPath = "res://scenes/creator/properties/";
+	private const string SubViewPropertiesPath = "res://scenes/creator/properties/subviews/";
+	private const string DatamodelIconsPath = "res://assets/textures/datamodel/";
+#endif
+	private const string ShapesMeshesPath = "res://resources/shapes/meshes/";
+	private const string SkyboxesPath = "res://resources/materials/skyboxes/";
+	private const string UIIconsPath = "res://assets/textures/ui-icons/";
 
 	public Globals()
 	{
@@ -46,15 +54,15 @@ public sealed partial class Globals : Node
 	}
 
 	public readonly static Dictionary<string, PackedScene> CachedScenes = [];
-	private static FrozenDictionary<string, PackedScene> _scenesCache = null!;
+	private static readonly Dictionary<string, PackedScene> _scenesCache = [];
 #if CREATOR
-	private static FrozenDictionary<string, PackedScene> _propertiesCache = null!;
-	private static FrozenDictionary<string, PackedScene> _subViewPropertiesCache = null!;
+	private static readonly Dictionary<string, PackedScene> _propertiesCache = [];
+	private static readonly Dictionary<string, PackedScene> _subViewPropertiesCache = [];
 #endif
-	private static FrozenDictionary<string, Texture2D> _iconsCache = null!;
-	private static FrozenDictionary<string, Texture2D> _uiIconsCache = null!;
-	private static FrozenDictionary<string, (Mesh, Shape3D)> _shapesCache = null!;
-	private static FrozenDictionary<string, Material> _skyboxesCache = null!;
+	private static readonly Dictionary<string, Texture2D> _iconsCache = [];
+	private static readonly Dictionary<string, Texture2D> _uiIconsCache = [];
+	private static readonly Dictionary<string, (Mesh, Shape3D)> _shapesCache = [];
+	private static readonly Dictionary<string, Material> _skyboxesCache = [];
 
 	private static Dictionary<(Part.PartMaterialEnum, bool), Material> _materialCache = [];
 
@@ -183,106 +191,6 @@ public sealed partial class Globals : Node
 			Directory.CreateDirectory(creatorPath);
 		}
 #endif
-
-		string scenesPath = "res://scenes/datamodel/";
-#if CREATOR
-		string propertiesPath = "res://scenes/creator/properties/";
-		string subViewPropertiesPath = "res://scenes/creator/properties/subviews/";
-		string iconsPath = "res://assets/textures/datamodel/";
-#endif
-		string meshesPath = "res://resources/shapes/meshes/";
-		string materialsPath = "res://resources/materials/parts/";
-		string skyboxesPath = "res://resources/materials/skyboxes/";
-		string uiIconsPath = "res://assets/textures/ui-icons/";
-
-		Dictionary<string, PackedScene> scenes = [];
-		Dictionary<string, PackedScene> properties = [];
-		Dictionary<string, PackedScene> subViewProperties = [];
-		Dictionary<string, Texture2D> icons = [];
-		Dictionary<string, (Mesh, Shape3D)> shapes = [];
-		Dictionary<string, Material> materials = [];
-		Dictionary<string, Material> skyboxes = [];
-		Dictionary<string, Texture2D> uiIcons = [];
-
-		foreach (string name in ResourceLoader.ListDirectory(scenesPath))
-		{
-			scenes[name[..^5]] = ResourceLoader.Load<PackedScene>(scenesPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		foreach (string name in ResourceLoader.ListDirectory(meshesPath))
-		{
-			string shapeName = name[..^5];
-			Mesh mesh = ResourceLoader.Load<Mesh>(meshesPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-			Shape3D shape;
-
-			if (shapeName == "Truss" || shapeName == "Frame")
-			{
-				shape = new BoxShape3D();
-			}
-			else
-			{
-				if (mesh is ArrayMesh)
-				{
-					ConcavePolygonShape3D concave = new();
-					concave.SetFaces(mesh.GetFaces());
-					shape = concave;
-				}
-				else
-				{
-					shape = mesh.CreateConvexShape();
-				}
-
-			}
-
-			shapes[shapeName] = (
-				mesh,
-				shape
-			);
-		}
-
-		foreach (string name in ResourceLoader.ListDirectory(materialsPath))
-		{
-			materials[name[..^5]] = ResourceLoader.Load<Material>(materialsPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		foreach (string name in ResourceLoader.ListDirectory(skyboxesPath))
-		{
-			skyboxes[name[..^5]] = ResourceLoader.Load<Material>(skyboxesPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		// Creator specific resources
-#if CREATOR
-		foreach (string name in ResourceLoader.ListDirectory(propertiesPath))
-		{
-			if (!name.EndsWith(".tscn")) { continue; }
-			properties[name[..^13]] = ResourceLoader.Load<PackedScene>(propertiesPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		foreach (string name in ResourceLoader.ListDirectory(subViewPropertiesPath))
-		{
-			subViewProperties[name[..^12]] = ResourceLoader.Load<PackedScene>(subViewPropertiesPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		foreach (string name in ResourceLoader.ListDirectory(iconsPath))
-		{
-			icons[name[..^4]] = ResourceLoader.Load<Texture2D>(iconsPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-#endif
-
-		foreach (string name in ResourceLoader.ListDirectory(uiIconsPath))
-		{
-			uiIcons[name[..^4]] = ResourceLoader.Load<Texture2D>(uiIconsPath + name, cacheMode: ResourceLoader.CacheMode.IgnoreDeep);
-		}
-
-		_scenesCache = scenes.ToFrozenDictionary();
-#if CREATOR
-		_propertiesCache = properties.ToFrozenDictionary();
-		_subViewPropertiesCache = subViewProperties.ToFrozenDictionary();
-#endif
-		_iconsCache = icons.ToFrozenDictionary();
-		_shapesCache = shapes.ToFrozenDictionary();
-		_skyboxesCache = skyboxes.ToFrozenDictionary();
-		_uiIconsCache = uiIcons.ToFrozenDictionary();
 	}
 
 	public override void _Process(double delta)
@@ -360,7 +268,8 @@ public sealed partial class Globals : Node
 
 	public static Node? LoadNetworkedObjectScene(string className)
 	{
-		Node? scene = _scenesCache.GetValueOrDefault(className)?.Instantiate<Node>();
+		PackedScene? packedScene = LoadCachedResource(_scenesCache, className, $"{DatamodelScenesPath}{className}.tscn");
+		Node? scene = packedScene?.Instantiate<Node>();
 		scene?.SceneFilePath = "";
 		return scene;
 	}
@@ -377,35 +286,42 @@ public sealed partial class Globals : Node
 		{
 			cacheToLoad = "Instance";
 		}
-		return _propertiesCache[cacheToLoad].Instantiate<IProperty>();
+
+		PackedScene packedScene = ForceLoadResource(_propertiesCache, cacheToLoad, $"{PropertiesPath}{cacheToLoad}Property.tscn");
+		return packedScene.Instantiate<IProperty>();
 	}
 
 	public static IPropertySubview? LoadSubviewProperty(Type type)
 	{
 		string cacheToLoad = type.Name;
-
-		if (_subViewPropertiesCache.TryGetValue(cacheToLoad, out var cachedValue))
-		{
-			return cachedValue.Instantiate<IPropertySubview>();
-		}
-
-		return null;
+		PackedScene? packedScene = LoadCachedResource(_subViewPropertiesCache, cacheToLoad, $"{SubViewPropertiesPath}{cacheToLoad}Subview.tscn");
+		return packedScene?.Instantiate<IPropertySubview>();
 	}
 #endif
 
 	public static Texture2D LoadIcon(string className)
 	{
-		return _iconsCache.GetValueOrDefault(className, _iconsCache["Unknown"]);
+		return LoadCachedTexture(_iconsCache, className, DatamodelIconsPath, "Unknown");
 	}
 
 	public static Texture2D LoadUIIcon(string iconName)
 	{
-		return _uiIconsCache.GetValueOrDefault(iconName, _uiIconsCache["empty"]);
+		return LoadCachedTexture(_uiIconsCache, iconName, UIIconsPath, "empty");
 	}
 
 	public static (Mesh, Shape3D) LoadShape(string shapeName)
 	{
-		return _shapesCache[shapeName];
+		if (_shapesCache.TryGetValue(shapeName, out (Mesh, Shape3D) cachedShape))
+		{
+			return cachedShape;
+		}
+
+		string path = $"{ShapesMeshesPath}{shapeName}.tres";
+		Mesh mesh = ResourceLoader.Load<Mesh>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep) ?? throw new KeyNotFoundException($"Shape '{shapeName}' was not found at '{path}'.");
+		Shape3D shape = CreateShape(mesh, shapeName);
+		(Mesh, Shape3D) loadedShape = (mesh, shape);
+		_shapesCache[shapeName] = loadedShape;
+		return loadedShape;
 	}
 
 	public static Material LoadMaterial(Part.PartMaterialEnum material, float alpha)
@@ -429,7 +345,88 @@ public sealed partial class Globals : Node
 
 	public static Material LoadSkybox(string materialName)
 	{
-		return _skyboxesCache[materialName];
+		return ForceLoadResource(_skyboxesCache, materialName, $"{SkyboxesPath}{materialName}.tres");
+	}
+
+	private static TResource? LoadCachedResource<TResource>(Dictionary<string, TResource> cache, string key, string path) where TResource : Resource
+	{
+		if (cache.TryGetValue(key, out TResource? cachedResource))
+		{
+			return cachedResource;
+		}
+
+		if (!ResourceLoader.Exists(path))
+		{
+			return null;
+		}
+
+		TResource resource = ResourceLoader.Load<TResource>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep) ?? throw new InvalidOperationException($"Failed to load resource at '{path}'.");
+		cache[key] = resource;
+		return resource;
+	}
+
+	private static TResource ForceLoadResource<TResource>(Dictionary<string, TResource> cache, string key, string path) where TResource : Resource
+	{
+		return LoadCachedResource(cache, key, path) ?? throw new KeyNotFoundException($"Resource '{key}' was not found at '{path}'.");
+	}
+
+	private static Texture2D LoadCachedTexture(Dictionary<string, Texture2D> cache, string key, string directoryPath, string fallbackKey)
+	{
+		if (cache.TryGetValue(key, out Texture2D? cachedTexture))
+		{
+			return cachedTexture;
+		}
+
+		string? path = ResolveTexturePath(directoryPath, key);
+		if (path == null)
+		{
+			if (key == fallbackKey)
+			{
+				throw new KeyNotFoundException($"Texture '{fallbackKey}' was not found in '{directoryPath}'.");
+			}
+
+			Texture2D fallbackTexture = LoadCachedTexture(cache, fallbackKey, directoryPath, fallbackKey);
+			cache[key] = fallbackTexture;
+			return fallbackTexture;
+		}
+
+		Texture2D texture = ResourceLoader.Load<Texture2D>(path, cacheMode: ResourceLoader.CacheMode.IgnoreDeep) ?? throw new InvalidOperationException($"Failed to load texture at '{path}'.");
+		cache[key] = texture;
+		return texture;
+	}
+
+	private static string? ResolveTexturePath(string directoryPath, string name)
+	{
+		string svgPath = $"{directoryPath}{name}.svg";
+		if (ResourceLoader.Exists(svgPath))
+		{
+			return svgPath;
+		}
+
+		string pngPath = $"{directoryPath}{name}.png";
+		if (ResourceLoader.Exists(pngPath))
+		{
+			return pngPath;
+		}
+
+		return null;
+	}
+
+	private static Shape3D CreateShape(Mesh mesh, string shapeName)
+	{
+		if (shapeName == "Truss" || shapeName == "Frame")
+		{
+			return new BoxShape3D();
+		}
+
+		if (mesh is ArrayMesh)
+		{
+			ConcavePolygonShape3D concave = new();
+			concave.SetFaces(mesh.GetFaces());
+			return concave;
+		}
+
+		return mesh.CreateConvexShape();
 	}
 
 	public static Dictionary<string, string> ReadCmdArgs()
