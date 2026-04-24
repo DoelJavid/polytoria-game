@@ -3,7 +3,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Godot;
-using Polytoria.Client;
 using Polytoria.Creator.Managers;
 using Polytoria.Creator.Utils;
 using Polytoria.Datamodel.Creator;
