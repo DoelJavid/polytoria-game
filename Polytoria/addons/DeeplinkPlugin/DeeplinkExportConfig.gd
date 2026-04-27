@@ -71,29 +71,54 @@ func load_export_config_from_file() -> Error:
 	return __result
 
 
-func load_export_config_from_node() -> Error:
+func load_export_config_from_node(a_platform: Deeplink.Platform) -> Error:
 	Deeplink.log_info("Loading export config from node!")
 
 	var __result = OK
 
-	var __deeplink_nodes: Array = get_plugin_nodes(EditorInterface.get_edited_scene_root())
+	var __deeplink_nodes: Array = []
+
+	Deeplink.log_info("Searching all project scenes for %s nodes..." % PLUGIN_NODE_TYPE_NAME)
+	var collect_scene_paths: Callable = func (a_dir_path: String, a_collected_paths: Array[String],
+			a_recursive_func: Callable) -> void:
+		for __file in DirAccess.get_files_at(a_dir_path):
+			if __file.ends_with(".tscn") or __file.ends_with(".scn"):
+				a_collected_paths.append(a_dir_path.path_join(__file))
+
+		for __dir in DirAccess.get_directories_at(a_dir_path):
+			a_recursive_func.call(a_dir_path.path_join(__dir), a_collected_paths, a_recursive_func)
+
+	var __scene_paths: Array[String] = []
+	collect_scene_paths.call("res://", __scene_paths, collect_scene_paths)
+
+	for __scene_path in __scene_paths:
+		var packed: PackedScene = load(__scene_path)
+		if packed:
+			var __instance = packed.instantiate()
+			var __discovered_nodes: Array = get_plugin_nodes(__instance)
+			Deeplink.log_info("Discovered %d %s nodes in scene '%s'" % [__discovered_nodes.size(),
+					PLUGIN_NODE_TYPE_NAME, __scene_path])
+			if not __discovered_nodes.is_empty():
+				__deeplink_nodes.append_array(__discovered_nodes)
+
 	if __deeplink_nodes.is_empty():
-		var __main_scene = load(ProjectSettings.get_setting("application/run/main_scene")).instantiate()
-		__deeplink_nodes = get_plugin_nodes(__main_scene)
-		if __deeplink_nodes.is_empty():
-			Deeplink.log_error("%s failed to find %s node!" % [PLUGIN_NAME, PLUGIN_NODE_TYPE_NAME])
+		Deeplink.log_warn("%s failed to find any %s nodes!" % [PLUGIN_NAME, PLUGIN_NODE_TYPE_NAME])
+	else:
+		Deeplink.log_info("Discovered a total of %d %s nodes in the project" % [__deeplink_nodes.size(),
+				PLUGIN_NODE_TYPE_NAME])
 
 	for __node in __deeplink_nodes:
-		var __deeplink_node = __node as Deeplink
-		deeplinks.append(
-			DeeplinkExportConfigItem.new()
-				.set_label(__deeplink_node.label)
-				.set_is_auto_verify(__deeplink_node.is_auto_verify)
-				.set_is_default(__deeplink_node.is_default)
-				.set_is_browsable(__deeplink_node.is_browsable)
-				.set_scheme(__deeplink_node.scheme)
-				.set_host(__deeplink_node.host)
-				.set_path_prefix(__deeplink_node.path_prefix)
+		var __deeplink_node: Deeplink = __node as Deeplink
+		if __deeplink_node.is_platform_enabled(a_platform):
+			deeplinks.append(
+				DeeplinkExportConfigItem.new()
+					.set_label(__deeplink_node.android_label)
+					.set_is_auto_verify(__deeplink_node.android_is_auto_verify)
+					.set_is_default(__deeplink_node.android_is_default)
+					.set_is_browsable(__deeplink_node.android_is_browsable)
+					.set_scheme(__deeplink_node.scheme)
+					.set_host(__deeplink_node.host)
+					.set_path_prefix(__deeplink_node.path_prefix)
 		)
 
 	print_loaded_config()

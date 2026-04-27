@@ -5,8 +5,6 @@
 @tool
 extends EditorPlugin
 
-const PLUGIN_NODE_TYPE_NAME: String = "Deeplink"
-const PLUGIN_PARENT_NODE_TYPE: String = "Node"
 const PLUGIN_NAME: String = "DeeplinkPlugin"
 const ANDROID_DEPENDENCIES: Array = [ "androidx.annotation:annotation:1.9.1" ]
 const IOS_FRAMEWORKS: Array = [ "Foundation.framework" ]
@@ -25,7 +23,6 @@ func _enter_tree() -> void:
 
 
 func _exit_tree() -> void:
-	remove_custom_type(PLUGIN_NODE_TYPE_NAME)
 	remove_export_plugin(android_export_plugin)
 	android_export_plugin = null
 	remove_export_plugin(ios_export_plugin)
@@ -38,7 +35,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 
 	const DEEPLINK_ACTIVITY_FORMAT = """
 		<activity
-			android:name="org.godotengine.plugin.android.deeplink.DeeplinkActivity"
+			android:name="org.godotengine.plugin.deeplink.DeeplinkActivity"
 			android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
 			android:excludeFromRecents="true"
 			android:launchMode="singleTask"
@@ -95,7 +92,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 	func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int) -> void:
 		_export_config = DeeplinkExportConfig.new()
 		if not _export_config.export_config_file_exists() or _export_config.load_export_config_from_file() != OK:
-			_export_config.load_export_config_from_node()
+			_export_config.load_export_config_from_node(Deeplink.Platform.Android)
 
 
 	func _get_android_dependencies(platform: EditorExportPlatform, debug: bool) -> PackedStringArray:
@@ -181,7 +178,7 @@ class IosExportPlugin extends EditorExportPlugin:
 
 		_export_config = DeeplinkExportConfig.new()
 		if not _export_config.export_config_file_exists() or _export_config.load_export_config_from_file() != OK:
-			_export_config.load_export_config_from_node()
+			_export_config.load_export_config_from_node(Deeplink.Platform.iOS)
 
 		# Compile a list of configured custom schemes
 		var __custom_schemes: String = ""
@@ -192,16 +189,16 @@ class IosExportPlugin extends EditorExportPlugin:
 
 		# Add custom schemes to pList
 		if not __custom_schemes.is_empty():
-			add_ios_plist_content(CUSTOM_SCHEME_PLIST_ENTRY % [get_option("application/bundle_identifier"), __custom_schemes])
+			add_apple_embedded_platform_plist_content(CUSTOM_SCHEME_PLIST_ENTRY % [get_option("application/bundle_identifier"), __custom_schemes])
 
 		for __framework in IOS_FRAMEWORKS:
-			add_ios_framework(__framework)
+			add_apple_embedded_platform_framework(__framework)
 
 		for __framework in IOS_EMBEDDED_FRAMEWORKS:
-			add_ios_embedded_framework(__framework)
+			add_apple_embedded_platform_embedded_framework(__framework)
 
 		for __flag in IOS_LINKER_FLAGS:
-			add_ios_linker_flags(__flag)
+			add_apple_embedded_platform_linker_flags(__flag)
 
 
 	func _export_end() -> void:
