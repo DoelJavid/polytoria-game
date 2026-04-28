@@ -44,8 +44,8 @@ public partial class Part : Entity
 	public override void Init()
 	{
 		base.Init();
-		GDNode3D.AddChild(_collider = new(), false);
-		GDNode3D.AddChild(_nRemoteAt = new(), false);
+		GDNode3D.AddChild(_collider = new(), false, Node.InternalMode.Back);
+		GDNode3D.AddChild(_nRemoteAt = new(), false, Node.InternalMode.Back);
 		SetRemoteLinkTarget(_collider, _nRemoteAt);
 		_nRemoteAt.Rotation = Vector3.Zero;
 
