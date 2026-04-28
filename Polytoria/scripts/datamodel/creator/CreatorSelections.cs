@@ -199,6 +199,7 @@ public sealed partial class CreatorSelections : Instance
 		Instance model = asWhat switch
 		{
 			GroupAsEnum.Folder => New<Folder>(commonParent),
+			GroupAsEnum.RigidBody => New<RigidBody>(commonParent),
 			_ => New<Model>(commonParent),
 		};
 
@@ -248,7 +249,7 @@ public sealed partial class CreatorSelections : Instance
 
 		foreach (Instance item in models)
 		{
-			if (item is not IGroup) continue;
+			if (item is not IGroup and RigidBody) continue;
 			foreach (Instance modelItem in item.GetChildren())
 			{
 				modelItem.Reparent(item.Parent!);

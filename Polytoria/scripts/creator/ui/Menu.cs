@@ -306,6 +306,18 @@ public sealed partial class Menu : PanelContainer
 						World.Current?.CreatorContext.Selections.GroupSelected(Datamodel.Creator.CreatorHistory.GroupAsEnum.Folder);
 					}
 				},
+				new MenuButtonItem() {
+					Text = "Group RigidBody",
+					KeyShortcut = new()
+					{
+						Events = [
+							new InputEventKey() { CtrlPressed = true, ShiftPressed = true, Keycode = Key.G }
+						]
+					},
+					Pressed = () => {
+						World.Current?.CreatorContext.Selections.GroupSelected(Datamodel.Creator.CreatorHistory.GroupAsEnum.RigidBody);
+					}
+				},
 				new MenuSeperatorItem(),
 				new MenuButtonItem() {
 					Text = "Import",
