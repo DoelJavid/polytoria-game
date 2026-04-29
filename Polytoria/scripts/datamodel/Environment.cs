@@ -15,6 +15,8 @@ namespace Polytoria.Datamodel;
 [Static("Environment")]
 public sealed partial class Environment : Instance
 {
+	private const int MaxOverlaps = 2048;
+
 	// Array of spawnpioints
 	public List<Entity> SpawnPoints = [];
 
@@ -399,7 +401,7 @@ public sealed partial class Environment : Instance
 			query.Exclude = PhysicalsToArray(ignoreList);
 		}
 
-		Godot.Collections.Array<Godot.Collections.Dictionary> results = spaceState.IntersectShape(query, 124);
+		Godot.Collections.Array<Godot.Collections.Dictionary> results = spaceState.IntersectShape(query, MaxOverlaps);
 		List<Instance> intersects = [];
 
 		foreach (Godot.Collections.Dictionary result in results)
