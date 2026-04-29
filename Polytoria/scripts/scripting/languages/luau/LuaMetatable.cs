@@ -22,6 +22,8 @@ namespace Polytoria.Scripting.Luau;
 
 public class LuaMetatable : LuaObject
 {
+	private static readonly Dictionary<OverloadKey, (MethodInfo? methodInfo, bool hasParams)> _overloadCache = [];
+
 	public LuaState Lua = null!;
 	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods)]
 	public Type TargetType = null!;
@@ -918,6 +920,24 @@ public class LuaMetatable : LuaObject
 	private static MethodInfo? ResolveOverload(MethodInfo[] methods, object?[] args, out bool hasParams)
 	{
 		hasParams = false;
+		if (methods.Length == 0) return null;
+
+		OverloadKey key = new(methods[0].DeclaringType!, methods[0].Name, args);
+
+		if (_overloadCache.TryGetValue(key, out var cached))
+		{
+			hasParams = cached.hasParams;
+			return cached.methodInfo;
+		}
+
+		MethodInfo? result = ResolveOverloadUncached(methods, args, out hasParams);
+		_overloadCache[key] = (result, hasParams);
+		return result;
+	}
+
+	private static MethodInfo? ResolveOverloadUncached(MethodInfo[] methods, object?[] args, out bool hasParams)
+	{
+		hasParams = false;
 
 		foreach (var m in methods)
 		{
@@ -965,5 +985,48 @@ public class LuaMetatable : LuaObject
 		}
 
 		return null;
+	}
+
+	private readonly struct OverloadKey : IEquatable<OverloadKey>
+	{
+		private readonly Type _declaringType;
+		private readonly string _methodName;
+		private readonly Type?[] _argTypes;
+		private readonly int _hashCode;
+
+		public OverloadKey(Type declaringType, string methodName, object?[] args)
+		{
+			_declaringType = declaringType;
+			_methodName = methodName;
+			_argTypes = new Type?[args.Length];
+
+			HashCode h = new();
+			h.Add(declaringType);
+			h.Add(methodName);
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				Type? t = args[i]?.GetType();
+				_argTypes[i] = t;
+				h.Add(t);
+			}
+
+			_hashCode = h.ToHashCode();
+		}
+
+		public bool Equals(OverloadKey other)
+		{
+			if (_declaringType != other._declaringType) return false;
+			if (_methodName != other._methodName) return false;
+			if (_argTypes.Length != other._argTypes.Length) return false;
+
+			for (int i = 0; i < _argTypes.Length; i++)
+				if (_argTypes[i] != other._argTypes[i]) return false;
+
+			return true;
+		}
+
+		public override bool Equals(object? obj) => obj is OverloadKey k && Equals(k);
+		public override int GetHashCode() => _hashCode;
 	}
 }
