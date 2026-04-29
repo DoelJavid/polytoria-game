@@ -30,6 +30,7 @@ namespace Polytoria.Scripting.Luau;
 public sealed partial class LuauProvider : ScriptLanguageProvider
 {
 	private const DynamicallyAccessedMemberTypes DynamicallyAccessedTypes = DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods;
+	private const int GCStepThreshold = 100;
 
 	private static readonly Dictionary<Type, MethodInfo?> _gdToProxy = [];
 	private static readonly Dictionary<IntPtr, PTCallbackData> _ptrToCallback = [];
@@ -37,6 +38,8 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 	private static readonly Dictionary<IntPtr, object> _ptrToObject = [];
 	private const string WeakUserdataCache = "__UDCACHE";
 	private static readonly int ThreadDataKey = 0x1247;
+
+	private static int _allocsSinceLastGC = 0;
 
 	internal LuaState GlobalLuaState = null!;
 
@@ -1463,17 +1466,12 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 	{
 		IntPtr handlePtr = Marshal.ReadIntPtr(ud);
 		if (handlePtr == IntPtr.Zero) return;
-		GCHandle handle = GCHandle.FromIntPtr(handlePtr);
 
+		_ptrToObject.Remove(handlePtr);
+
+		GCHandle handle = GCHandle.FromIntPtr(handlePtr);
 		if (handle.IsAllocated)
-		{
-			object? target = handle.Target;
-			if (target != null)
-			{
-				_ptrToObject.Remove(handlePtr);
-			}
 			handle.Free();
-		}
 	}
 
 	public void PushEnum(LuaState lua, Type specifyType, object value)
@@ -1514,7 +1512,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		return "__userdata_" + obj.GetType().Name + obj.GetHashCode();
 	}
 
-	private void PushCSClassInternal(LuaState lua, IScriptObject? obj, [DynamicallyAccessedMembers(DynamicallyAccessedTypes)] Type? spectifyType = null)
+	private void PushCSClassInternal(LuaState lua, IScriptObject? obj, [DynamicallyAccessedMembers(DynamicallyAccessedTypes)] Type? specifyType = null)
 	{
 		if (!lua.IsAlive)
 		{
@@ -1522,26 +1520,47 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			return;
 		}
 
-		object objKey = (object?)obj ?? spectifyType!;
-		Script script = GetScriptInstance(lua);
-		bool isValueType = objKey.GetType().IsValueType;
+		object objKey = (object?)obj ?? specifyType!;
+		Type type = specifyType ?? obj!.GetType();
+		bool isValueType = type.IsValueType;
 
-		string regKey = GetRegKeyFromObj(objKey);
-
-		if (GetFromWeakCache(lua, regKey) && !isValueType)
+		if (!isValueType)
 		{
-			return;
+			// Non-value types, check weak cache
+			string regKey = GetRegKeyFromObj(objKey);
+			if (GetFromWeakCache(lua, regKey))
+				return;
+
+			PushNewUserdata(lua, objKey);
+			ApplyMetatable(lua, type);
+			SetInWeakCache(lua, regKey);
+		}
+		else
+		{
+			// Value types, push fresh userdata but reuse metatable
+			PushNewUserdata(lua, objKey);
+			ApplyMetatable(lua, type);
 		}
 
+		// Force collect garbage after allocs
+		if (++_allocsSinceLastGC >= GCStepThreshold)
+		{
+			lua.GarbageCollector(LuaGC.Collect, 1);
+			_allocsSinceLastGC = 0;
+		}
+	}
+
+	private static void PushNewUserdata(LuaState lua, object objKey)
+	{
 		GCHandle handle = GCHandle.Alloc(objKey);
 		IntPtr handlePtr = GCHandle.ToIntPtr(handle);
 		IntPtr userdataPtr = lua.NewUserDataDTor((UIntPtr)IntPtr.Size, GarbageCollect);
 		Marshal.WriteIntPtr(userdataPtr, handlePtr);
-
 		_ptrToObject.Add(handlePtr, objKey);
+	}
 
-		Type type = spectifyType ?? obj!.GetType();
-
+	private void ApplyMetatable(LuaState lua, [DynamicallyAccessedMembers(DynamicallyAccessedTypes)] Type type)
+	{
 		string metatableKey = "__metatable_" + type.Name;
 
 		lua.GetField(LuaState.LUA_REGISTRYINDEX, metatableKey);
@@ -1592,9 +1611,6 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		}
 
 		lua.SetMetaTable(-2);
-
-		if (!isValueType)
-			SetInWeakCache(lua, regKey);
 	}
 
 	private static string ProcessTypeName(Type type)
