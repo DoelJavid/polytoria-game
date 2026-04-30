@@ -16,11 +16,11 @@ public class PTColor : IScriptGDObject
 	[ScriptProperty] public float B { get => color.B; set => color.B = value; }
 	[ScriptProperty] public float A { get => color.A; set => color.A = value; }
 
-	public static PTColor FromGDClass(object clr)
+	public static PTColor FromGDClass(Color clr)
 	{
 		return new PTColor()
 		{
-			color = (Color)clr
+			color = clr
 		};
 	}
 

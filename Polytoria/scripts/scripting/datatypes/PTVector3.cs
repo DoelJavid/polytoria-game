@@ -29,11 +29,11 @@ public class PTVector3 : IScriptGDObject
 	[ScriptProperty] public PTVector3 Normalized => FromGDClass(vector.Normalized());
 	[ScriptProperty] public float SqrMagnitude => vector.LengthSquared();
 
-	public static PTVector3 FromGDClass(object vec)
+	public static PTVector3 FromGDClass(Vector3 vec)
 	{
 		return new PTVector3()
 		{
-			vector = (Vector3)vec
+			vector = vec
 		};
 	}
 
@@ -217,4 +217,26 @@ public class PTVector3 : IScriptGDObject
 	}
 	//public static Vector3 SlerpUnclamped(Vector3 a, Vector3 b, float t) => a.SlerpUnclamped(b, t);
 	//public static Vector3 SmoothDamp(Vector3 current, Vector3 target, ref Vector3 currentVelocity, float smoothTime, float maxSpeed, float deltaTime) => current.SmoothDamp(target, ref currentVelocity, smoothTime, maxSpeed, deltaTime);
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Floor(PTVector3 val) => FromGDClass(val.vector.Floor());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Ceil(PTVector3 val) => FromGDClass(val.vector.Ceil());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Round(PTVector3 val) => FromGDClass(val.vector.Round());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Abs(PTVector3 val) => FromGDClass(val.vector.Abs());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Sign(PTVector3 val) => FromGDClass(val.vector.Sign());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Clamp(PTVector3 val, PTVector3 min, PTVector3 max) => FromGDClass(val.vector.Clamp(min.vector, max.vector));
+
+	[ScriptMethod(ConvertParamsToGD = false)]
+	public static PTVector3 RadToDeg(PTVector3 val) => FromGDClass(new()
+	{
+		X = Mathf.RadToDeg(val.X),
+		Y = Mathf.RadToDeg(val.Y),
+		Z = Mathf.RadToDeg(val.Z),
+	});
+
+	[ScriptMethod(ConvertParamsToGD = false)]
+	public static PTVector3 DegToRad(PTVector3 val) => FromGDClass(new()
+	{
+		X = Mathf.DegToRad(val.X),
+		Y = Mathf.DegToRad(val.Y),
+		Z = Mathf.DegToRad(val.Z),
+	});
 }

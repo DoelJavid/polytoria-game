@@ -18,11 +18,11 @@ public class PTQuaternion : IScriptGDObject
 	[ScriptProperty] public float W { get => quat.W; set => quat.W = value; }
 	[ScriptProperty] public static PTQuaternion Identity => new() { X = 0, Y = 0, Z = 0, W = 1 };
 
-	public static PTQuaternion FromGDClass(object qu)
+	public static PTQuaternion FromGDClass(Quaternion qu)
 	{
 		return new PTQuaternion()
 		{
-			quat = (Quaternion)qu
+			quat = qu
 		};
 	}
 
@@ -89,9 +89,9 @@ public class PTQuaternion : IScriptGDObject
 	}
 
 	[ScriptMethod(ConvertParamsToGD = false)]
-	public static PTQuaternion Angle(PTQuaternion a, PTQuaternion b)
+	public static float Angle(PTQuaternion a, PTQuaternion b)
 	{
-		return FromGDClass(a.quat.AngleTo(b.quat));
+		return a.quat.AngleTo(b.quat);
 	}
 
 	[ScriptMethod]
@@ -101,9 +101,9 @@ public class PTQuaternion : IScriptGDObject
 	}
 
 	[ScriptMethod(ConvertParamsToGD = false)]
-	public static PTQuaternion Dot(PTQuaternion a, PTQuaternion b)
+	public static float Dot(PTQuaternion a, PTQuaternion b)
 	{
-		return FromGDClass(a.quat.Dot(b.quat));
+		return a.quat.Dot(b.quat);
 	}
 
 	[ScriptMethod]

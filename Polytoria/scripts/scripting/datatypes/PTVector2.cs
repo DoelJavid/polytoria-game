@@ -27,7 +27,7 @@ public class PTVector2 : IScriptGDObject
 	[ScriptProperty] public PTVector2 Normalized => FromGDClass(-vector.Normalized());
 	[ScriptProperty] public float SqrMagnitude => vector.LengthSquared();
 
-	public static PTVector2 FromGDClass(object vec)
+	public static PTVector2 FromGDClass(Vector2 vec)
 	{
 		return new PTVector2()
 		{
@@ -156,7 +156,7 @@ public class PTVector2 : IScriptGDObject
 	}
 
 	[ScriptMethod(ConvertParamsToGD = false)] public static float Angle(PTVector2 from, PTVector2 to) => from.vector.AngleTo(to.vector);
-	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Cross(PTVector2 lhs, PTVector2 rhs) => FromGDClass(lhs.vector.Cross(rhs.vector));
+	[ScriptMethod(ConvertParamsToGD = false)] public static float Cross(PTVector2 lhs, PTVector2 rhs) => lhs.vector.Cross(rhs.vector);
 	[ScriptMethod(ConvertParamsToGD = false)] public static float Distance(PTVector2 a, PTVector2 b) => a.vector.DistanceTo(b.vector);
 	[ScriptMethod(ConvertParamsToGD = false)] public static float Dot(PTVector2 lhs, PTVector2 rhs) => lhs.vector.Dot(rhs.vector);
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Lerp(PTVector2 a, PTVector2 b, float t) => FromGDClass(a.vector.Lerp(b.vector, t));
@@ -167,4 +167,10 @@ public class PTVector2 : IScriptGDObject
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Project(PTVector2 vector, PTVector2 onNormal) => FromGDClass(vector.vector.Project(onNormal.vector));
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Reflect(PTVector2 inDirection, PTVector2 inNormal) => FromGDClass(inDirection.vector.Reflect(inNormal.vector));
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Slerp(PTVector2 a, PTVector2 b, float t) => FromGDClass(a.vector.Slerp(b.vector, t));
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Floor(PTVector2 val) => FromGDClass(val.vector.Floor());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Ceil(PTVector2 val) => FromGDClass(val.vector.Ceil());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Round(PTVector2 val) => FromGDClass(val.vector.Round());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Abs(PTVector2 val) => FromGDClass(val.vector.Abs());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Sign(PTVector2 val) => FromGDClass(val.vector.Sign());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector2 Clamp(PTVector2 val, PTVector2 min, PTVector2 max) => FromGDClass(val.vector.Clamp(min.vector, max.vector));
 }

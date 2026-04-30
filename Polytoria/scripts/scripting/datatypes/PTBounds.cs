@@ -18,11 +18,11 @@ public class PTBounds : IScriptGDObject
 	[ScriptProperty, ScriptLegacyProperty("Max")] public Vector3 End { get => aabb.End; set => aabb.End = value; }
 	[ScriptProperty] public float Volume => aabb.Volume;
 
-	public static PTBounds FromGDClass(object bound)
+	public static PTBounds FromGDClass(Aabb bound)
 	{
 		return new PTBounds()
 		{
-			aabb = (Aabb)bound
+			aabb = bound
 		};
 	}
 
