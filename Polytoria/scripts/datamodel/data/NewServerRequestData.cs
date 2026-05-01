@@ -9,7 +9,7 @@ namespace Polytoria.Datamodel.Data;
 
 public partial class NewServerRequestData : IScriptObject
 {
-	[ScriptProperty] public string PlacePath { get; set; } = "";
+	[ScriptProperty] public string WorldPath { get; set; } = "";
 	[ScriptProperty] public int MaxPlayers { get; set; } = 12;
 
 	[ScriptMethod]

@@ -24,9 +24,9 @@ public sealed partial class WorldsService : Instance
 	private readonly Dictionary<string, MessageNewServerResponse> _testServers = [];
 
 	[ScriptMethod]
-	public async Task<string?> NewServerAsync(string placePath)
+	public async Task<string?> NewServerAsync(string worldPath)
 	{
-		return await NewServerAsync(new NewServerRequestData() { PlacePath = placePath });
+		return await NewServerAsync(new NewServerRequestData() { WorldPath = worldPath });
 	}
 
 	[ScriptMethod]
@@ -39,7 +39,7 @@ public sealed partial class WorldsService : Instance
 			if (Root.Entry.DebugAgent == null) throw new Exception("Debugger not attached, could not start new server");
 
 			string newID = Guid.NewGuid().ToString();
-			MessageNewServerResponse newServer = await Root.Entry.DebugAgent.CreateServerInstance(data.PlacePath);
+			MessageNewServerResponse newServer = await Root.Entry.DebugAgent.CreateServerInstance(data.WorldPath);
 			_testServers.Add(newID, newServer);
 			return newID;
 		}
@@ -47,7 +47,7 @@ public sealed partial class WorldsService : Instance
 	}
 
 	[ScriptMethod]
-	public async Task JoinPlaceAsync(Player plr, string to)
+	public async Task JoinWorldAsync(Player plr, string to)
 	{
 		if (!Root.Network.IsServer) throw new InvalidOperationException(WorldAPINonServerMsg);
 		if (plr.teleporting) throw new Exception("Player is already teleporting");
@@ -63,7 +63,7 @@ public sealed partial class WorldsService : Instance
 	}
 
 	[ScriptMethod]
-	public async Task JoinPlacePartyAsync(Player[] plrs, string to)
+	public async Task JoinWorldPartyAsync(Player[] plrs, string to)
 	{
 		if (!Root.Network.IsServer) throw new InvalidOperationException(WorldAPINonServerMsg);
 
