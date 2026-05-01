@@ -178,7 +178,7 @@ public sealed partial class Tool : RigidBody
 		_hasDynChild = Children.Any(i => i is Dynamic);
 		if (Holder != null && Holder.Character != null)
 		{
-			Holder.Character.SetBlendValue(CharacterModel.CharacterBlend.ToolHoldRight, _hasDynChild ? 1 : 0);
+			Holder.Character.SetBlendValue(CharacterModel.CharacterModelBlendEnum.ToolHoldRight, _hasDynChild ? 1 : 0);
 		}
 	}
 

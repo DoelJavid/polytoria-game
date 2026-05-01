@@ -64,7 +64,7 @@ public class DefaultMovement : IPlayerMovement
 	public void ProcessInput(InputSnapshot snapshot)
 	{
 		bool isOnFloor = Target.CharBody3D.IsOnFloor();
-		CharacterModel.CharacterState finalState = CharacterModel.CharacterState.Idle;
+		CharacterModel.CharacterModelStateEnum finalState = CharacterModel.CharacterModelStateEnum.Idle;
 
 		double delta = snapshot.Delta;
 
@@ -113,7 +113,7 @@ public class DefaultMovement : IPlayerMovement
 				// Add y velocity
 				Target.CharacterVelocity.Y = climbSpeed;
 
-				finalState = CharacterModel.CharacterState.Climbing;
+				finalState = CharacterModel.CharacterModelStateEnum.Climbing;
 				Target.Character?.SetAnimSpeed(climbSpeed / 8);
 			}
 			else if (Target.JustFinishedClimbing)
@@ -146,12 +146,12 @@ public class DefaultMovement : IPlayerMovement
 
 				if (sprinting && Target.SprintSpeed != Target.WalkSpeed)
 				{
-					finalState = CharacterModel.CharacterState.Running;
+					finalState = CharacterModel.CharacterModelStateEnum.Running;
 					Target.Character?.SetAnimSpeed(gdWalkSpeed / 20);
 				}
 				else
 				{
-					finalState = CharacterModel.CharacterState.Walking;
+					finalState = CharacterModel.CharacterModelStateEnum.Walking;
 					Target.Character?.SetAnimSpeed(gdWalkSpeed / 8);
 				}
 			}
@@ -164,13 +164,13 @@ public class DefaultMovement : IPlayerMovement
 				Target.CharacterVelocity.Z = Mathf.MoveToward(Target.CharacterVelocity.Z, 0, gdWalkSpeed);
 
 				Target.Character?.SetAnimSpeed(1);
-				finalState = CharacterModel.CharacterState.Idle;
+				finalState = CharacterModel.CharacterModelStateEnum.Idle;
 			}
 
 			if (!isOnFloor && !Target.IsClimbing)
 			{
 				Target.Character?.SetAnimSpeed(1);
-				finalState = CharacterModel.CharacterState.Jumping;
+				finalState = CharacterModel.CharacterModelStateEnum.Jumping;
 			}
 
 			// Remove debounce if touched the ground
@@ -197,7 +197,7 @@ public class DefaultMovement : IPlayerMovement
 
 		if (isOnFloor && Target.IsMoving && !Target.IsClimbing && !Target.IsSitting)
 		{
-			Target.CheckForStairs();
+			Target.TryStepUp();
 		}
 	}
 }

@@ -599,7 +599,7 @@ public partial class NPC : Physical
 		bool isOnCeiling = CharBody3D.IsOnCeiling();
 		bool playerNPCOverride = this is Player p && !p.CanMove;
 
-		CharacterModel.CharacterState finalState = CharacterModel.CharacterState.Idle;
+		CharacterModel.CharacterModelStateEnum finalState = CharacterModel.CharacterModelStateEnum.Idle;
 		Vector3? walkTarget = null;
 		float animSpeed = 1;
 
@@ -623,9 +623,9 @@ public partial class NPC : Physical
 
 			if (distanceToTarget > 0.5f)
 			{
-				finalState = CharacterModel.CharacterState.Walking;
+				finalState = CharacterModel.CharacterModelStateEnum.Walking;
 				animSpeed = WalkSpeed / 8;
-				CheckForStairs();
+				TryStepUp();
 			}
 		}
 		else if (this is not Player || playerNPCOverride)
@@ -635,7 +635,7 @@ public partial class NPC : Physical
 
 		if (!isOnFloor)
 		{
-			finalState = CharacterModel.CharacterState.Jumping;
+			finalState = CharacterModel.CharacterModelStateEnum.Jumping;
 		}
 
 		if (this is not Player || playerNPCOverride)
@@ -700,6 +700,15 @@ public partial class NPC : Physical
 	}
 
 	[ScriptMethod]
+	public void Move(Vector3 velo)
+	{
+		CharacterVelocity = velo.Flip();
+		UpdateVelocityInternal(CharacterVelocity);
+		CharBody3D.Velocity = Velocity.Flip();
+		CharBody3D.MoveAndSlide();
+	}
+
+	[ScriptMethod]
 	public void Kill()
 	{
 		Health = 0;
@@ -729,30 +738,31 @@ public partial class NPC : Physical
 		Died.Invoke();
 	}
 
-	internal void CheckForStairs()
+	[ScriptMethod]
+	public bool TryStepUp()
 	{
 		if (CharBody3D == null)
 		{
-			return;
+			return false;
 		}
 
 		if (!CharBody3D.IsOnFloor())
 		{
-			return;
+			return false;
 		}
 
 		int slideCount = CharBody3D.GetSlideCollisionCount();
 
 		if (slideCount <= 0)
 		{
-			return;
+			return false;
 		}
 
 		Vector3 desiredVelocity = Velocity;
 		Vector3 desiredXZ = new(desiredVelocity.X, 0f, desiredVelocity.Z);
 		if (desiredXZ.LengthSquared() < 0.0001f)
 		{
-			return;
+			return false;
 		}
 
 		float groundY;
@@ -761,7 +771,7 @@ public partial class NPC : Physical
 			bool hasGround = CharBody3D.TestMove(CharBody3D.GlobalTransform, Vector3.Down * (StepHeight + 0.05f), downHit, 0.001f, true);
 			if (!hasGround)
 			{
-				return;
+				return false;
 			}
 
 			groundY = downHit.GetPosition().Y;
@@ -814,8 +824,10 @@ public partial class NPC : Physical
 			CharBody3D.GlobalPosition += stepUpPointOffset;
 			CharBody3D.Velocity = desiredVelocity;
 
-			return;
+			return true;
 		}
+
+		return false;
 	}
 
 	[ScriptMethod]
@@ -878,7 +890,7 @@ public partial class NPC : Physical
 		SittingIn = seat;
 		seat.Occupant = this;
 		seat.InvokeSat(this);
-		Character?.SetBlendValue(CharacterModel.CharacterBlend.Sitting, 1);
+		Character?.SetBlendValue(CharacterModel.CharacterModelBlendEnum.Sitting, 1);
 	}
 
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.Reliable, CallLocal = true)]
@@ -897,7 +909,7 @@ public partial class NPC : Physical
 				SittingIn = null;
 			}
 
-			Character?.SetBlendValue(CharacterModel.CharacterBlend.Sitting, 0);
+			Character?.SetBlendValue(CharacterModel.CharacterModelBlendEnum.Sitting, 0);
 		}
 	}
 
@@ -987,7 +999,7 @@ public partial class NPC : Physical
 			_toolRemoteTransform?.QueueFree();
 		}
 
-		Character?.SetBlendValue(CharacterModel.CharacterBlend.ToolHoldRight, 0);
+		Character?.SetBlendValue(CharacterModel.CharacterModelBlendEnum.ToolHoldRight, 0);
 	}
 
 	[ScriptMethod, ScriptLegacyMethod("DropTools")]

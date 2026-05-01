@@ -702,6 +702,7 @@ public sealed partial class NetworkService : Instance
 			}
 		}
 
+		PeerPreInit?.Invoke(peerID);
 		ReplicateSync.SyncPlaceToPlayer(plr);
 
 		// Connection timeout
@@ -878,7 +879,6 @@ public sealed partial class NetworkService : Instance
 		{
 			ActivePeerIDs.Remove(peerID);
 			ActivePeerIDs.Add(peerID);
-			PeerPreInit?.Invoke(peerID);
 
 			if (IsServer)
 			{

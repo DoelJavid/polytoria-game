@@ -15,9 +15,9 @@ public partial class CharacterAnimHelper : Node
 {
 	public CharacterModel Target = null!;
 
-	public bool StateIdle => Target.CurrentState == CharacterState.Idle;
-	public bool StateWalking => Target.CurrentState == CharacterState.Walking;
-	public bool StateRunning => Target.CurrentState == CharacterState.Running;
-	public bool StateJumping => Target.CurrentState == CharacterState.Jumping;
-	public bool StateClimbing => Target.CurrentState == CharacterState.Climbing;
+	public bool StateIdle => Target.CurrentState == CharacterModelStateEnum.Idle;
+	public bool StateWalking => Target.CurrentState == CharacterModelStateEnum.Walking;
+	public bool StateRunning => Target.CurrentState == CharacterModelStateEnum.Running;
+	public bool StateJumping => Target.CurrentState == CharacterModelStateEnum.Jumping;
+	public bool StateClimbing => Target.CurrentState == CharacterModelStateEnum.Climbing;
 }

@@ -636,24 +636,24 @@ public sealed partial class PolytorianModel : CharacterModel
 		return result;
 	}
 
-	public override void RecvBlendValue(CharacterBlend blendName, float blendValue)
+	public override void RecvBlendValue(CharacterModelBlendEnum blendName, float blendValue)
 	{
 		string propName = "";
 		switch (blendName)
 		{
-			case CharacterBlend.Sitting:
+			case CharacterModelBlendEnum.Sitting:
 				propName = "parameters/Sit/blend_amount";
 				break;
-			case CharacterBlend.ToolHoldLeft:
+			case CharacterModelBlendEnum.ToolHoldLeft:
 				propName = "parameters/GearHold_L/blend_amount";
 				break;
-			case CharacterBlend.ToolHoldRight:
+			case CharacterModelBlendEnum.ToolHoldRight:
 				propName = "parameters/GearHold_R/blend_amount";
 				break;
-			case CharacterBlend.LookX:
+			case CharacterModelBlendEnum.LookX:
 				propName = "parameters/LookXAdd/add_amount";
 				break;
-			case CharacterBlend.LookY:
+			case CharacterModelBlendEnum.LookY:
 				propName = "parameters/LookYAdd/add_amount";
 				break;
 		}
@@ -706,8 +706,8 @@ public sealed partial class PolytorianModel : CharacterModel
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.UnreliableOrdered)]
 	private void NetRecvLookBlend(float lookYBlend, float lookXBlend)
 	{
-		RecvBlendValue(CharacterBlend.LookX, lookXBlend);
-		RecvBlendValue(CharacterBlend.LookY, lookYBlend);
+		RecvBlendValue(CharacterModelBlendEnum.LookX, lookXBlend);
+		RecvBlendValue(CharacterModelBlendEnum.LookY, lookYBlend);
 	}
 
 	[ScriptMethod]

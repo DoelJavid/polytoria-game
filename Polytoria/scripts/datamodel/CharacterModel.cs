@@ -13,12 +13,12 @@ namespace Polytoria.Datamodel;
 [Instantiable]
 public partial class CharacterModel : Dynamic
 {
-	private CharacterState _currentState = CharacterState.Idle;
+	private CharacterModelStateEnum _currentState = CharacterModelStateEnum.Idle;
 	private float _currentSpeed = 1;
-	private readonly Dictionary<CharacterBlend, float> _blendValues = [];
+	private readonly Dictionary<CharacterModelBlendEnum, float> _blendValues = [];
 	private Animator? _animator = null!;
 
-	public enum CharacterState
+	public enum CharacterModelStateEnum
 	{
 		Idle,
 		Walking,
@@ -27,7 +27,7 @@ public partial class CharacterModel : Dynamic
 		Climbing
 	}
 
-	public enum CharacterBlend
+	public enum CharacterModelBlendEnum
 	{
 		Sitting,
 		ToolHoldLeft,
@@ -36,8 +36,8 @@ public partial class CharacterModel : Dynamic
 		LookY,
 	}
 
-	[SyncVar(AllowAuthorWrite = true)]
-	public CharacterState CurrentState
+	[ScriptProperty, SyncVar(AllowAuthorWrite = true)]
+	public CharacterModelStateEnum CurrentState
 	{
 		get => _currentState;
 		set
@@ -47,7 +47,7 @@ public partial class CharacterModel : Dynamic
 		}
 	}
 
-	[SyncVar(AllowAuthorWrite = true, Unreliable = true)]
+	[ScriptProperty, SyncVar(AllowAuthorWrite = true, Unreliable = true)]
 	public float CurrentSpeed
 	{
 		get => _currentSpeed;
@@ -96,7 +96,7 @@ public partial class CharacterModel : Dynamic
 
 	private void OnPeerPreInit(int id)
 	{
-		foreach ((CharacterBlend blend, float val) in _blendValues)
+		foreach ((CharacterModelBlendEnum blend, float val) in _blendValues)
 		{
 			RpcId(id, nameof(NetSetBlendValue), (int)blend, val);
 		}
@@ -104,27 +104,27 @@ public partial class CharacterModel : Dynamic
 
 	public void PlayIdle()
 	{
-		SetState(CharacterState.Idle);
+		SetState(CharacterModelStateEnum.Idle);
 	}
 
 	public void PlayWalk()
 	{
-		SetState(CharacterState.Walking);
+		SetState(CharacterModelStateEnum.Walking);
 	}
 
 	public void PlayRun()
 	{
-		SetState(CharacterState.Running);
+		SetState(CharacterModelStateEnum.Running);
 	}
 
 	public void PlayJump()
 	{
-		SetState(CharacterState.Jumping);
+		SetState(CharacterModelStateEnum.Jumping);
 	}
 
 	public void PlayClimb()
 	{
-		SetState(CharacterState.Climbing);
+		SetState(CharacterModelStateEnum.Climbing);
 	}
 
 	public void SetAnimSpeed(float speed)
@@ -132,7 +132,7 @@ public partial class CharacterModel : Dynamic
 		CurrentSpeed = speed;
 	}
 
-	public void SetState(CharacterState newState)
+	public void SetState(CharacterModelStateEnum newState)
 	{
 		if (newState != CurrentState)
 		{
@@ -140,7 +140,7 @@ public partial class CharacterModel : Dynamic
 		}
 	}
 
-	public void SetBlendValue(CharacterBlend blend, float value)
+	public void SetBlendValue(CharacterModelBlendEnum blend, float value)
 	{
 		InternalSetBlendValue(blend, value);
 		if (HasAuthority)
@@ -152,16 +152,16 @@ public partial class CharacterModel : Dynamic
 	[NetRpc(AuthorityMode.Authority, TransferMode = TransferMode.Reliable)]
 	private void NetSetBlendValue(int blendName, float blendValue)
 	{
-		InternalSetBlendValue((CharacterBlend)blendName, blendValue);
+		InternalSetBlendValue((CharacterModelBlendEnum)blendName, blendValue);
 	}
 
-	private void InternalSetBlendValue(CharacterBlend blendName, float blendValue)
+	private void InternalSetBlendValue(CharacterModelBlendEnum blendName, float blendValue)
 	{
 		_blendValues[blendName] = blendValue;
 		RecvBlendValue(blendName, blendValue);
 	}
 
-	public virtual void RecvBlendValue(CharacterBlend blendName, float blendValue) { }
+	public virtual void RecvBlendValue(CharacterModelBlendEnum blendName, float blendValue) { }
 	public virtual void RecvSpeedValue(float speedValue) { }
 
 	[ScriptMethod]

@@ -876,7 +876,7 @@ public sealed partial class Player : NPC
 
 		Tool tool = (Tool)netObj;
 
-		Character?.SetBlendValue(CharacterModel.CharacterBlend.ToolHoldRight, 0);
+		Character?.SetBlendValue(CharacterModel.CharacterModelBlendEnum.ToolHoldRight, 0);
 		tool.Parent = Inventory;
 		HoldingTool = null;
 		tool.InvokeUnequipped();
