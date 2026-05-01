@@ -98,6 +98,7 @@ public sealed partial class ScriptService : Instance
 		{ "ParticleOrientation", typeof(Particles.ParticleOrientationEnum) },
 		{ "TextureFilter", typeof(TextureFilterEnum) },
 		{ "CharacterModelState", typeof(CharacterModel.CharacterModelStateEnum) },
+		{ "PlayerMovementMode", typeof(Player.PlayerMovementModeEnum) },
 #if CREATOR
 		{ "CreatorToolMode", typeof(ToolModeEnum) },
 		{ "AddonPermission", typeof(CreatorAddons.AddonPermissionEnum) },
