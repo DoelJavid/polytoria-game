@@ -222,6 +222,8 @@ public class PTVector3 : IScriptGDObject
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Round(PTVector3 val) => FromGDClass(val.vector.Round());
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Abs(PTVector3 val) => FromGDClass(val.vector.Abs());
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Sign(PTVector3 val) => FromGDClass(val.vector.Sign());
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Rotated(PTVector3 val, PTVector3 axis, float angle) => FromGDClass(val.vector.Rotated(axis.vector, angle));
+	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 LimitLength(PTVector3 val, float length) => FromGDClass(val.vector.LimitLength(length));
 	[ScriptMethod(ConvertParamsToGD = false)] public static PTVector3 Clamp(PTVector3 val, PTVector3 min, PTVector3 max) => FromGDClass(val.vector.Clamp(min.vector, max.vector));
 
 	[ScriptMethod(ConvertParamsToGD = false)]
