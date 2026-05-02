@@ -830,10 +830,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 			}
 			finally
 			{
-				lock (state)
-				{
-					state.Unref(coRef);
-				}
+				co.Unref(coRef);
 			}
 		}
 
