@@ -158,7 +158,7 @@ public sealed partial class World : Instance
 			// Set window title
 			if (value != null && value.LinkedSession != null)
 			{
-				DisplayServer.WindowSetTitle($"Polytoria Creator - {value.LinkedSession.Metadata.ProjectName}");
+				DisplayServer.WindowSetTitle($"{value.LinkedSession.Metadata.ProjectName} - Polytoria Creator v{Globals.AppVersion}");
 				CreatorService.CurrentSession = value.LinkedSession;
 			}
 #endif
@@ -499,7 +499,7 @@ public sealed partial class World : Instance
 		if (WorldInfo.HasValue)
 		{
 			// Set Window title to game name
-			DisplayServer.WindowSetTitle($"{TitleEllipsis(WorldInfo.Value.Name, 50)} - Polytoria");
+			DisplayServer.WindowSetTitle($"{TitleEllipsis(WorldInfo.Value.Name, 50)} - Polytoria v{Globals.AppVersion}");
 
 			WorldInfoReady?.Invoke(WorldInfo.Value);
 		}
