@@ -25,6 +25,7 @@ public partial class GamepadFocusbox : Control
 	{
 		if (@event is InputEventJoypadButton || @event is InputEventJoypadMotion joyMotion && Mathf.Abs(joyMotion.AxisValue) > 0.2f)
 		{
+			if (@event.HasMeta("emulated")) return;
 			_isGamepadActive = true;
 		}
 		else if (@event is InputEventKey || @event is InputEventMouseButton || @event is InputEventMouseMotion)

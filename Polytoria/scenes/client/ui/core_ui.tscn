@@ -330,6 +330,7 @@ offset_left = 16.0
 offset_top = 16.0
 offset_right = 176.0
 offset_bottom = 64.0
+mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="Menu" type="Button" parent="Control/MenuButton" unique_id=1444695920 node_paths=PackedStringArray("_menuAnim")]
@@ -469,6 +470,7 @@ layout_mode = 2
 
 [node name="Indicators" type="HBoxContainer" parent="Control/MenuButton" unique_id=261986808]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 script = ExtResource("17_gx3lw")
 

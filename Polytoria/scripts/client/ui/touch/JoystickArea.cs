@@ -39,6 +39,8 @@ public partial class JoystickArea : InputFallbackBase
 			Axis = JoyAxis.LeftY,
 			AxisValue = -normalized.Y
 		};
+		leftX.SetMeta("emulated", 1);
+		leftY.SetMeta("emulated", 1);
 
 		Input.ParseInputEvent(leftX);
 		Input.ParseInputEvent(leftY);
