@@ -355,6 +355,10 @@ public sealed partial class ScriptService : Instance
 		// unwrap Nullable and check the inner type
 		Type underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
 
+		// double to string
+		if (targetType == typeof(string) && arg is IConvertible)
+			return true;
+
 		// Enum, any integer-ish value works
 		if (underlying.IsEnum)
 			return arg is int or long or short or byte or double;
@@ -405,6 +409,11 @@ public sealed partial class ScriptService : Instance
 		// IConvertible fallback
 		if (arg is IConvertible && typeof(IConvertible).IsAssignableFrom(underlying))
 			return true;
+
+		// string to double
+		if (arg is string s && (underlying == typeof(int) || underlying == typeof(long)
+			|| underlying == typeof(short) || underlying == typeof(float) || underlying == typeof(double)))
+			return double.TryParse(s, out _);
 
 		return false;
 	}
