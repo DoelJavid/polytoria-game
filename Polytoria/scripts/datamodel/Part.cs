@@ -22,6 +22,8 @@ public partial class Part : Entity
 
 	private Node3D _nRemoteAt = null!; // Remote collider proxy
 
+	internal Shape3D ColliderShape => _collider.Shape;
+
 	public bool IsMeshSeparated => _isSeparateMesh;
 	public int BridgeID = -1;
 

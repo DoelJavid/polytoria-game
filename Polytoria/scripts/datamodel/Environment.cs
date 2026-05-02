@@ -24,7 +24,7 @@ public sealed partial class Environment : Instance
 	private Camera? _currentCamera;
 	private Camera3D? _cameraOverride;
 	private bool _navBaking = false;
-	private readonly List<StaticBody3D> _navTemps = [];
+	private readonly List<Node3D> _navTemps = [];
 
 	internal Camera3D? CurrentGDCamera;
 
@@ -231,7 +231,7 @@ public sealed partial class Environment : Instance
 
 	private void OnNavMeshBaked()
 	{
-		foreach (StaticBody3D item in _navTemps)
+		foreach (var item in _navTemps)
 		{
 			item.QueueFree();
 		}
@@ -448,28 +448,33 @@ public sealed partial class Environment : Instance
 			AgentHeight = 6,
 			AgentMaxSlope = 70,
 			CellSize = 1,
+			CellHeight = 1,
+			AgentMaxClimb = 1.5f
 		};
 
 		_navTemps.Clear();
 
+		// Build navigation mesh
 		foreach (Instance i in GetDescendants())
 		{
-			if (i is Entity phy)
+			if (i is Part part)
 			{
-				Aabb aabb = phy.CalculateBounds();
 				StaticBody3D staticBody = new();
 				_navRegion.AddChild(staticBody);
 				_navTemps.Add(staticBody);
 
-				CollisionShape3D collisionShape = new();
-				BoxShape3D boxShape = new()
+				CollisionShape3D collisionShape = new()
 				{
-					Size = aabb.Size
+					Shape = part.ColliderShape
 				};
-
-				collisionShape.Shape = boxShape;
-				collisionShape.Position = aabb.GetCenter();
 				staticBody.AddChild(collisionShape);
+				collisionShape.GlobalTransform = part.GetGlobalTransform();
+			}
+			else if (i is Mesh m)
+			{
+				Node3D md = (Node3D)m.GDNode.Duplicate();
+				_navRegion.AddChild(md);
+				_navTemps.Add(md);
 			}
 		}
 		_navRegion.NavigationMesh = _navMesh;

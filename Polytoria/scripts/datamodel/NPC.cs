@@ -42,6 +42,7 @@ public partial class NPC : Physical
 	private bool _lastOnFloorState = false;
 	private float _timeSinceGrounded = 0f;
 	private bool _coyoteUsed = false;
+	private Node3D? _navAgentContainer;
 	private NavigationAgent3D? _navAgent;
 
 	private Vector3 _nametagOffset = Vector3.Zero;
@@ -611,6 +612,9 @@ public partial class NPC : Physical
 		if (_navAgent != null)
 		{
 			walkTarget = _navAgent.GetNextPathPosition();
+
+			// Adjust Nav agent position in-case of unstable Y position changes
+			_navAgentContainer?.GlobalPosition = _navAgentContainer.GlobalPosition with { Y = walkTarget.Value.Y };
 		}
 
 		if (walkTarget.HasValue)
@@ -1052,7 +1056,17 @@ public partial class NPC : Physical
 		MoveTarget = null;
 		if (_navAgent == null)
 		{
-			GDNode3D.AddChild(_navAgent = new() { PathDesiredDistance = NavigationDistance, TargetDesiredDistance = 0.5f, PathHeightOffset = -3 });
+			_navAgentContainer = new();
+			_navAgent = new()
+			{
+				PathDesiredDistance = NavigationDistance,
+				TargetDesiredDistance = 0.5f,
+				PathHeightOffset = -(CalculateBounds().Size.Y / 2),
+				PathMaxDistance = 3f,
+			};
+
+			_navAgentContainer.AddChild(_navAgent);
+			GDNode3D.AddChild(_navAgentContainer);
 			if (Globals.IsInGDEditor)
 			{
 				_navAgent.DebugEnabled = true;
@@ -1065,7 +1079,7 @@ public partial class NPC : Physical
 
 	private void OnNavFinished()
 	{
-		_navAgent?.QueueFree();
+		_navAgentContainer?.QueueFree();
 		_navAgent = null;
 		NavFinished.Invoke();
 	}
