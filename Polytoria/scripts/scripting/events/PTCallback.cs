@@ -16,7 +16,7 @@ public class PTCallback(Action<object?[]> target) : IDisposable, IScriptObject
 {
 	public Delegate? OriginalDelegate = null!;
 	public Action<object?[]> TargetAction = target;
-	public ScriptLanguageProvider LangProvider = null!;
+	public IScriptLanguageProvider LangProvider = null!;
 	public Script? FromScript;
 	private bool _disposed = false;
 	public bool Disposed => _disposed;

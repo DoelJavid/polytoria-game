@@ -19,6 +19,8 @@ public partial class Script : Instance
 	internal Scripting.Luau.LuaState? LuauState;
 	internal Scripting.Luau.LuaState? LuauMainThread;
 
+	internal byte[]? Bytecode;
+
 	internal readonly Dictionary<object, int> LuauUserdataCache = [];
 	internal readonly HashSet<Scripting.Luau.LuaObject> LuauObjectCache = [];
 	internal readonly HashSet<IntPtr> LuauFunctionPointers = [];
@@ -101,7 +103,7 @@ public partial class Script : Instance
 	/// </summary>
 	internal bool ShouldContinue => (this is ModuleScript || Ran) && IsEnabled && !IsDeleted;
 
-	public ScriptLanguageProvider LanguageProvider = null!;
+	public IScriptLanguageProvider LanguageProvider = null!;
 
 	public ScriptLanguagesEnum ChosenLanguage = ScriptLanguagesEnum.Luau;
 	public ScriptPermissionFlags PermissionFlags = 0;
@@ -113,7 +115,7 @@ public partial class Script : Instance
 		if (Ran) return;
 		if (IsHidden) return;
 		if (!IsEnabled) return;
-		if (Source == "" || Source == "<empty>") return;
+		if (Source == "" && Bytecode == null) return;
 		if ((this is ServerScript && !Root.IsLoaded) || !IsNetworkReady) return;
 		if (this is ClientScript && Root.Network.IsServer) return;
 		if (this is ServerScript && !Root.Network.IsServer) return;
@@ -220,5 +222,11 @@ public partial class Script : Instance
 	public void LinkWithScriptFile(string scriptPath)
 	{
 		LinkedScript = Root.Assets.GetFileLinkByPath(scriptPath);
+	}
+
+	public void TryCompile()
+	{
+		if (Bytecode != null) return;
+		Root.ScriptService.CompileScript(this);
 	}
 }

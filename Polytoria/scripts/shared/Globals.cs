@@ -482,6 +482,11 @@ public sealed partial class Globals : Node
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 	}
 
+	public async Task WaitPhysicsFrame()
+	{
+		await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+	}
+
 	public async void Quit(bool force = false, int code = 0)
 	{
 #if CREATOR

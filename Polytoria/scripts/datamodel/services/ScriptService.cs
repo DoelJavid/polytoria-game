@@ -105,7 +105,7 @@ public sealed partial class ScriptService : Instance
 #endif
 	};
 
-	private readonly Dictionary<ScriptLanguagesEnum, ScriptLanguageProvider> _languageProviders = [];
+	private readonly Dictionary<ScriptLanguagesEnum, IScriptLanguageProvider> _languageProviders = [];
 
 	public LogDispatcher Logger { get; private set; } = null!;
 
@@ -132,9 +132,9 @@ public sealed partial class ScriptService : Instance
 
 	public override void PreDelete()
 	{
-		foreach (ScriptLanguageProvider provider in _languageProviders.Values)
+		foreach (var provider in _languageProviders.Values)
 		{
-			provider.QueueFree();
+			provider.Dispose();
 		}
 		base.PreDelete();
 	}
@@ -143,13 +143,25 @@ public sealed partial class ScriptService : Instance
 	{
 		PT.Print("Running script: ", script.LuaPath);
 
-		if (!_languageProviders.TryGetValue(script.ChosenLanguage, out ScriptLanguageProvider? provider))
+		if (!_languageProviders.TryGetValue(script.ChosenLanguage, out var provider))
 		{
 			throw new Exception(script.ChosenLanguage + " is not provided");
 		}
 
 		script.LanguageProvider = provider;
 		provider.Run(script);
+	}
+
+	public void CompileScript(Script script)
+	{
+		if (!_languageProviders.TryGetValue(script.ChosenLanguage, out var provider))
+		{
+			throw new Exception(script.ChosenLanguage + " is not provided");
+		}
+
+		if (string.IsNullOrWhiteSpace(script.Source)) return;
+
+		script.Bytecode = provider.CompileSource(script.Source);
 	}
 
 	public void Close(Script script)
@@ -159,11 +171,9 @@ public sealed partial class ScriptService : Instance
 		script.LanguageProvider.Close(script);
 	}
 
-	private void RegisterLanguageProvider(ScriptLanguagesEnum lang, ScriptLanguageProvider provider)
+	private void RegisterLanguageProvider(ScriptLanguagesEnum lang, IScriptLanguageProvider provider)
 	{
 		_languageProviders.Add(lang, provider);
-		provider.Name = lang.ToString();
-		Globals.Singleton.AddChild(provider, true);
 	}
 
 	public static Dictionary<string, IScriptObject?> GetStaticObjects(World root, Script? script = null)

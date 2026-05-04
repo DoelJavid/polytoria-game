@@ -982,7 +982,7 @@ public sealed partial class NetworkService : Instance
 		[JsonInclude]
 		public string NetID = null!;
 		[JsonInclude]
-		public string Source = null!;
+		public byte[] Bytecode = null!;
 	}
 
 	[JsonSerializable(typeof(string))]

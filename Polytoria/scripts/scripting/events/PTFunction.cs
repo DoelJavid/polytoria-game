@@ -12,7 +12,7 @@ namespace Polytoria.Scripting;
 public class PTFunction(Func<object?[], Task<object?[]>> target) : IScriptObject
 {
 	public Func<object?[], Task<object?[]>> _targetAction = target;
-	public ScriptLanguageProvider LangProvider = null!;
+	public IScriptLanguageProvider LangProvider = null!;
 
 	public async Task<object?[]> Call(params object?[]? args)
 	{

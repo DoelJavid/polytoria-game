@@ -8,6 +8,7 @@ using Polytoria.Datamodel;
 using Polytoria.Datamodel.Services;
 using Polytoria.Shared;
 using Polytoria.Utils.Compression;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using static Polytoria.Datamodel.Services.NetworkService;
@@ -39,7 +40,16 @@ public partial class NetworkScriptSync : Instance
 				if (item is Datamodel.Script cs)
 				{
 					if (_useNetworkLog) { PT.Print($"[Net] [ScriptSync] Packing {cs.Name} source"); }
-					data.Add(new() { NetID = cs.NetworkedObjectID, Source = cs.Source });
+					try
+					{
+						cs.TryCompile();
+					}
+					catch (Exception ex)
+					{
+						RpcId(peerID, nameof(NetLogCompileError), ex.Message);
+						continue;
+					}
+					data.Add(new() { NetID = cs.NetworkedObjectID, Bytecode = cs.Bytecode! });
 				}
 			}
 		}
@@ -63,7 +73,7 @@ public partial class NetworkScriptSync : Instance
 				if (obj is Datamodel.Script s)
 				{
 					if (_useNetworkLog) { PT.Print($"[Net] [ScriptSync] Recv {s.Name} source"); }
-					s.Source = item.Source;
+					s.Bytecode = item.Bytecode;
 				}
 			}
 			else
@@ -92,19 +102,34 @@ public partial class NetworkScriptSync : Instance
 		{
 			if (obj is Datamodel.Script script)
 			{
-				RpcId(r, nameof(NetRecvSource), netID, script.Source);
+				try
+				{
+					script.TryCompile();
+				}
+				catch (Exception ex)
+				{
+					RpcId(r, nameof(NetLogCompileError), ex.Message);
+					return;
+				}
+				RpcId(r, nameof(NetRecvSource), netID, script.Bytecode);
 			}
 		}
 	}
 
 	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
-	private void NetRecvSource(string netID, string source)
+	private void NetRecvSource(string netID, byte[] byteCode)
 	{
 		NetworkedObject? obj = NetService.Root.GetNetObjectFromID(netID);
 		if (obj != null && obj is ClientScript script)
 		{
-			script.Source = source;
+			script.Bytecode = byteCode;
 			script.TryRun();
 		}
+	}
+
+	[NetRpc(AuthorityMode.Server, TransferMode = TransferMode.Reliable)]
+	private void NetLogCompileError(string msg)
+	{
+		NetService.Root.ScriptService.Logger.DispatchLog(new() { Content = msg, LogType = Scripting.LogDispatcher.LogTypeEnum.Error });
 	}
 }

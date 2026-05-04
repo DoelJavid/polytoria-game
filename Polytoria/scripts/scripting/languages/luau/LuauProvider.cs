@@ -27,7 +27,7 @@ using Script = Polytoria.Datamodel.Script;
 
 namespace Polytoria.Scripting.Luau;
 
-public sealed partial class LuauProvider : ScriptLanguageProvider
+public sealed partial class LuauProvider : IScriptLanguageProvider
 {
 	private const DynamicallyAccessedMemberTypes DynamicallyAccessedTypes = DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods;
 	private const int GCStepThreshold = 100;
@@ -109,28 +109,26 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		GlobalLuaState.OpenLibs();
 	}
 
-	public override void Run(Script script)
+	public void Run(Script script)
 	{
 		PT.Print("Running script: ", script.LuaPath);
-		// Special flag
-		if (script.Source.StartsWith("--@DISABLE_COMPAT") || script.Source.StartsWith("---@DISABLE_COMPAT"))
-		{
-			PT.Print("Flag found, disabling compat");
-			script.Compatibility = false;
-		}
 		LuaState state = InitalizeScript(script);
 
-		string source = script.Source;
-
-		if (script.Compatibility)
-		{
-			source = source.Replace("!=", "~=");
-		}
-
+		// Try compile
 		try
 		{
-			byte[] compiled = LuaState.Compile(source);
-			state.Load(script.LuaPath, compiled);
+			script.TryCompile();
+		}
+		catch (Exception e)
+		{
+			script.Root.ScriptService.Logger.LogError(script, e.Message);
+			return;
+		}
+
+		// Load & Run
+		try
+		{
+			state.Load(script.LuaPath, script.Bytecode!);
 
 			async void run()
 			{
@@ -143,6 +141,11 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		{
 			script.Root.ScriptService.Logger.LogError(script, e.Message);
 		}
+	}
+
+	public byte[] CompileSource(string source)
+	{
+		return LuaState.Compile(source);
 	}
 
 	public LuaState InitalizeScript(Script script)
@@ -321,7 +324,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		return mainThread;
 	}
 
-	public override async Task CallAsync(Script script, string funcName, object?[]? args)
+	public async Task CallAsync(Script script, string funcName, object?[]? args)
 	{
 		if (script.LuauMainThread == null || !script.LuauMainThread.IsAlive)
 		{
@@ -364,7 +367,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		}
 	}
 
-	public override void Close(Script script)
+	public void Close(Script script)
 	{
 		if (script.LuauState == null) return;
 
@@ -382,7 +385,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		PTSignal.CleanupScript(script);
 	}
 
-	public override void CallUpdate(Script script, double delta)
+	public void CallUpdate(Script script, double delta)
 	{
 		if (script.LuauMainThread == null || !script.LuauMainThread.IsAlive) return;
 		string updateKeyword = "_Update";
@@ -395,7 +398,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		CallAsync(script, updateKeyword, [delta]).Wait();
 	}
 
-	public override void CallFixedUpdate(Script script, double delta)
+	public void CallFixedUpdate(Script script, double delta)
 	{
 		if (script.LuauMainThread == null || !script.LuauMainThread.IsAlive) return;
 		string updateKeyword = "_FixedUpdate";
@@ -658,11 +661,11 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		{
 			if (n != 0)
 			{
-				await ToSignal(GetTree().CreateTimer(n), SceneTreeTimer.SignalName.Timeout);
+				await Globals.Singleton.WaitAsync((float)n);
 			}
 			else
 			{
-				await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+				await Globals.Singleton.WaitPhysicsFrame();
 			}
 
 			PushValueToLua(lua, true);
@@ -1619,7 +1622,7 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 		return type.Name;
 	}
 
-	public override void FreePTCallback(PTCallback action)
+	public void FreePTCallback(PTCallback action)
 	{
 		PTCallbackData? data = _ptrToCallback.Values.FirstOrDefault(data => data.Callback == action);
 		if (data.HasValue)
@@ -1695,6 +1698,8 @@ public sealed partial class LuauProvider : ScriptLanguageProvider
 	{
 		return GetGlobalTablePtr<LogDispatcher>(state, _loggerPtr)!;
 	}
+
+	public void Dispose() { }
 
 	private readonly struct MethodsCacheKey(Type type, string methodName, bool isCompatibility) : IEquatable<MethodsCacheKey>
 	{
