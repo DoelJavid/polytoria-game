@@ -207,7 +207,7 @@ public partial class UITextInput : UIView
 			{
 				_fontAsset.LinkTo(this);
 				_fontAsset.ResourceLoaded += OnFontLoaded;
-				
+
 				if (_fontAsset.IsResourceLoaded && _fontAsset.Resource != null)
 				{
 					OnFontLoaded(_fontAsset.Resource);

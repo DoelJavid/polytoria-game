@@ -6,7 +6,6 @@ using Godot;
 using Polytoria.Providers.AssetLoaders;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -100,7 +99,7 @@ public partial class AssetLoader : Node
 		_ = WaitForResource(task.Value, item, callback);
 	}
 
-	private async Task WaitForResource(Task<CacheItem> task, CacheItem item, Action<CacheItem> callback)
+	private static async Task WaitForResource(Task<CacheItem> task, CacheItem item, Action<CacheItem> callback)
 	{
 		try
 		{

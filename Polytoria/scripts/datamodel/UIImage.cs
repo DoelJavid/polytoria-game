@@ -42,7 +42,7 @@ public partial class UIImage : UIField
 				Loading = true;
 				_imageAsset.LinkTo(this);
 				_imageAsset.ResourceLoaded += OnResourceLoaded;
-				
+
 				if (_imageAsset.IsResourceLoaded && _imageAsset.Resource != null)
 				{
 					OnResourceLoaded(_imageAsset.Resource);

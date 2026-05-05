@@ -190,7 +190,7 @@ public sealed partial class Text3D : Dynamic
 			{
 				_fontAsset.LinkTo(this);
 				_fontAsset.ResourceLoaded += OnFontLoaded;
-				
+
 				if (_fontAsset.IsResourceLoaded && _fontAsset.Resource != null)
 				{
 					OnFontLoaded(_fontAsset.Resource);

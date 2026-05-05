@@ -50,7 +50,7 @@ public sealed partial class Tool : RigidBody
 			{
 				_iconImage.LinkTo(this);
 				_iconImage.ResourceLoaded += OnToolImageLoaded;
-				
+
 				if (_iconImage.IsResourceLoaded && _iconImage.Resource != null)
 				{
 					OnToolImageLoaded(_iconImage.Resource);

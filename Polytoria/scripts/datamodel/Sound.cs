@@ -56,7 +56,7 @@ public sealed partial class Sound : Dynamic
 				Loading = true;
 				_asset.LinkTo(this);
 				_asset.ResourceLoaded += OnResourceLoaded;
-				
+
 				if (_asset.IsResourceLoaded && _asset.Resource != null)
 				{
 					OnResourceLoaded(_asset.Resource);

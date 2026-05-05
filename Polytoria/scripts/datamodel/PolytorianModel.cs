@@ -184,7 +184,7 @@ public sealed partial class PolytorianModel : CharacterModel
 				AddLoadCount();
 				_faceImage.LinkTo(this);
 				_faceImage.ResourceLoaded += OnFaceLoaded;
-				
+
 				if (_faceImage.IsResourceLoaded && _faceImage.Resource != null)
 				{
 					OnFaceLoaded(_faceImage.Resource);
