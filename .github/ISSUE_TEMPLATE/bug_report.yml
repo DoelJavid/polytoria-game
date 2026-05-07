@@ -156,9 +156,9 @@ body:
       required: true
 
   - type: textarea
-    id: extra_context
+    id: extra_details
     attributes:
-      label: Additional context
+      label: Additional details
       description: Anything else you want to add about the bug?
     validations:
       required: false

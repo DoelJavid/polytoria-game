@@ -77,7 +77,7 @@ body:
       required: true
   
   - type: textarea
-    id: details
+    id: extra_details
     attributes:
       label: Additional details
       description: Any other information, such as implementation details, related issues, or links to examples.
