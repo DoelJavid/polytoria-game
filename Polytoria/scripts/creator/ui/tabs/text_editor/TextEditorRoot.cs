@@ -178,6 +178,11 @@ public partial class TextEditorRoot : Node
 		{
 			_finder.Open(CodeEditor.GetSelectedText());
 		}
+		else if (@event.IsActionPressed("textedit_toggle_comment"))
+		{
+			CodeEditor.AcceptEvent();
+			ToggleComment();
+		}
 		else if (@event.IsActionPressed("ui_cancel"))
 		{
 			_finder.Close();
@@ -325,5 +330,47 @@ public partial class TextEditorRoot : Node
 		}
 
 		return lineText.Substring(startPos, column - startPos);
+	}
+
+	private bool IsSelectionCommented()
+	{
+		for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
+		{
+			for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
+			{
+				string lineText = CodeEditor.GetLine(lineIdx);
+				if (!lineText.StartsWith("--"))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public void ToggleComment()
+	{
+		if (IsSelectionCommented())
+		{
+			for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
+			{
+				for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
+				{
+					string lineText = CodeEditor.GetLine(lineIdx);
+					CodeEditor.SetLine(lineIdx, lineText.Remove(0, 2));
+				}
+			}
+		}
+		else
+		{
+			for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
+			{
+				for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
+				{
+					string lineText = CodeEditor.GetLine(lineIdx);
+					CodeEditor.SetLine(lineIdx, "--" + lineText);
+				}
+			}
+		}
 	}
 }
