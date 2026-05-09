@@ -22,6 +22,7 @@ public partial class Light : Dynamic
 	private bool _enabled = true;
 	private Color _color = new(1, 1, 1);
 	private float _brightness = 2;
+	private float _size = 0;
 	private float _specular = 0.5f;
 	private bool _shadows = false;
 
@@ -65,6 +66,18 @@ public partial class Light : Dynamic
 		{
 			_brightness = value;
 			LightNode.LightEnergy = value / IntensityConversion;
+			OnPropertyChanged();
+		}
+	}
+
+	[Editable, ScriptProperty]
+	public float Size
+	{
+		get => _size;
+		set
+		{
+			_size = value;
+			LightNode.LightSize = value;
 			OnPropertyChanged();
 		}
 	}
