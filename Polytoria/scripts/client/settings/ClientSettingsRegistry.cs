@@ -24,6 +24,28 @@ public static class ClientSettingsRegistry
 	private static Dictionary<string, SettingDef> Build()
 	{
 		var defs = new Dictionary<string, SettingDef>();
+
+		defs.Add(ClientSettingKeys.Graphics.Preset,
+			new SettingDef<GraphicsPreset>
+			{
+				Key = ClientSettingKeys.Graphics.Preset,
+				SectionKey = "graphics",
+				Label = "Graphics Preset",
+				Description = "Overall graphics quality preset.",
+				ValueKind = SettingValueKind.Enum,
+				ControlKind = SettingControlKind.Dropdown,
+				DefaultValue = GraphicsPreset.Medium,
+				Options =
+				[
+					new() { Value = GraphicsPreset.Low, Label = "Low" },
+					new() { Value = GraphicsPreset.Medium, Label = "Medium" },
+					new() { Value = GraphicsPreset.High, Label = "High" },
+					new() { Value = GraphicsPreset.Ultra, Label = "Ultra" },
+					new() { Value = GraphicsPreset.Photo, Label = "Photo" },
+					new() { Value = GraphicsPreset.Custom, Label = "Custom" },
+				]
+			});
+
 		SharedSettingsRegistry.AddSharedTo(defs);
 
 		defs.Add(ClientSettingKeys.Graphics.RenderScale,
@@ -93,27 +115,6 @@ public static class ClientSettingsRegistry
 				MinValue = 5f,
 				MaxValue = 1250f,
 				Step = 5f
-			});
-
-		defs.Add(ClientSettingKeys.Graphics.Preset,
-			new SettingDef<GraphicsPreset>
-			{
-				Key = ClientSettingKeys.Graphics.Preset,
-				SectionKey = "graphics",
-				Label = "Graphics Preset",
-				Description = "Overall graphics quality preset.",
-				ValueKind = SettingValueKind.Enum,
-				ControlKind = SettingControlKind.Dropdown,
-				DefaultValue = GraphicsPreset.Medium,
-				Options =
-				[
-					new() { Value = GraphicsPreset.Low, Label = "Low" },
-					new() { Value = GraphicsPreset.Medium, Label = "Medium" },
-					new() { Value = GraphicsPreset.High, Label = "High" },
-					new() { Value = GraphicsPreset.Ultra, Label = "Ultra" },
-					new() { Value = GraphicsPreset.Photo, Label = "Photo" },
-					new() { Value = GraphicsPreset.Custom, Label = "Custom" },
-				]
 			});
 
 		defs.Add(ClientSettingKeys.PostProcessing.Glow,
