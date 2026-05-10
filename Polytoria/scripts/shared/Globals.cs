@@ -348,6 +348,17 @@ public sealed partial class Globals : Node
 		return mat;
 	}
 
+	public static void SetNormalMapsEnabled(bool enabled)
+	{
+		foreach (var mat in _materialCache.Values)
+		{
+			if (mat is ShaderMaterial shaderMat)
+			{
+				shaderMat.SetShaderParameter("use_normal_texture", enabled);
+			}
+		}
+	}
+
 	public static Material LoadSkybox(string materialName)
 	{
 		return ForceLoadResource(_skyboxesCache, materialName, $"{SkyboxesPath}{materialName}.tres");
