@@ -332,17 +332,25 @@ public partial class TextEditorRoot : Node
 		return lineText.Substring(startPos, column - startPos);
 	}
 
-	private bool IsSelectionCommented()
+	public IEnumerable<int> GetSelectedLines()
 	{
 		for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
 		{
 			for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
 			{
-				string lineText = CodeEditor.GetLine(lineIdx);
-				if (!lineText.StartsWith("--"))
-				{
-					return false;
-				}
+				yield return lineIdx;
+			}
+		}
+	}
+
+	private bool IsSelectionCommented()
+	{
+		foreach (int lineIdx in GetSelectedLines())
+		{
+			string lineText = CodeEditor.GetLine(lineIdx);
+			if (!lineText.StartsWith("--"))
+			{
+				return false;
 			}
 		}
 		return true;
@@ -352,24 +360,18 @@ public partial class TextEditorRoot : Node
 	{
 		if (IsSelectionCommented())
 		{
-			for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
+			foreach (int lineIdx in GetSelectedLines())
 			{
-				for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
-				{
-					string lineText = CodeEditor.GetLine(lineIdx);
-					CodeEditor.SetLine(lineIdx, lineText.Remove(0, 2));
-				}
+				string lineText = CodeEditor.GetLine(lineIdx);
+				CodeEditor.SetLine(lineIdx, lineText.Remove(0, 2));
 			}
 		}
 		else
 		{
-			for (int caretIdx = 0; caretIdx < CodeEditor.GetCaretCount(); caretIdx++)
+			foreach (int lineIdx in GetSelectedLines())
 			{
-				for (int lineIdx = CodeEditor.GetSelectionFromLine(caretIdx); lineIdx <= CodeEditor.GetSelectionToLine(caretIdx); lineIdx++)
-				{
-					string lineText = CodeEditor.GetLine(lineIdx);
-					CodeEditor.SetLine(lineIdx, "--" + lineText);
-				}
+				string lineText = CodeEditor.GetLine(lineIdx);
+				CodeEditor.SetLine(lineIdx, "--" + lineText);
 			}
 		}
 	}
