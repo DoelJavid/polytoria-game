@@ -228,6 +228,19 @@ public static class SharedSettingsRegistry
 				}
 			},
 			{
+				SharedSettingKeys.PostProcessing.NormalMaps,
+				new SettingDef<bool>
+				{
+					Key = SharedSettingKeys.PostProcessing.NormalMaps,
+					SectionKey = "post_processing",
+					Label = "Normal Maps",
+					Description = "Toggle normal maps on part materials.",
+					ValueKind = SettingValueKind.Bool,
+					ControlKind = SettingControlKind.Toggle,
+					DefaultValue = true
+				}
+			},
+			{
 				SharedSettingKeys.PostProcessing.SdfgiCellSize,
 				new SettingDef<float>
 				{

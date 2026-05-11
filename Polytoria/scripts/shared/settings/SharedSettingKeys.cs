@@ -34,5 +34,6 @@ public static class SharedSettingKeys
 		public const string SdfgiCellSize = "graphics.post_processing.sdfgi_cell_size";
 		public const string SdfgiCascades = "graphics.post_processing.sdfgi_cascades";
 		public const string SsilRadius = "graphics.post_processing.ssil_radius";
+		public const string NormalMaps = "graphics.post_processing.normal_maps";
 	}
 }

@@ -83,6 +83,8 @@ public sealed partial class GraphicsSettingsApplier : Node
 
 	private void ApplyPostProcessing()
 	{
+		ApplyNormalMaps();
+
 		World? world = World.Current;
 		if (world?.Lighting == null)
 		{
@@ -90,6 +92,16 @@ public sealed partial class GraphicsSettingsApplier : Node
 		}
 
 		world.Lighting.ApplyGraphicsSettings(Settings!);
+	}
+
+	private void ApplyNormalMaps()
+	{
+		bool enabled = Settings!.Get<bool>(SharedSettingKeys.PostProcessing.NormalMaps);
+		if (Globals.IsMobileBuild)
+		{
+			enabled = false;
+		}
+		Globals.SetNormalMapsEnabled(enabled);
 	}
 
 	private void ApplyRenderScale()

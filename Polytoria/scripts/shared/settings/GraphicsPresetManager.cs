@@ -21,6 +21,7 @@ public static class GraphicsPresetManager
 		SharedSettingKeys.PostProcessing.Ssr,
 		SharedSettingKeys.PostProcessing.Ssil,
 		SharedSettingKeys.PostProcessing.Sdfgi,
+		SharedSettingKeys.PostProcessing.NormalMaps,
 	};
 
 	public static bool IsPresetManagedKey(string key)
@@ -37,7 +38,8 @@ public static class GraphicsPresetManager
 		bool Ssao,
 		bool Ssr,
 		bool Ssil,
-		bool Sdfgi
+		bool Sdfgi,
+		bool NormalMaps
 	)
 	{
 		public void ApplyTo(ISettingsContext settings)
@@ -51,6 +53,7 @@ public static class GraphicsPresetManager
 			settings.Set(SharedSettingKeys.PostProcessing.Ssr, Ssr);
 			settings.Set(SharedSettingKeys.PostProcessing.Ssil, Ssil);
 			settings.Set(SharedSettingKeys.PostProcessing.Sdfgi, Sdfgi);
+			settings.Set(SharedSettingKeys.PostProcessing.NormalMaps, NormalMaps);
 		}
 	}
 
@@ -65,7 +68,8 @@ public static class GraphicsPresetManager
 			Ssao: false,
 			Ssr: false,
 			Ssil: false,
-			Sdfgi: false
+			Sdfgi: false,
+			NormalMaps: false
 		),
 		[GraphicsPreset.Medium] = new(
 			RenderScale: 1.0f,
@@ -76,7 +80,8 @@ public static class GraphicsPresetManager
 			Ssao: true,
 			Ssr: false,
 			Ssil: false,
-			Sdfgi: false
+			Sdfgi: false,
+			NormalMaps: true
 		),
 		[GraphicsPreset.High] = new(
 			RenderScale: 1.0f,
@@ -87,7 +92,8 @@ public static class GraphicsPresetManager
 			Ssao: true,
 			Ssr: true,
 			Ssil: false,
-			Sdfgi: false
+			Sdfgi: false,
+			NormalMaps: true
 		),
 		[GraphicsPreset.Ultra] = new(
 			RenderScale: 1.0f,
@@ -98,7 +104,8 @@ public static class GraphicsPresetManager
 			Ssao: true,
 			Ssr: true,
 			Ssil: true,
-			Sdfgi: false
+			Sdfgi: false,
+			NormalMaps: true
 		),
 		[GraphicsPreset.Photo] = new(
 			RenderScale: 1.0f,
@@ -109,7 +116,8 @@ public static class GraphicsPresetManager
 			Ssao: true,
 			Ssr: true,
 			Ssil: true,
-			Sdfgi: true
+			Sdfgi: true,
+			NormalMaps: true
 		),
 	};
 
