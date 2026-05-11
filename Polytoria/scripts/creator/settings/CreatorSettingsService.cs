@@ -50,6 +50,9 @@ public sealed partial class CreatorSettingsService : SettingsServiceBase
 		Load();
 		ApplyDefaults();
 
+		if (!FileAccess.FileExists(SettingsPathConst))
+			Set(SharedSettingKeys.Graphics.Preset, GraphicsPreset.Medium);
+
 		RenderingMethodOption renderingMethod = Get<RenderingMethodOption>(SharedSettingKeys.Graphics.RenderingMethod);
 		RenderingDeviceSwitcher.Switch(RenderingDeviceSwitcher.FromRenderingMethodOption(renderingMethod));
 	}
