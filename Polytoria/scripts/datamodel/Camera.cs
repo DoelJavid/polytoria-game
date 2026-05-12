@@ -454,7 +454,7 @@ public sealed partial class Camera : Dynamic
 				}
 			}
 
-			_currentZoom = (float)Mathf.Lerp(_currentZoom, _targetZoom, delta * ScrollLerpSpeed);
+			_currentZoom = (float)Mathf.Lerp(_currentZoom, _targetZoom, Mathf.Clamp(delta * ScrollLerpSpeed, 0, 1));
 			float finalizedZoom = _currentZoom;
 
 			_turnY2.Position = new Vector3(0, 0, _currentZoom);
