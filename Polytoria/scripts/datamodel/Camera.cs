@@ -8,6 +8,7 @@ using Polytoria.Attributes;
 using Polytoria.Client.Settings;
 using Polytoria.Scripting;
 using Polytoria.Shared.Misc;
+using Polytoria.Utils;
 using System;
 using static Polytoria.Datamodel.Environment;
 
@@ -454,7 +455,7 @@ public sealed partial class Camera : Dynamic
 				}
 			}
 
-			_currentZoom = (float)Mathf.Lerp(_currentZoom, _targetZoom, Mathf.Clamp(delta * ScrollLerpSpeed, 0, 1));
+			_currentZoom = (float)Mathf.Lerp(_currentZoom, _targetZoom, MathUtils.ExpDecay((float)delta, ScrollLerpSpeed));
 			float finalizedZoom = _currentZoom;
 
 			_turnY2.Position = new Vector3(0, 0, _currentZoom);
@@ -497,7 +498,7 @@ public sealed partial class Camera : Dynamic
 			// Apply position/rotation
 			if (FollowLerp)
 			{
-				GDNode3D.GlobalPosition = GDNode3D.GlobalPosition.Lerp(posSetto, (float)(delta * LerpSpeed));
+				GDNode3D.GlobalPosition = GDNode3D.GlobalPosition.Lerp(posSetto, MathUtils.ExpDecay((float)delta, LerpSpeed));
 			}
 			else
 			{

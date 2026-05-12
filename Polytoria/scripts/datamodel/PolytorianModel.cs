@@ -430,8 +430,7 @@ public sealed partial class PolytorianModel : CharacterModel
 			{
 				targetBlendSpeed = LookBlendSpeed;
 
-				float lerpT = Mathf.Clamp((float)delta * targetBlendSpeed, 0, 1);
-				newValue = Mathf.Lerp(current, target, lerpT);
+				newValue = Mathf.Lerp(current, target, MathUtils.ExpDecay((float)delta, targetBlendSpeed));
 			}
 			else
 			{
