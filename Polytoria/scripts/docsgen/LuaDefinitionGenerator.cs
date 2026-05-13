@@ -80,8 +80,8 @@ public class LuaDefinitionGenerator
 
 		foreach (ScriptClass item in refer.Classes)
 		{
-			// Ignore PTSignal, already declared
-			if (item.Name == "PTSignal") continue;
+			// Ignore already declared types
+			if (item.Name == "PTSignal" || item.Name == "PTSignalConnection") continue;
 
 			builder.AppendLine(GenerateClass(item));
 		}
