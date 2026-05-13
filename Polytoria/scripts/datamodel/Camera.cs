@@ -991,7 +991,8 @@ public sealed partial class Camera : Dynamic
 		if (World.Current == null) throw new InvalidOperationException("World is null");
 		Transform3D globalTransform = GetGlobalTransform();
 		Vector3 origin = globalTransform.Origin;
-		Vector3 direction = globalTransform.Basis.Z;
+		// In GoDot the Z axis points to the Camera
+		Vector3 direction = -globalTransform.Basis.Z;
 
 		Datamodel.Environment.RayResult? hit = GetPlacementRay(ignoreList);
 
@@ -1010,7 +1011,8 @@ public sealed partial class Camera : Dynamic
 		if (World.Current == null) throw new InvalidOperationException("World is null");
 		Transform3D globalTransform = GetGlobalTransform();
 		Vector3 origin = globalTransform.Origin;
-		Vector3 direction = globalTransform.Basis.Z;
+		// In GoDot the Z axis points to the Camera
+		Vector3 direction = -globalTransform.Basis.Z;
 
 		return World.Current.Environment.Raycast(origin, direction, 20, ignoreList);
 	}
