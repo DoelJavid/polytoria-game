@@ -3,5 +3,7 @@ namespace Polytoria.Enums;
 public enum TextureFilterEnum
 {
 	Nearest,
-	Linear
+	NearestNoMipmaps,
+	Linear,
+	LinearNoMipmaps
 }
