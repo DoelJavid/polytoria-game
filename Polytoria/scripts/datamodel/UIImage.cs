@@ -199,6 +199,7 @@ public partial class UIImage : UIField
 		Loading = false;
 	}
 
+	[ScriptEnum]
 	public enum ImageStretchModeEnum
 	{
 		Stretch,

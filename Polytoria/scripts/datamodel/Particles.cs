@@ -475,12 +475,14 @@ public sealed partial class Particles : Dynamic
 		temp.Finished += finishEmit;
 	}
 
+	[ScriptEnum]
 	public enum ParticleSimulationSpaceEnum
 	{
 		Local,
 		World
 	}
 
+	[ScriptEnum]
 	public enum ParticleEmissionShapeEnum
 	{
 		Point,
@@ -490,6 +492,7 @@ public sealed partial class Particles : Dynamic
 		Ring
 	}
 
+	[ScriptEnum]
 	public enum ParticleOrientationEnum
 	{
 		FaceCamera,
