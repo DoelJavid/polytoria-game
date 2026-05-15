@@ -635,7 +635,11 @@ public sealed partial class Camera : Dynamic
 	{
 		if (Mode != CameraModeEnum.Follow) return;
 		_turning = true;
+
+		Vector2 screenCenter = GDNode.GetViewport().GetVisibleRect().GetCenter();
 		_turnStartPos = GDNode.GetViewport().GetMousePosition();
+		GDNode.GetViewport().WarpMouse(screenCenter);
+
 		Root.Input.OverrideMousePosTo = Root.Input.MousePosition;
 		Root.Input.OverrideMousePos = true;
 		Input.MouseMode = Input.MouseModeEnum.Captured;
