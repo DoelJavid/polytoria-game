@@ -242,7 +242,7 @@ public partial class Dynamic : Instance
 		}
 	}
 
-	[ScriptProperty] public Vector3 Forward => GetGlobalTransform().Basis.Z.Normalized();
+	[ScriptProperty] public Vector3 Forward => -GetGlobalTransform().Basis.Z.Normalized();
 	[ScriptProperty] public Vector3 Right => GetGlobalTransform().Basis.X.Normalized();
 	[ScriptProperty] public Vector3 Up => GetGlobalTransform().Basis.Y.Normalized();
 
@@ -320,7 +320,7 @@ public partial class Dynamic : Instance
 	public bool AutoUpdateNetTransform { get; internal set; } = true;
 
 	/// <summary>
-	/// Set to true if transform will be overrided, essentially ignoring network transform 
+	/// Set to true if transform will be overrided, essentially ignoring network transform
 	/// </summary>
 	public bool OverrideNetworkTransform { get; internal set; } = false;
 
@@ -369,10 +369,10 @@ public partial class Dynamic : Instance
 		else
 		{
 			// Lerp position and rotation
-			Vector3 newPosition = _currentTransform.Origin.Lerp(_netTransform.Origin, (float)(delta * LerpSpeed));
+			Vector3 newPosition = _currentTransform.Origin.Lerp(_netTransform.Origin, MathUtils.ExpDecay((float)delta, LerpSpeed));
 			Quaternion currentRotation = _currentTransform.Basis.GetRotationQuaternion().Normalized();
 			Quaternion targetRotation = _netTransform.Basis.GetRotationQuaternion().Normalized();
-			Quaternion newRotation = currentRotation.Slerp(targetRotation, (float)(delta * LerpSpeed));
+			Quaternion newRotation = currentRotation.Slerp(targetRotation, MathUtils.ExpDecay((float)delta, LerpSpeed));
 
 			Vector3 newScale = _netTransform.Basis.Scale;
 
