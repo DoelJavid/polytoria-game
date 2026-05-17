@@ -359,7 +359,7 @@ public partial class TextEditorRoot : Node
 			}
 		}
 
-		return lineText.Substring(startPos, column - startPos);
+		return lineText[startPos..column];
 	}
 
 	public IEnumerable<int> GetSelectedLines()
@@ -393,7 +393,7 @@ public partial class TextEditorRoot : Node
 			foreach (int lineIdx in GetSelectedLines())
 			{
 				string lineText = CodeEditor.GetLine(lineIdx);
-				CodeEditor.SetLine(lineIdx, lineText.Remove(0, 2));
+				CodeEditor.SetLine(lineIdx, lineText[2..]);
 			}
 		}
 		else
