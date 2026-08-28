@@ -21,6 +21,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static Polytoria.Datamodel.Services.NetworkService;
 
 namespace Polytoria.Datamodel;
@@ -42,6 +43,7 @@ public partial class NetworkedObject : IScriptObject
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _editablePropertiesCache = [];
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _scriptPropertiesCache = [];
 	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _syncPropertiesCache = [];
+	private static readonly ConditionalWeakTable<Type, PropertyInfo[]> _clonePropertiesCache = [];
 	private static readonly ConcurrentDictionary<NetworkedObject, Node> _netObjToProxy = new();
 	private static readonly ConcurrentDictionary<Node, NetworkedObject> _proxyToNetObj = new();
 	private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo?>> _syncPropertyByNameCache = new();
@@ -1636,29 +1638,17 @@ public partial class NetworkedObject : IScriptObject
 	public static void CopyProperties(NetworkedObject from, NetworkedObject to)
 	{
 		to.Root = from.Root;
-		Type thisClass = from.GetType();
-		Type cloneType = to.GetType();
-
-		IEnumerable<PropertyInfo> creatorProperties = from.GetEditableProperties();
-
-		IEnumerable<PropertyInfo> cloneIncludes = from.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			.Where(p => p.GetCustomAttribute<CloneIncludeAttribute>() != null);
-
-		creatorProperties = creatorProperties.Concat(cloneIncludes);
-
-		foreach (PropertyInfo prop in creatorProperties)
+		foreach (PropertyInfo prop in from.GetCloneProperties())
 		{
 			if (prop != null && prop.CanWrite && !prop.IsDefined(typeof(CloneIgnoreAttribute)))
 			{
 				try
 				{
 					object? val = prop.GetValue(from);
-
 					// Handle assets (ignore filelinks)
 					if (val is BaseAsset baseAsset && val is not FileLinkAsset)
 					{
-						NetworkedObject cloned = baseAsset.Clone();
-						prop.SetValue(to, cloned);
+						prop.SetValue(to, baseAsset.Clone());
 					}
 					// Handle referenced child
 					else if (val is Instance i && from is Instance fi && i.IsDescendantOf(fi))
@@ -2018,6 +2008,20 @@ public partial class NetworkedObject : IScriptObject
 				 p.IsDefined(typeof(SyncVarAttribute))) &&
 				!p.IsDefined(typeof(NoSyncAttribute))
 			)]
+		);
+#pragma warning restore IL2070 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The parameter of method does not have matching annotations.
+	}
+
+	internal IEnumerable<PropertyInfo> GetCloneProperties()
+	{
+#pragma warning disable IL2070 // Reflection access is already defined
+		return _clonePropertiesCache.GetOrAdd(GetType(), static type =>
+		[
+			.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+				.Where(p => p.IsDefined(typeof(ScriptPropertyAttribute)) || p.IsDefined(typeof(ScriptLegacyPropertyAttribute))),
+			.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(p => p.GetCustomAttribute<CloneIncludeAttribute>() != null)
+		]
 		);
 #pragma warning restore IL2070 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The parameter of method does not have matching annotations.
 	}
