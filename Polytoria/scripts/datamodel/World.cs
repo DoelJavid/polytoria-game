@@ -227,6 +227,12 @@ public sealed partial class World : Instance
 		return await WaitForNetObjectAsync(networkID);
 	}
 
+	[ScriptMethod]
+	public double GetFPS()
+	{
+		return Engine.GetFramesPerSecond();
+	}
+
 	[SyncVar]
 	public bool ServerUnderLoad
 	{
