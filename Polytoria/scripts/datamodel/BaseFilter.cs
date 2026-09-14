@@ -16,7 +16,7 @@ public partial class BaseFilter : Instance
 	{ get => null!; }
 
 	private bool _isEnabled;
-	private MultiPassView? _modifiedView = null;
+	private PTCompositor? _attachedCompositor = null;
 
 	[Editable, ScriptProperty, DefaultValue(true)]
 	public bool IsEnabled
@@ -50,15 +50,15 @@ public partial class BaseFilter : Instance
 		base.PreDelete();
 	}
 
-	private MultiPassView? GetView()
+	private PTCompositor? FindCompositor()
 	{
 		Instance? parent = Parent;
 		while (parent != null)
 		{
-			if (parent is World)
-				return ((World)parent).RootView;
-			else if (parent is UIViewport)
-				return ((UIViewport)parent).SubView;
+			if (parent is World world)
+				return world.Compositor;
+			else if (parent is UIViewport viewport)
+				return viewport.Compositor;
 			parent = parent.Parent;
 		}
 
@@ -74,7 +74,7 @@ public partial class BaseFilter : Instance
 		{
 			if (child is BaseFilter)
 				totalFilters++;
-			if (!(child is UIViewport))
+			if (child is not UIViewport)
 				totalFilters += GetDescendingFilters(child);
 		}
 
@@ -93,7 +93,7 @@ public partial class BaseFilter : Instance
 				Instance other = parent.Children[i];
 				if (other is BaseFilter)
 					totalFilters++;
-				if (!(other is UIViewport))
+				if (other is not UIViewport)
 					totalFilters += GetDescendingFilters(other);
 			}
 
@@ -107,25 +107,25 @@ public partial class BaseFilter : Instance
 
 	private void ApplyFilter()
 	{
-		MultiPassView? currentView = GetView();
-		if (currentView != _modifiedView)
+		PTCompositor? compositor = FindCompositor();
+		if (compositor != _attachedCompositor)
 		{
 			RemoveFilter();
 
-			_modifiedView = currentView;
-			if (_modifiedView != null)
+			_attachedCompositor = compositor;
+			if (_attachedCompositor != null)
 			{
-				_modifiedView.AddRenderPass(_shaderMaterial, GetIndex(this));
+				_attachedCompositor.AddRenderPass(_shaderMaterial, GetIndex(this));
 			}
 		}
 	}
 
 	private void RemoveFilter()
 	{
-		if (_modifiedView != null)
+		if (_attachedCompositor != null)
 		{
-			_modifiedView.RemoveRenderPass(_shaderMaterial);
-			_modifiedView = null;
+			_attachedCompositor.RemoveRenderPass(_shaderMaterial);
+			_attachedCompositor = null;
 		}
 	}
 

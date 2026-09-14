@@ -144,7 +144,7 @@ public sealed partial class World : Instance
 	// Why is this here???
 	//internal Viewport? RootViewport { get; set; }
 	public CanvasLayer? RenderCanvas = null!;
-	public MultiPassView? RootView = null!;
+	public PTCompositor? Compositor = null!;
 	internal ClientEntry? Entry { get; set; }
 
 	public static World? Current
@@ -269,7 +269,7 @@ public sealed partial class World : Instance
 		{
 			RenderCanvas.QueueFree();
 			RenderCanvas = null;
-			RootView = null;
+			Compositor = null;
 		}
 
 		base.PreDelete();
@@ -917,6 +917,7 @@ public sealed partial class World : Instance
 			environment.CurrentCamera = CreatorContext.Freelook;
 #endif
 
+		// TODO: Move this to Compositor Class.
 		if (World3D != null)
 		{
 			RenderCanvas = new() { Layer = 0 };
@@ -930,11 +931,11 @@ public sealed partial class World : Instance
 			RenderingServer.ViewportSetScenario(initialViewRid, World3D.Scenario);
 			RenderingServer.ViewportAttachCamera(initialViewRid, environment.CurrentCamera.Camera3D.GetCameraRid());
 
-			RootView = new(initialView);
-			RootView.MouseFilter = Control.MouseFilterEnum.Ignore;
-			RootView.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-			RootView.AddChild(initialView);
-			RenderCanvas.AddChild(RootView);
+			Compositor = new(initialView);
+			Compositor.MouseFilter = Control.MouseFilterEnum.Ignore;
+			Compositor.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+			Compositor.AddChild(initialView);
+			RenderCanvas.AddChild(Compositor);
 			GDNode.AddChild(RenderCanvas);
 		}
 

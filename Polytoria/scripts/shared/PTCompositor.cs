@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Polytoria.Shared;
 
-public partial class MultiPassView : Control
+public partial class PTCompositor : Control
 {
 	private List<Material> _materials = new();
 	private List<SubViewport> _renderViews = new();
@@ -37,9 +37,9 @@ public partial class MultiPassView : Control
 	public SubViewport? ProcessedView
 	{ get => _renderViews.Count != 0 ? _renderViews[_renderViews.Count - 1] : null; }
 
-	public MultiPassView()
+	public PTCompositor()
 	{ }
-	public MultiPassView(SubViewport initialView)
+	public PTCompositor(SubViewport initialView)
 	{
 		InitialView = initialView;
 	}

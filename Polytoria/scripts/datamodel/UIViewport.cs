@@ -11,19 +11,19 @@ namespace Polytoria.Datamodel;
 [Instantiable]
 public partial class UIViewport : UIField
 {
-	internal MultiPassView SubView = null!;
+	internal PTCompositor Compositor = null!;
 	private SubViewport _initialView = null!;
 	private WorldEnvironment _worldEnv = null!;
 
 	public override Node CreateGDNode()
 	{
 		_initialView = new() { HandleInputLocally = false, TransparentBg = true, OwnWorld3D = true };
-		SubView = new(_initialView) { FocusMode = Control.FocusModeEnum.None };
+		Compositor = new(_initialView) { FocusMode = Control.FocusModeEnum.None };
 
 		_worldEnv = new();
 		_initialView.AddChild(_worldEnv);
-		SubView.AddChild(_initialView);
-		return SubView;
+		Compositor.AddChild(_initialView);
+		return Compositor;
 	}
 
 	public override void InitGDNode()
