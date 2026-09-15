@@ -16,8 +16,9 @@ public partial class RetroizeFilter : BaseFilter
 	}
 
 	private int _pixelSize;
-	private int _bayerResolution;
+	private int _ditherStrength;
 	private int _brightnessLevels;
+	private Vector4I _colorDepth;
 
 	[Editable, ScriptProperty, DefaultValue(3)]
 	public int PixelSize
@@ -31,23 +32,56 @@ public partial class RetroizeFilter : BaseFilter
 	}
 
 	[Editable, ScriptProperty, DefaultValue(2)]
-	public int BayerResolution
+	public int DitherStrength
 	{
-		get => _bayerResolution;
+		get => _ditherStrength;
 		set
 		{
-			_bayerResolution = value;
+			_ditherStrength = value;
 			UpdateFilter();
 		}
 	}
 
-	[Editable, ScriptProperty, DefaultValue(8)]
-	public int BrightnessLevels
+	[Editable, ScriptProperty, DefaultValue(4)]
+	public int RedBitDepth
 	{
-		get => _brightnessLevels;
+		get => _colorDepth.X;
 		set
 		{
-			_brightnessLevels = value;
+			_colorDepth.X = value;
+			UpdateFilter();
+		}
+	}
+
+	[Editable, ScriptProperty, DefaultValue(4)]
+	public int GreenBitDepth
+	{
+		get => _colorDepth.Y;
+		set
+		{
+			_colorDepth.Y = value;
+			UpdateFilter();
+		}
+	}
+
+	[Editable, ScriptProperty, DefaultValue(4)]
+	public int BlueBitDepth
+	{
+		get => _colorDepth.Z;
+		set
+		{
+			_colorDepth.Z = value;
+			UpdateFilter();
+		}
+	}
+
+	[Editable, ScriptProperty, DefaultValue(4)]
+	public int AlphaBitDepth
+	{
+		get => _colorDepth.W;
+		set
+		{
+			_colorDepth.W = value;
 			UpdateFilter();
 		}
 	}
@@ -55,8 +89,8 @@ public partial class RetroizeFilter : BaseFilter
 	protected override void UpdateFilter()
 	{
 		_shaderMaterial.SetShaderParameter("pixel_size", _pixelSize);
-		_shaderMaterial.SetShaderParameter("bayer_resolution", _bayerResolution);
-		_shaderMaterial.SetShaderParameter("brightness_levels", _brightnessLevels);
+		_shaderMaterial.SetShaderParameter("dither_strength", _ditherStrength);
+		_shaderMaterial.SetShaderParameter("color_depth", _colorDepth);
 		base.UpdateFilter();
 	}
 }
