@@ -55,11 +55,14 @@ public partial class BaseFilter : Instance
 		Instance? parent = Parent;
 		while (parent != null)
 		{
-			if (parent is World world)
-				return world.Compositor;
-			else if (parent is UIViewport viewport)
-				return viewport.Compositor;
-			parent = parent.Parent;
+			switch (parent)
+			{
+				case World world: return world.Compositor;
+				case UIViewport view: return view.Compositor;
+				default:
+					parent = parent.Parent;
+					continue;
+			}
 		}
 
 		return null;
@@ -105,12 +108,12 @@ public partial class BaseFilter : Instance
 		return totalFilters;
 	}
 
-	private void ApplyFilter()
+	private void AttachFilter()
 	{
 		PTCompositor? compositor = FindCompositor();
 		if (compositor != _attachedCompositor)
 		{
-			RemoveFilter();
+			DetachFilter();
 
 			_attachedCompositor = compositor;
 			if (_attachedCompositor != null)
@@ -120,7 +123,7 @@ public partial class BaseFilter : Instance
 		}
 	}
 
-	private void RemoveFilter()
+	private void DetachFilter()
 	{
 		if (_attachedCompositor != null)
 		{
@@ -132,9 +135,9 @@ public partial class BaseFilter : Instance
 	private void UpdateVisibility()
 	{
 		if (!IsHidden && _isEnabled)
-			ApplyFilter();
+			AttachFilter();
 		else
-			RemoveFilter();
+			DetachFilter();
 	}
 
 	protected virtual void UpdateFilter() { }
