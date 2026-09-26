@@ -4,17 +4,13 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class BlurFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/blur.gdshader");
-	}
-
 	private float _blurStrength;
 
 	[Editable, ScriptProperty, DefaultValue(0.05)]
@@ -24,12 +20,9 @@ public partial class BlurFilter : BaseFilter
 		set
 		{
 			_blurStrength = value;
-			UpdateFilter();
+			SetFilterUniform("blur_strength", _blurStrength);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("blur_strength", _blurStrength);
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/blur.gdshader");
 }

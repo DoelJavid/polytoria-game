@@ -4,17 +4,13 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class PosterizeFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/posterize.gdshader");
-	}
-
 	private Vector3I _posterizeLevels = new(0, 0, 10);
 
 	[Editable, ScriptProperty, DefaultValue(0)]
@@ -24,7 +20,7 @@ public partial class PosterizeFilter : BaseFilter
 		set
 		{
 			_posterizeLevels.X = value;
-			UpdateFilter();
+			SetFilterUniform("levels", _posterizeLevels);
 		}
 	}
 
@@ -35,7 +31,7 @@ public partial class PosterizeFilter : BaseFilter
 		set
 		{
 			_posterizeLevels.Y = value;
-			UpdateFilter();
+			SetFilterUniform("levels", _posterizeLevels);
 		}
 	}
 
@@ -46,12 +42,9 @@ public partial class PosterizeFilter : BaseFilter
 		set
 		{
 			_posterizeLevels.Z = value;
-			UpdateFilter();
+			SetFilterUniform("levels", _posterizeLevels);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("levels", _posterizeLevels);
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/posterize.gdshader");
 }

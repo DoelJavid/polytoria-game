@@ -4,17 +4,13 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class VignetteFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/vignette.gdshader");
-	}
-
 	private float _innerRadius = 0.0f;
 	private float _outerRadius = 1.0f;
 	private Vector2 _offset = new(0.5f, 0.5f);
@@ -27,7 +23,7 @@ public partial class VignetteFilter : BaseFilter
 		set
 		{
 			_innerRadius = value;
-			UpdateFilter();
+			SetFilterUniform("inner_radius", _innerRadius);
 		}
 	}
 
@@ -38,7 +34,7 @@ public partial class VignetteFilter : BaseFilter
 		set
 		{
 			_outerRadius = value;
-			UpdateFilter();
+			SetFilterUniform("outer_radius", _outerRadius);
 		}
 	}
 
@@ -49,7 +45,7 @@ public partial class VignetteFilter : BaseFilter
 		set
 		{
 			_offset = value;
-			UpdateFilter();
+			SetFilterUniform("offset", _offset);
 		}
 	}
 
@@ -60,16 +56,9 @@ public partial class VignetteFilter : BaseFilter
 		set
 		{
 			_color = value;
-			UpdateFilter();
+			SetFilterUniform("color", _color);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("inner_radius", _innerRadius);
-		_shaderMaterial.SetShaderParameter("outer_radius", _outerRadius);
-		_shaderMaterial.SetShaderParameter("offset", _offset);
-		_shaderMaterial.SetShaderParameter("color", _color);
-		base.UpdateFilter();
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/vignette.gdshader");
 }

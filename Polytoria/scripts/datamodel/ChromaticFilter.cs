@@ -4,17 +4,13 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class ChromaticFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/chromatic.gdshader");
-	}
-
 	private int _levels;
 	private float _spread;
 
@@ -25,7 +21,7 @@ public partial class ChromaticFilter : BaseFilter
 		set
 		{
 			_levels = value;
-			UpdateFilter();
+			SetFilterUniform("levels", _levels);
 		}
 	}
 
@@ -36,13 +32,9 @@ public partial class ChromaticFilter : BaseFilter
 		set
 		{
 			_spread = value;
-			UpdateFilter();
+			SetFilterUniform("spread", _spread);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("levels", _levels);
-		_shaderMaterial.SetShaderParameter("spread", _spread);
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/chromatic.gdshader");
 }

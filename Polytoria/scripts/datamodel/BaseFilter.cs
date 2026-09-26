@@ -6,17 +6,15 @@ using Godot;
 using Polytoria.Attributes;
 using Polytoria.Shared;
 using Polytoria.Datamodel.Services;
+using System;
 
 namespace Polytoria.Datamodel;
 
 public partial class BaseFilter : Instance
 {
-	internal ShaderMaterial _shaderMaterial = new();
-	internal virtual Shader _filterShader
-	{ get => null!; }
-
 	private bool _isEnabled;
-	private PTCompositor? _attachedCompositor = null;
+	private Shader _filterShader = null!;
+	internal PTCompositorLayer CompositorLayer { get; set; } = null!;
 
 	[Editable, ScriptProperty, DefaultValue(true)]
 	public bool IsEnabled
@@ -29,25 +27,52 @@ public partial class BaseFilter : Instance
 		}
 	}
 
-	public override void Init()
+	public override Node CreateGDNode()
 	{
-		_shaderMaterial.Shader = _filterShader;
-		UpdateVisibility();
-		UpdateFilter();
-		SetProcess(true);
-		base.Init();
+		_filterShader = LoadFilter();
+		CompositorLayer = new(_filterShader);
+		return CompositorLayer;
 	}
 
-	public override void PostReparent()
+	public override void EnterTree()
 	{
 		UpdateVisibility();
-		base.PostReparent();
+		base.EnterTree();
+	}
+
+	public override void ExitTree()
+	{
+		DetachFilter();
+		base.ExitTree();
+	}
+
+	public override void PostIndexMove()
+	{
+		UpdateVisibility();
+		base.PostIndexMove();
 	}
 
 	public override void PreDelete()
 	{
-		_shaderMaterial.Dispose();
+		DetachFilter();
+		_filterShader.Dispose();
 		base.PreDelete();
+	}
+
+	// <summary>
+	// Called to create a new compositor layer with the desired effect.
+	// This method should be overridden.
+	// </summary>
+	protected virtual Shader LoadFilter() => new();
+
+	// <summary>
+	// Used to update shader uniforms. Should be called at the end of every setter.
+	// </summary>
+	public void SetFilterUniform(string uniformName, Variant uniformValue) => CompositorLayer.SetUniform(uniformName, uniformValue);
+
+	private static bool HasCompositor(Instance inst)
+	{
+		return inst is UIViewport || inst is World || inst.IsHidden;
 	}
 
 	private PTCompositor? FindCompositor()
@@ -68,77 +93,135 @@ public partial class BaseFilter : Instance
 		return null;
 	}
 
-	private int GetDescendingFilters(Instance inst)
+	private void GetNearestFilter(out BaseFilter? nearestFilter, out bool isAbove)
 	{
-		// Like GetDescendants(), yet doesn't traverse viewports.
-		int totalFilters = 0;
+		Instance? highInstance = this;
+		Instance? lowInstance = this;
 
-		foreach (Instance child in inst.GetChildren())
+		static Instance? StepUp(Instance at)
 		{
-			if (child is BaseFilter)
-				totalFilters++;
-			if (child is not UIViewport)
-				totalFilters += GetDescendingFilters(child);
-		}
-
-		return totalFilters;
-	}
-
-	private int GetIndex(Instance inst)
-	{
-		int totalFilters = 0;
-		Instance? parent = inst.Parent;
-
-		while (parent != null)
-		{
-			for (int i = inst.Index - 1; i >= 0; i--)
+			if (at.Parent == null) return null;
+			if (at.Index > 0)
 			{
-				Instance other = parent.Children[i];
-				if (other is BaseFilter)
-					totalFilters++;
-				if (other is not UIViewport)
-					totalFilters += GetDescendingFilters(other);
+				int idx = at.Index - 1;
+				GD.Print(at.Index);
+				Instance? sibling = at.Parent.Children?[idx];
+
+				while (sibling != null)
+				{
+					while (HasCompositor(sibling))
+					{
+						if (idx == 0) return sibling.Parent;
+						sibling = sibling.Parent.Children[--idx];
+					}
+
+					if (sibling.Children.Count > 0)
+					{
+						idx = sibling.Children.Count - 1;
+						sibling = sibling.Children[idx];
+					}
+					else break;
+				}
+
+				return sibling;
 			}
 
-			inst = parent;
-			parent = parent.Parent;
+			return HasCompositor(at.Parent) ? null : at.Parent;
 		}
 
-		GD.Print(totalFilters);
-		return totalFilters;
+		static Instance? StepDown(Instance at)
+		{
+			if (at.Children.Count > 0) return at.Children[0];
+			else if (at.Parent != null)
+			{
+				int idx = at.Index + 1;
+				Instance? parent = at.Parent;
+
+				while (idx >= parent.Children.Count)
+				{
+					if (HasCompositor(parent)) return null;
+					idx = parent.Index + 1;
+					parent = parent.Parent;
+					if (parent == null) return null;
+				}
+
+				return parent.Children[idx];
+			}
+			return null;
+		}
+
+		GD.Print("Searching for nearest filter...");
+		do
+		{
+			if (highInstance != null)
+			{
+				highInstance = StepUp(highInstance);
+				if (highInstance is BaseFilter filter)
+				{
+					nearestFilter = filter;
+					isAbove = true;
+					GD.Print("Found filter above");
+					return;
+				}
+			}
+
+			if (lowInstance != null)
+			{
+				lowInstance = StepDown(lowInstance);
+				if (lowInstance is BaseFilter filter)
+				{
+					nearestFilter = filter;
+					isAbove = false;
+					GD.Print("Found filter below");
+					return;
+				}
+			}
+		} while (highInstance != null && lowInstance != null);
+		GD.Print("Failed to find filter");
+
+		nearestFilter = null;
+		isAbove = false;
+		return;
 	}
 
 	private void AttachFilter()
 	{
-		PTCompositor? compositor = FindCompositor();
-		if (compositor != _attachedCompositor)
-		{
-			DetachFilter();
+		if (CompositorLayer.Compositor != null) DetachFilter();
 
-			_attachedCompositor = compositor;
-			if (_attachedCompositor != null)
+		PTCompositor? compositor = FindCompositor();
+		if (compositor != null)
+		{
+			if (compositor.RootLayer == null)
 			{
-				_attachedCompositor.AddRenderPass(_shaderMaterial, GetIndex(this));
+				CompositorLayer.AttachAsRoot(compositor);
+				GD.Print("Attached to root layer");
+			}
+			else
+			{
+				GetNearestFilter(out BaseFilter? nearestFilter, out bool isAbove);
+				if (nearestFilter != null)
+				{
+					if (isAbove) CompositorLayer.AttachAfter(nearestFilter.CompositorLayer);
+					else CompositorLayer.AttachBefore(nearestFilter.CompositorLayer);
+
+					GD.Print(isAbove ? "Attached below" : "Attached above");
+				}
+				else
+				{
+					CompositorLayer.AttachAsRoot(compositor);
+					GD.Print("Attached as root");
+				}
 			}
 		}
+		else CompositorLayer.Detach();
 	}
 
-	private void DetachFilter()
-	{
-		if (_attachedCompositor != null)
-		{
-			_attachedCompositor.RemoveRenderPass(_shaderMaterial);
-			_attachedCompositor = null;
-		}
-	}
+	private void DetachFilter() => CompositorLayer.Detach();
 
+	// TODO: Disable the filter within PTCompositorLayer to prevent scanning again
 	private void UpdateVisibility()
 	{
-		if (!IsHidden && _isEnabled)
-			AttachFilter();
-		else
-			DetachFilter();
+		if (!IsHidden && _isEnabled) AttachFilter();
+		else DetachFilter();
 	}
-
-	protected virtual void UpdateFilter() { }
 }

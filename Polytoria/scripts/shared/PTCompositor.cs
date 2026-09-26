@@ -10,189 +10,177 @@ namespace Polytoria.Shared;
 
 public partial class PTCompositor : Control
 {
-	private Texture2D _renderResult = null!;
+	private Texture2D? _renderResult = null;
 	private PTCompositorLayer? _rootLayer = null;
+	private PTCompositorLayer? _lastLayer = null;
 	private List<Material> _materials = new();
 
 	public SubViewport RootViewport { get; private set; } = null!;
+	public PTCompositorLayer? RootLayer
+	{
+		get => _rootLayer;
+		internal set
+		{
+			if (_rootLayer == value) return;
+			_rootLayer = value;
+			if (_rootLayer != null) _OnResize();
+		}
+	}
+	public PTCompositorLayer? LastLayer
+	{
+		get => _lastLayer;
+		internal set
+		{
+			if (_lastLayer == value) return;
+			_lastLayer = value;
+			if (_lastLayer != null)
+			{
+				_OnResize();
+				_renderResult = _lastLayer.GetTexture();
+			}
+			else _renderResult = null;
+		}
+	}
 
 	public PTCompositor()
 	{
 		RootViewport = new();
-		_renderResult = RootViewport.GetTexture();
+		_OnResize();
 	}
 	public PTCompositor(SubViewport customRoot)
 	{
 		RootViewport = customRoot;
-		_renderResult = RootViewport.GetTexture();
+		_OnResize();
 	}
 
-	public override void _EnterTree()
+	public override void _EnterTree() => Resized += _OnResize;
+	public override void _ExitTree() => Resized -= _OnResize;
+	public override void _Ready() => _OnResize();
+	public override void _Process(double _)
 	{
-		RecomputeViews();
-	}
-
-	public override void _Process(double delta)
-	{
-		PTCompositorLayer layer = _rootLayer;
-		Vector2I compositorSize = new((int)Size.X, (int)Size.Y);
-		RootViewport.Size = compositorSize;
-		while (layer != null)
-		{
-			layer.Size = compositorSize;
-			layer = layer.NextLayer;
-		}
-
+		_OnResize();
 		QueueRedraw();
 	}
 
 	public override void _Draw()
 	{
-		DrawTextureRect(
-			_renderResult,
-			new(Position.X, Position.Y, Position.X + Size.X, Position.Y + Size.Y),
-			false
-		);
-	}
-
-	// TODO: This is naive. Make a better method of doing this.
-	// Ideally, something that doesn't clear all viewports.
-	private void RecomputeViews()
-	{
-		if (_rootLayer != null)
+		if (_renderResult != null)
 		{
-			PTCompositorLayer layer = _rootLayer;
-			while (layer != null)
-			{
-				layer.QueueFree();
-				layer = layer.NextLayer;
-			}
-			_rootLayer = null;
-		}
-
-		PTCompositorLayer? lastLayer = null;
-		foreach (Material mat in _materials)
-		{
-			PTCompositorLayer layer = new(mat);
-			layer.RenderTargetUpdateMode = SubViewport.UpdateMode.Always;
-
-			if (lastLayer == null)
-			{
-				GD.Print("Set root");
-				_rootLayer = layer;
-				layer.RenderTexture = RootViewport.GetTexture();
-			}
-			else
-			{
-				layer.LastLayer = lastLayer;
-			}
-
-			AddChild(layer, true, Node.InternalMode.Back);
-			lastLayer = layer;
-		}
-
-		_renderResult = lastLayer?.GetTexture() ?? _rootLayer.GetTexture();
-	}
-
-	public void AddRenderPass(Material mat, int idx = 0)
-	{
-		if (idx <= 0)
-		{
-			_materials.Add(mat);
-			RecomputeViews();
-		}
-		else
-		{
-			_materials.Insert(idx, mat);
-			RecomputeViews();
+			DrawTextureRect(
+				_renderResult,
+				new(Position.X, Position.Y, Position.X + Size.X, Position.Y + Size.Y),
+				false
+			);
 		}
 	}
 
-	public void SetRenderPasses(Material[] mats)
+	private void _OnResize()
 	{
-		ClearRenderPasses();
-		_materials = new(mats);
-		RecomputeViews();
-	}
-
-	public void RemoveRenderPass(Material mat)
-	{
-		_materials.Remove(mat);
-		RecomputeViews();
-	}
-
-	public void ClearRenderPasses()
-	{
-		_materials = new();
-		RecomputeViews();
+		PTCompositorLayer? layer = _rootLayer;
+		Vector2I compositorSize = new((int)Size.X, (int)Size.Y);
+		RootViewport.Size = compositorSize;
+		while (layer != null)
+		{
+			layer.Size = compositorSize;
+			layer = layer.Next;
+		}
+		_renderResult = _lastLayer?.GetTexture();
 	}
 }
 
 public partial class PTCompositorLayer : SubViewport
 {
-	private PTCompositorLayer? _lastLayer = null;
-	private PTCompositorLayer? _nextLayer = null;
 	private TextureRect _compositorRect = null!;
+	private ShaderMaterial _effectMaterial = new();
 
-	internal Texture2D RenderTexture
-	{
-		get => _compositorRect.Texture;
-		set => _compositorRect.Texture = value;
-	}
+	internal Texture2D? RenderTexture { get => _compositorRect.Texture; set => _compositorRect.Texture = value; }
 
-	public Material Effect
-	{
-		get => _compositorRect.Material;
-		set => _compositorRect.Material = value;
-	}
-
-	public PTCompositorLayer? NextLayer
-	{
-		get => _nextLayer;
-		set
-		{
-			if (_nextLayer == value) return;
-			if (_nextLayer != null) _nextLayer.LastLayer = null;
-
-			_nextLayer = value;
-
-			if (value != null && value.LastLayer != this) _nextLayer.LastLayer = this;
-		}
-	}
-
-	public PTCompositorLayer? LastLayer
-	{
-		get => _lastLayer;
-		set
-		{
-			if (_lastLayer == value) return;
-			if (_lastLayer != null) _lastLayer.NextLayer = null;
-
-			_lastLayer = value;
-
-			if (value != null)
-			{
-				_compositorRect.Texture = value.GetTexture();
-				if (value.NextLayer != this) value.NextLayer = this;
-			}
-		}
-	}
+	public PTCompositorLayer? Next { get; internal set; } = null;
+	public PTCompositorLayer? Last { get; internal set; } = null;
+	public PTCompositor? Compositor { get; internal set; } = null;
+	public Shader? Effect { get => _effectMaterial.Shader; set => _effectMaterial.Shader = value; }
 
 	public PTCompositorLayer()
 	{
 		TransparentBg = true;
 		Msaa2D = Viewport.Msaa.Disabled;
+		RenderTargetUpdateMode = SubViewport.UpdateMode.Always;
 
 		CanvasLayer displayLayer = new();
 		AddChild(displayLayer);
 
 		_compositorRect = new();
+		_compositorRect.Material = _effectMaterial;
 		_compositorRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
 		displayLayer.AddChild(_compositorRect);
 	}
-	public PTCompositorLayer(Material effect)
+
+	public PTCompositorLayer(Shader effect)
 		: this()
+	{ Effect = effect; }
+
+	public override void _ExitTree() => _effectMaterial.Dispose();
+	public void SetUniform(string uniformName, Variant uniformValue) => _effectMaterial.SetShaderParameter(uniformName, uniformValue);
+
+	public void AttachBefore(PTCompositorLayer layer)
 	{
-		Effect = effect;
+		Detach();
+		Compositor = layer.Compositor;
+		if (Compositor?.RootLayer == layer) AttachAsRoot(Compositor);
+		else
+		{
+			Next = layer;
+			Last = layer.Last;
+			layer.Last?.Next = this;
+			layer.Last = this;
+			if (Last != null) RenderTexture = Last.GetTexture();
+		}
+	}
+
+	public void AttachAfter(PTCompositorLayer layer)
+	{
+		Detach();
+		Compositor = layer.Compositor;
+		Last = layer;
+		Next = layer.Next;
+		layer.Next?.Last = this;
+		layer.Next = this;
+		RenderTexture = layer.GetTexture();
+		if (Compositor.LastLayer == layer) Compositor.LastLayer = this;
+	}
+
+	public void AttachAsRoot(PTCompositor newCompositor)
+	{
+		Detach();
+		Compositor = newCompositor;
+		RenderTexture = Compositor.RootViewport.GetTexture();
+		if (Compositor.RootLayer != null)
+		{
+			Next = Compositor.RootLayer;
+			Next.RenderTexture = GetTexture();
+			Next.Last = this;
+			Compositor.RootLayer = this;
+		}
+		else Compositor.LastLayer = Compositor.RootLayer = this;
+	}
+
+	public void Detach()
+	{
+		if (Compositor != null)
+		{
+			if (Compositor.RootLayer == this) Compositor.RootLayer = Next;
+			if (Compositor.LastLayer == this) Compositor.LastLayer = Last;
+			Compositor = null;
+		}
+
+		RenderTexture = null!;
+		Last?.Next = Next;
+		if (Next != null)
+		{
+			Next.Last = Last;
+			Next.RenderTexture = Last?.GetTexture();
+		}
+		Last = null;
+		Next = null;
 	}
 }

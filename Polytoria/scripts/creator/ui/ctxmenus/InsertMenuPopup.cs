@@ -103,6 +103,7 @@ public partial class InsertMenuPopup : PopupPanel
 			"RetroizeFilter",
 			"PosterizeFilter",
 			"HueShiftFilter",
+			"VignetteFilter",
 		},
 		[new() { Title = "UI", RecommendOn = [typeof(UIField), typeof(GUI), typeof(GUI3D), typeof(PlayerGUI)] }] = new()
 		{

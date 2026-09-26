@@ -4,20 +4,15 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class RetroizeFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/retroize.gdshader");
-	}
-
 	private int _pixelSize;
 	private int _ditherStrength;
-	private int _brightnessLevels;
 	private Vector4I _colorDepth;
 
 	[Editable, ScriptProperty, DefaultValue(3)]
@@ -27,7 +22,7 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_pixelSize = value;
-			UpdateFilter();
+			SetFilterUniform("pixel_size", _pixelSize);
 		}
 	}
 
@@ -38,7 +33,7 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_ditherStrength = value;
-			UpdateFilter();
+			SetFilterUniform("dither_strength", _ditherStrength);
 		}
 	}
 
@@ -49,7 +44,7 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_colorDepth.X = value;
-			UpdateFilter();
+			SetFilterUniform("color_depth", _colorDepth);
 		}
 	}
 
@@ -60,7 +55,7 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_colorDepth.Y = value;
-			UpdateFilter();
+			SetFilterUniform("color_depth", _colorDepth);
 		}
 	}
 
@@ -71,7 +66,7 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_colorDepth.Z = value;
-			UpdateFilter();
+			SetFilterUniform("color_depth", _colorDepth);
 		}
 	}
 
@@ -82,15 +77,9 @@ public partial class RetroizeFilter : BaseFilter
 		set
 		{
 			_colorDepth.W = value;
-			UpdateFilter();
+			SetFilterUniform("color_depth", _colorDepth);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("pixel_size", _pixelSize);
-		_shaderMaterial.SetShaderParameter("dither_strength", _ditherStrength);
-		_shaderMaterial.SetShaderParameter("color_depth", _colorDepth);
-		base.UpdateFilter();
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/retroize.gdshader");
 }

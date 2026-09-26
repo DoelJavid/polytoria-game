@@ -4,17 +4,13 @@
 
 using Godot;
 using Polytoria.Attributes;
+using Polytoria.Shared;
 
 namespace Polytoria.Datamodel;
 
 [Instantiable]
 public partial class HueShiftFilter : BaseFilter
 {
-	internal override Shader _filterShader
-	{
-		get => GD.Load<Shader>("res://resources/shaders/filters/hueshift.gdshader");
-	}
-
 	private float _hueShift;
 
 	[Editable, ScriptProperty, DefaultValue(0f)]
@@ -24,12 +20,9 @@ public partial class HueShiftFilter : BaseFilter
 		set
 		{
 			_hueShift = value;
-			UpdateFilter();
+			SetFilterUniform("shift", _hueShift);
 		}
 	}
 
-	protected override void UpdateFilter()
-	{
-		_shaderMaterial.SetShaderParameter("shift", _hueShift);
-	}
+	protected override Shader LoadFilter() => GD.Load<Shader>("res://resources/shaders/filters/hueshift.gdshader");
 }
