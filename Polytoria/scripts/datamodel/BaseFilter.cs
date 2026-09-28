@@ -13,6 +13,7 @@ namespace Polytoria.Datamodel;
 public partial class BaseFilter : Instance
 {
 	private bool _isEnabled;
+	private bool _refreshing = false;
 	private Shader _filterShader = null!;
 	internal PTCompositorLayer CompositorLayer { get; set; } = null!;
 
@@ -221,7 +222,15 @@ public partial class BaseFilter : Instance
 	// TODO: Disable the filter within PTCompositorLayer to prevent scanning again
 	private void UpdateVisibility()
 	{
-		if (!IsHidden && _isEnabled) AttachFilter();
-		else DetachFilter();
+		if (!_refreshing)
+		{
+			_refreshing = true;
+			PT.CallDeferred(() =>
+			{
+				if (!IsHidden && _isEnabled) AttachFilter();
+				else DetachFilter();
+				_refreshing = false;
+			});
+		}
 	}
 }

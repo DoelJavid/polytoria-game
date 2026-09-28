@@ -166,19 +166,19 @@ public partial class PTCompositorLayer : SubViewport
 
 	public void Detach()
 	{
-		if (Compositor != null)
-		{
-			if (Compositor.RootLayer == this) Compositor.RootLayer = Next;
-			if (Compositor.LastLayer == this) Compositor.LastLayer = Last;
-			Compositor = null;
-		}
-
 		RenderTexture = null!;
 		Last?.Next = Next;
-		if (Next != null)
+		Next?.Last = Last;
+
+		if (Compositor != null)
 		{
-			Next.Last = Last;
-			Next.RenderTexture = Last?.GetTexture();
+			if (Compositor.RootLayer == this)
+			{
+				Compositor.RootLayer = Next;
+				Next?.RenderTexture = Compositor.RootViewport.GetTexture();
+			}
+			if (Compositor.LastLayer == this) Compositor.LastLayer = Last;
+			Compositor = null;
 		}
 		Last = null;
 		Next = null;
